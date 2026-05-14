@@ -6,6 +6,8 @@
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "scheme": "errin",
+    "plugins": ["expo-router"],
     "android": {
       "package": "com.errin.app"
     },
