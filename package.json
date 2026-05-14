@@ -1,0 +1,14 @@
+{
+  "name": "errin",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Errin — offline dictionary lookup with SRS, Expo + React Native",
+  "packageManager": "pnpm@11.1.2",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "mobile": "pnpm --filter @errin/mobile",
+    "core": "pnpm --filter @errin/core"
+  }
+}

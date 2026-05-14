@@ -1,0 +1,9 @@
+{
+  "name": "@errin/mobile",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Errin Expo + React Native mobile app",
+  "dependencies": {
+    "@errin/core": "workspace:*"
+  }
+}
