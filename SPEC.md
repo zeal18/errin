@@ -47,6 +47,8 @@ Users download only the pairs they need. All twelve pairs total ~200 MB.
 
 Dictionaries come from [WikDict](https://wikdict.com), downloaded as SQLite files from `https://download.wikdict.com/dictionaries/sqlite/2_2025-11/`. Each bilingual file contains two tables used for lookup:
 
+For development purposes there are downloaded dictionaries and extracted data schemas in the ../wikdict/ directory.
+
 - **`simple_translation`** — fast exact-match lookup keyed on `written_rep`
 - **`translation_grouped`** — richer results with pipe-separated sense definitions and comma-separated translations, sorted by score
 
