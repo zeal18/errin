@@ -1,0 +1,20 @@
+{
+  "expo": {
+    "name": "Errin",
+    "slug": "errin",
+    "version": "0.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "android": {
+      "package": "com.errin.app"
+    },
+    "ios": {
+      "bundleIdentifier": "com.errin.app",
+      "supportsTablet": true
+    },
+    "web": {
+      "bundler": "metro"
+    }
+  }
+}

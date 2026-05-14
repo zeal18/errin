@@ -1,6 +1,6 @@
 ## Phase 1: Foundation
 - [x] T1.1: Initialize pnpm workspace with `apps/mobile` and `packages/core` [QRP-B-]
-- [ ] T1.2: Set up Expo managed project with TypeScript in `apps/mobile`
+- [x] T1.2: Set up Expo managed project with TypeScript in `apps/mobile` [----B-]
 - [ ] T1.3: Configure NativeWind and Expo Router
 - [ ] T1.4: Set up expo-sqlite schema for `Word`, `InstalledDictionary`, and `Settings`
 - [ ] T1.5: Set up Zustand store with slices for installed dictionaries, active language pair, and settings
