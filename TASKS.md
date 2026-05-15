@@ -1,10 +1,5 @@
 - Phase 1: Foundation (5 tasks archived to TASKS-ARCHIVE.md)
-## Phase 2: Core Logic
-- [x] T2.1: Define shared TypeScript types: `Word`, `InstalledDictionary`, `LookupResult`, `LearningStatus`, `Settings` in `packages/core/types.ts` [QR--B-]
-- [x] T2.2: Implement WikDict bilingual SQLite lookup in `packages/core/dictionary.ts` (exact match via `simple_translation`, rich results via `translation_grouped`) [QR--B-]
-- [x] T2.3: Implement SM-2 algorithm in `packages/core/srs.ts` [--P-B-]
-- [x] T2.4: Implement `computeStatus(word: Word): LearningStatus` helper in `packages/core/srs.ts` [----B-]
-
+- Phase 2: Core Logic (4 tasks archived to TASKS-ARCHIVE.md)
 ## Phase 3: Onboarding
 - [x] T3.1: Implement first-launch detection (redirect to onboarding when no dictionary is installed) [----B-]
 - [x] T3.2: Build language selection step (native language + language to learn, from supported list) [----B-]
