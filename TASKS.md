@@ -9,7 +9,7 @@
 - [x] T3.1: Implement first-launch detection (redirect to onboarding when no dictionary is installed) [----B-]
 - [x] T3.2: Build language selection step (native language + language to learn, from supported list) [----B-]
 - [x] T3.3: Build dictionary download step with progress indicator; block navigation until download completes [----B-]
-- [ ] T3.4: Redirect to Lookup tab on completion and ensure onboarding never shown again
+- [ ] T3.4: Redirect to Lookup tab on completion and ensure onboarding never shown again [QRP--!]
 
 ## Phase 4: Lookup Screen
 - [ ] T4.1: Build language pair selector — dropdown when multiple pairs installed, static label when only one
