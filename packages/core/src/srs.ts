@@ -1,4 +1,6 @@
-import type { Word } from './types';
+import type { LearningStatus, Word } from './types';
+
+const LEARNED_INTERVAL_DAYS = 21;
 
 export type ReviewRating = 'again' | 'hard' | 'good' | 'easy';
 
@@ -67,6 +69,12 @@ function nextIntervalDays(
     }
   }
   return prevInterval + 1;
+}
+
+export function computeStatus(word: Word): LearningStatus {
+  if (word.reviews === 0) return 'not_started';
+  if (word.interval >= LEARNED_INTERVAL_DAYS) return 'learned';
+  return 'in_progress';
 }
 
 export function applyReview(word: Word, rating: ReviewRating, options?: ReviewOptions): Word {
