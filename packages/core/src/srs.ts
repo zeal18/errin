@@ -21,6 +21,8 @@ const QUALITY: Record<ReviewRating, number> = {
   easy: 5,
 };
 
+export { INITIAL_EASE };
+
 function clampEase(ease: number): number {
   if (ease < MIN_EASE) return MIN_EASE;
   return ease;

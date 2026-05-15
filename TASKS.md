@@ -2,7 +2,7 @@
 ## Phase 2: Core Logic
 - [x] T2.1: Define shared TypeScript types: `Word`, `InstalledDictionary`, `LookupResult`, `LearningStatus`, `Settings` in `packages/core/types.ts` [QR--B-]
 - [x] T2.2: Implement WikDict bilingual SQLite lookup in `packages/core/dictionary.ts` (exact match via `simple_translation`, rich results via `translation_grouped`) [QR--B-]
-- [ ] T2.3: Implement SM-2 algorithm in `packages/core/srs.ts` [QRP-B-!]
+- [x] T2.3: Implement SM-2 algorithm in `packages/core/srs.ts` [--P-B-]
 - [ ] T2.4: Implement `computeStatus(word: Word): LearningStatus` helper in `packages/core/srs.ts`
 
 ## Phase 3: Onboarding
