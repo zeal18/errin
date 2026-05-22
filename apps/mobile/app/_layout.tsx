@@ -3,6 +3,10 @@ import { useEffect, useState } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import { Stack } from 'expo-router';
 import { hydrateAppStore } from '../store';
+import * as SplashScreen from 'expo-splash-screen';
+
+// Prevent the splash screen from auto-hiding
+SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const [hydrated, setHydrated] = useState(false);
@@ -21,6 +25,13 @@ export default function RootLayout() {
       cancelled = true;
     };
   }, []);
+
+  useEffect(() => {
+    if (hydrated) {
+      // Hide the splash screen once the app is hydrated
+      SplashScreen.hideAsync();
+    }
+  }, [hydrated]);
 
   if (!hydrated) {
     return (

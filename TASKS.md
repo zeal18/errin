@@ -24,4 +24,4 @@
 - [x] T8.1: Write unit tests for SM-2 algorithm [--P-B-]
 - [x] T8.2: Write unit tests for WikDict lookup parsing [Q-P-B-]
 - [x] T8.3: Write unit tests for `computeStatus` [--P-B-]
-- [ ] T8.4: Add app icon and splash screen
+- [x] T8.4: Add app icon and splash screen [----B-]

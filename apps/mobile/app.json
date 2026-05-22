@@ -7,9 +7,22 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "scheme": "errin",
+    "icon": "./assets/icon.svg",
+    "splash": {
+      "image": "./assets/splash.svg",
+      "resizeMode": "contain",
+      "backgroundColor": "#6366f1"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/v2"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "plugins": [
       "expo-router",
-      "expo-sqlite"
+      "expo-sqlite",
+      "expo-splash-screen"
     ],
     "android": {
       "package": "com.errin.app"
