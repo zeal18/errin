@@ -46,6 +46,8 @@ export function WordListItem({ word, onDelete }: WordListItemProps) {
       const dx = gestureState.dx;
       if (dx < 0) {
         pan.setValue(dx);
+      } else {
+        pan.setValue(0);
       }
     },
     onPanResponderRelease: (_, gestureState) => {

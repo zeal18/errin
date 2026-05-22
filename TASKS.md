@@ -41,4 +41,4 @@
 
 ## Discovery Round 4
 - [x] D4.1: Fix array index anti-pattern in ResultsList.tsx senseList rendering - The senseList.map uses key={i} which can cause reconciliation issues when the list order changes. Replace with key={sense} or key={\`${item.writtenRep}-${i}\`} to ensure stable keys. [--P-B-]
-- [ ] D4.2: Fix visual bug in WordListItem swipe animation - When user swipes left then drags right (dx >= 0), the pan value is not updated, causing the word to stay at the last negative position instead of following the finger back to 0. The onPanResponderMove should set pan to 0 when dx >= 0 to provide correct visual feedback during drag.
+- [x] D4.2: Fix visual bug in WordListItem swipe animation - When user swipes left then drags right (dx >= 0), the pan value is not updated, causing the word to stay at the last negative position instead of following the finger back to 0. The onPanResponderMove should set pan to 0 when dx >= 0 to provide correct visual feedback during drag. [--P-B-]
