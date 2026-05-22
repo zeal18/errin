@@ -39,7 +39,6 @@ interface WordListItemProps {
 export function WordListItem({ word, onDelete }: WordListItemProps) {
   const status = computeStatus(word);
   const pan = useRef(new Animated.Value(0)).current;
-  const showDelete = useRef(false);
 
   const panResponder = PanResponder.create({
     onStartShouldSetPanResponder: () => true,
@@ -55,14 +54,12 @@ export function WordListItem({ word, onDelete }: WordListItemProps) {
           toValue: -DELETE_BUTTON_WIDTH,
           useNativeDriver: true,
         }).start();
-        showDelete.current = true;
       } else {
         Animated.spring(pan, {
           toValue: 0,
           useNativeDriver: true,
           bounciness: 10,
         }).start();
-        showDelete.current = false;
       }
     },
   });
