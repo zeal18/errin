@@ -60,7 +60,7 @@ export default function LookupScreen() {
       <LookupInput value={query} onChangeText={setQuery} isLoading={isLoading} onSubmit={submit} />
       <ResultsList results={results} onPress={handlePress} />
       {showSaved && (
-        <View className="absolute bottom-6 left-0 right-0 items-center pointer-events-none">
+        <View className="absolute bottom-6 left-0 right-0 items-center pointer-events-none" accessibilityLiveRegion="polite">
           <View className="bg-neutral-800 px-4 py-2 rounded-full">
             <Text className="text-white text-sm font-medium">Saved</Text>
           </View>
