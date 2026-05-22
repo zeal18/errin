@@ -25,7 +25,7 @@ export function LanguagePairSelector() {
 
   if (dictionaries.length === 1) {
     return (
-      <View className="items-center py-3">
+      <View className="items-center py-3" accessible={true} accessibilityRole="text" accessibilityLabel={pairLabel(effectivePair)}>
         <Text className="text-base font-medium text-neutral-700">
           {pairLabel(effectivePair)}
         </Text>
