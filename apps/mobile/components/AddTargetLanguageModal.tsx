@@ -237,6 +237,7 @@ export function AddTargetLanguageModal({
                     <Pressable
                       key={lang.code}
                       accessibilityRole="button"
+                      accessibilityLabel={lang.name}
                       accessibilityState={{ selected: isSelected }}
                       onPress={() => setSelectedLang(lang.code)}
                       className={`m-1 px-4 py-3 rounded-lg border ${
