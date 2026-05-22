@@ -117,7 +117,7 @@ export default function SettingsScreen() {
           const sourceName = getLanguageName(dict.sourceLang) ?? dict.sourceLang;
           const targetName = getLanguageName(dict.targetLang) ?? dict.targetLang;
           return (
-            <View className="px-4 py-3 border-b border-neutral-200">
+            <View className="px-4 py-3 border-b border-neutral-200" accessible={true} accessibilityRole="text" accessibilityLabel={`${sourceName} to ${targetName}, downloaded ${formatDate(dict.downloadedAt)}`}>
               <Text className="text-lg font-medium">
                 {sourceName} → {targetName}
               </Text>
