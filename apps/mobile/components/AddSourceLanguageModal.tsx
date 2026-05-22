@@ -99,6 +99,7 @@ export function AddSourceLanguageModal({
                 : item
             )
           );
+          downloadHandlesRef.current.delete(pairKey);
         })
         .catch((err: unknown) => {
           const message =
@@ -110,6 +111,7 @@ export function AddSourceLanguageModal({
                 : item
             )
           );
+          downloadHandlesRef.current.delete(pairKey);
         });
     }
 
@@ -156,6 +158,7 @@ export function AddSourceLanguageModal({
               : item
           )
         );
+        downloadHandlesRef.current.delete(pairKey);
       })
       .catch((err: unknown) => {
         const message =
@@ -167,6 +170,7 @@ export function AddSourceLanguageModal({
               : item
           )
         );
+        downloadHandlesRef.current.delete(pairKey);
       });
   };
 

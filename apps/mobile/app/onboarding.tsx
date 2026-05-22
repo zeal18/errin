@@ -61,12 +61,14 @@ export default function OnboardingScreen() {
         });
         await setActivePair({ sourceLang, targetLang: targetLangCode });
         setDownloadState({ kind: 'success' });
+        handleRef.current = null;
         router.replace('/(tabs)/');
       })
       .catch((err: unknown) => {
         const message =
           err instanceof Error ? err.message : 'Download failed. Please try again.';
         setDownloadState({ kind: 'error', message });
+        handleRef.current = null;
       });
   };
 
