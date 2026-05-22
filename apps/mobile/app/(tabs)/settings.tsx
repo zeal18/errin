@@ -5,6 +5,7 @@ import { getLanguageName, SUPPORTED_LANGUAGES } from '@errin/core';
 import { useAppStore } from '../../store';
 import { AddSourceLanguageModal } from '../../components/AddSourceLanguageModal';
 import { AddTargetLanguageModal } from '../../components/AddTargetLanguageModal';
+import type { InstalledDictionary } from '../../store/types';
 
 function formatDate(timestamp: number): string {
   const date = new Date(timestamp);
@@ -19,6 +20,9 @@ export default function SettingsScreen() {
   const dictionaries = useAppStore((s) => s.dictionaries);
   const settings = useAppStore((s) => s.settings);
   const setDailyReviewLimit = useAppStore((s) => s.setDailyReviewLimit);
+  const activePair = useAppStore((s) => s.activePair);
+  const setActivePair = useAppStore((s) => s.setActivePair);
+  const removeDictionary = useAppStore((s) => s.removeDictionary);
   const [showAddSourceModal, setShowAddSourceModal] = useState(false);
   const [showAddTargetModal, setShowAddTargetModal] = useState(false);
   const [limitInput, setLimitInput] = useState(String(settings.dailyReviewLimit));
@@ -74,6 +78,33 @@ export default function SettingsScreen() {
     }
   };
 
+  const handleDeleteDictionary = (dict: InstalledDictionary) => {
+    const sourceName = getLanguageName(dict.sourceLang) ?? dict.sourceLang;
+    const targetName = getLanguageName(dict.targetLang) ?? dict.targetLang;
+    Alert.alert(
+      'Remove Dictionary',
+      `Are you sure you want to remove ${sourceName} -> ${targetName}? This will delete the dictionary file from your device.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Remove',
+          style: 'destructive',
+          onPress: async () => {
+            const isActive = dict.sourceLang === activePair?.sourceLang && dict.targetLang === activePair?.targetLang;
+            const remainingDictionaries = dictionaries.filter(
+              (d) => !(d.sourceLang === dict.sourceLang && d.targetLang === dict.targetLang)
+            );
+            if (isActive) {
+              const newActivePair = remainingDictionaries.length > 0 ? remainingDictionaries[0] : null;
+              await setActivePair(newActivePair);
+            }
+            await removeDictionary(dict.sourceLang, dict.targetLang);
+          },
+        },
+      ]
+    );
+  };
+
   return (
     <View className="flex-1 bg-white">
       <View className="px-4 py-3 border-b border-neutral-200">
@@ -117,13 +148,23 @@ export default function SettingsScreen() {
           const sourceName = getLanguageName(dict.sourceLang) ?? dict.sourceLang;
           const targetName = getLanguageName(dict.targetLang) ?? dict.targetLang;
           return (
-            <View className="px-4 py-3 border-b border-neutral-200" accessible={true} accessibilityRole="text" accessibilityLabel={`${sourceName} to ${targetName}, downloaded ${formatDate(dict.downloadedAt)}`}>
-              <Text className="text-lg font-medium">
-                {sourceName} → {targetName}
-              </Text>
-              <Text className="text-sm text-neutral-500">
-                Downloaded: {formatDate(dict.downloadedAt)}
-              </Text>
+            <View className="px-4 py-3 border-b border-neutral-200 flex-row items-center">
+              <View className="flex-1" accessible={true} accessibilityRole="text" accessibilityLabel={`${sourceName} to ${targetName}, downloaded ${formatDate(dict.downloadedAt)}`}>
+                <Text className="text-lg font-medium">
+                  {sourceName} → {targetName}
+                </Text>
+                <Text className="text-sm text-neutral-500">
+                  Downloaded: {formatDate(dict.downloadedAt)}
+                </Text>
+              </View>
+              <Pressable
+                className="ml-4"
+                accessibilityRole="button"
+                accessibilityLabel={`Delete ${sourceName} to ${targetName} dictionary`}
+                onPress={() => handleDeleteDictionary(dict)}
+              >
+                <Text className="text-red-600 font-semibold text-base">Delete</Text>
+              </Pressable>
             </View>
           );
         }}
