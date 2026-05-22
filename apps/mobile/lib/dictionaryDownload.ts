@@ -75,6 +75,8 @@ export function startDictionaryDownload(
 
   let resumable: ReturnType<typeof createDownloadResumable> | null = null;
 
+  let completed = false;
+
   const promise: Promise<DictionaryDownloadResult> = (async () => {
     await ensureDictionaryDir();
     // Remove any partial file from a prior failed attempt to avoid append/rename issues.
@@ -90,17 +92,23 @@ export function startDictionaryDownload(
     if (result.status < 200 || result.status >= 300) {
       throw new Error(`Download failed with HTTP ${result.status}`);
     }
+    completed = true;
     return {
       filePath: result.uri,
       downloadedAt: Date.now(),
     };
-  })();
+  })().catch((e) => {
+    completed = true;
+    throw e;
+  });
 
   const cancel = async () => {
     if (resumable) {
       await resumable.cancelAsync();
     }
-    await deleteAsync(destPath, { idempotent: true });
+    if (!completed) {
+      await deleteAsync(destPath, { idempotent: true });
+    }
   };
 
   return { promise, cancel };

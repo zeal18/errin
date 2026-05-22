@@ -1,4 +1,4 @@
-package com.errin
+package com.errin.app
 
 import android.os.Build
 import android.os.Bundle
