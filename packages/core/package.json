@@ -4,5 +4,13 @@
   "private": true,
   "description": "Platform-agnostic TypeScript logic (SRS, dictionary lookup, shared types) for Errin",
   "main": "src/index.ts",
-  "types": "src/index.ts"
+  "types": "src/index.ts",
+  "scripts": {
+    "test": "jest --config jest.config.js"
+  },
+  "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "jest": "^30.4.2",
+    "ts-jest": "^29.4.11"
+  }
 }
