@@ -92,6 +92,10 @@ export function WordListItem({ word, onDelete }: WordListItemProps) {
           },
         ]}
         {...panResponder.panHandlers}
+        accessible={true}
+        accessibilityRole="button"
+        accessibilityLabel={"Delete " + word.source}
+        onAccessibilityTap={handleDeletePress}
       >
         <View className="flex-1 mr-3">
           <Text className="text-base font-bold text-neutral-900">
