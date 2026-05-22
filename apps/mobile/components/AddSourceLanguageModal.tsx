@@ -452,7 +452,7 @@ export function AddSourceLanguageModal({
             )}
             {!allDownloadsComplete && (
               <View className="items-center py-2">
-                <ActivityIndicator />
+                <ActivityIndicator accessibilityLabel="Downloading" />
                 <Text className="text-sm text-neutral-500 mt-2">Downloading...</Text>
               </View>
             )}

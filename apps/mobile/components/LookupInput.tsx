@@ -24,7 +24,7 @@ export function LookupInput({ value, onChangeText, isLoading, onSubmit }: Lookup
         accessibilityLabel="Search word"
       />
       {isLoading ? (
-        <ActivityIndicator size="small" color="#3b82f6" className="ml-2" />
+        <ActivityIndicator size="small" color="#3b82f6" className="ml-2" accessibilityLabel="Searching" />
       ) : null}
     </View>
   );

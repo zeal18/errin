@@ -226,7 +226,7 @@ function DownloadStep({ sourceLang, targetLang, state, onRetry }: DownloadStepPr
         {state.kind === 'downloading' ? (
           <DownloadProgressView progress={state.progress} />
         ) : null}
-        {state.kind === 'success' ? <ActivityIndicator /> : null}
+        {state.kind === 'success' ? <ActivityIndicator accessibilityLabel="Loading" /> : null}
         {state.kind === 'error' ? (
           <View className="items-center">
             <Text className="text-base text-red-600 mb-4 text-center">{state.message}</Text>
@@ -288,7 +288,7 @@ function DownloadProgressView({ progress }: { progress: DownloadProgress }) {
       </View>
       {!knownTotal ? (
         <View className="mt-4 items-center">
-          <ActivityIndicator />
+          <ActivityIndicator accessibilityLabel="Loading" />
         </View>
       ) : null}
     </View>
