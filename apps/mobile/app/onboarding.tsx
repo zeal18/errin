@@ -131,6 +131,7 @@ export default function OnboardingScreen() {
 
       <Pressable
         accessibilityRole="button"
+        accessibilityLabel="Continue"
         accessibilityState={{ disabled: !canContinue }}
         disabled={!canContinue}
         className={`rounded-lg py-4 items-center ${
@@ -166,6 +167,7 @@ function LanguageGroup({ title, role, selected, disabledCode, onSelect }: Langua
             <Pressable
               key={lang.code}
               accessibilityRole="button"
+              accessibilityLabel={"Select " + lang.name}
               accessibilityState={{ selected: isSelected, disabled: isDisabled }}
               disabled={isDisabled}
               onPress={() => onSelect(role, lang.code)}
