@@ -15,7 +15,7 @@
 - [x] T6.4: Build session summary screen showing words reviewed and breakdown by rating [--P-B-]
 
 ## Phase 7: Settings Screen
-- [ ] T7.1: Display list of installed dictionaries
+- [x] T7.1: Display list of installed dictionaries [--P-B-]
 - [ ] T7.2: Implement "Add source language" flow: pick language, download pairs against all installed targets
 - [ ] T7.3: Implement "Add target language" flow: pick language, download pairs against all installed sources
 - [ ] T7.4: Add daily review limit control (numeric input, default 20)
