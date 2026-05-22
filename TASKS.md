@@ -7,7 +7,7 @@
 - [x] T3.4: Redirect to Lookup tab on completion and ensure onboarding never shown again [QRP-B-]
 
 ## Phase 4: Lookup Screen
-- [ ] T4.1: Build language pair selector — dropdown when multiple pairs installed, static label when only one
+- [x] T4.1: Build language pair selector — dropdown when multiple pairs installed, static label when only one [----B-]
 - [ ] T4.2: Build text input with lookup against the active dictionary
 - [ ] T4.3: Build results list showing translations and sense for each result
 - [ ] T4.4: Implement tap-to-save: persist word to DB with active pair stamped on it, show brief confirmation
