@@ -52,3 +52,16 @@ export async function deleteWord(id: string): Promise<void> {
   const db = await getDatabase();
   await db.runAsync('DELETE FROM words WHERE id = ?', [id]);
 }
+
+export async function getDueWords(limit: number): Promise<Word[]> {
+  const db = await getDatabase();
+  const now = Date.now();
+  const rows = await db.getAllAsync<WordRow>(
+    `SELECT * FROM words 
+     WHERE due_at <= ? 
+     ORDER BY due_at ASC, created_at ASC 
+     LIMIT ?`,
+    [now, limit]
+  );
+  return rows.map(rowToWord);
+}
