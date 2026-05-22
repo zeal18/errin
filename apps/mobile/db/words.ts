@@ -47,3 +47,8 @@ export async function saveWord(word: Word): Promise<void> {
     ]
   );
 }
+
+export async function deleteWord(id: string): Promise<void> {
+  const db = await getDatabase();
+  await db.runAsync('DELETE FROM words WHERE id = ?', [id]);
+}

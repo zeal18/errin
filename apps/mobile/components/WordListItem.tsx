@@ -1,4 +1,12 @@
-import { Text, View } from 'react-native';
+import { useRef } from 'react';
+import {
+  Animated,
+  PanResponder,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import type { Word, LearningStatus } from '@errin/core';
 import { computeStatus } from '@errin/core';
 
@@ -20,23 +28,118 @@ const STATUS_TEXT_STYLE: Record<LearningStatus, string> = {
   learned: 'text-green-700',
 };
 
+const SWIPE_THRESHOLD = -50;
+const DELETE_BUTTON_WIDTH = 80;
+
 interface WordListItemProps {
   word: Word;
+  onDelete?: (id: string) => void;
 }
 
-export function WordListItem({ word }: WordListItemProps) {
+export function WordListItem({ word, onDelete }: WordListItemProps) {
   const status = computeStatus(word);
+  const pan = useRef(new Animated.Value(0)).current;
+  const showDelete = useRef(false);
+
+  const panResponder = PanResponder.create({
+    onStartShouldSetPanResponder: () => true,
+    onPanResponderMove: (_, gestureState) => {
+      const dx = gestureState.dx;
+      if (dx < 0) {
+        pan.setValue(dx);
+      }
+    },
+    onPanResponderRelease: (_, gestureState) => {
+      if (gestureState.dx < SWIPE_THRESHOLD && onDelete) {
+        Animated.timing(pan, {
+          toValue: -DELETE_BUTTON_WIDTH,
+          useNativeDriver: true,
+        }).start();
+        showDelete.current = true;
+      } else {
+        Animated.spring(pan, {
+          toValue: 0,
+          useNativeDriver: true,
+          bounciness: 10,
+        }).start();
+        showDelete.current = false;
+      }
+    },
+  });
+
+  const handleDeletePress = () => {
+    if (onDelete) {
+      onDelete(word.id);
+    }
+  };
+
+  const deleteButtonTranslate = pan.interpolate({
+    inputRange: [-DELETE_BUTTON_WIDTH, 0],
+    outputRange: [0, DELETE_BUTTON_WIDTH],
+    extrapolate: 'clamp',
+  });
+
   return (
-    <View className="px-4 py-3 border-b border-neutral-100 flex-row items-center">
-      <View className="flex-1 mr-3">
-        <Text className="text-base font-bold text-neutral-900">{word.source}</Text>
-        <Text className="text-sm text-blue-600 mt-0.5">{word.target}</Text>
-      </View>
-      <View className={`px-2 py-0.5 rounded-full ${STATUS_STYLE[status]}`}>
-        <Text className={`text-xs font-medium ${STATUS_TEXT_STYLE[status]}`}>
-          {STATUS_LABEL[status]}
-        </Text>
-      </View>
+    <View className="overflow-hidden">
+      <Animated.View
+        style={[
+          styles.row,
+          {
+            transform: [{ translateX: pan }],
+          },
+        ]}
+        {...panResponder.panHandlers}
+      >
+        <View className="flex-1 mr-3">
+          <Text className="text-base font-bold text-neutral-900">
+            {word.source}
+          </Text>
+          <Text className="text-sm text-blue-600 mt-0.5">{word.target}</Text>
+        </View>
+        <View className={`px-2 py-0.5 rounded-full ${STATUS_STYLE[status]}`}>
+          <Text
+            className={`text-xs font-medium ${STATUS_TEXT_STYLE[status]}`}
+          >
+            {STATUS_LABEL[status]}
+          </Text>
+        </View>
+      </Animated.View>
+      <Animated.View
+        style={[
+          styles.deleteButton,
+          {
+            transform: [{ translateX: deleteButtonTranslate }],
+          },
+        ]}
+      >
+        <Pressable
+          className="flex-1 items-center justify-center"
+          onPress={handleDeletePress}
+        >
+          <Text className="text-white font-semibold text-base">Delete</Text>
+        </Pressable>
+      </Animated.View>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e7eb',
+    backgroundColor: 'white',
+  },
+  deleteButton: {
+    position: 'absolute',
+    right: 0,
+    top: 0,
+    bottom: 0,
+    width: DELETE_BUTTON_WIDTH,
+    backgroundColor: '#ef4444',
+    justifyContent: 'center',
+  },
+});

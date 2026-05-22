@@ -3,7 +3,7 @@ import { FlatList, Pressable, Text, View } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { WordListItem } from '../../components/WordListItem';
-import { getAllWords } from '../../db/words';
+import { deleteWord, getAllWords } from '../../db/words';
 import type { Word } from '@errin/core';
 
 export default function WordsScreen() {
@@ -14,6 +14,11 @@ export default function WordsScreen() {
     const loaded = await getAllWords();
     setWords(loaded);
   }, []);
+
+  const handleDelete = useCallback(async (id: string) => {
+    await deleteWord(id);
+    await loadWords();
+  }, [loadWords]);
 
   useFocusEffect(
     useCallback(() => {
@@ -39,7 +44,9 @@ export default function WordsScreen() {
         <FlatList
           data={words}
           keyExtractor={(item) => item.id}
-          renderItem={({ item }) => <WordListItem word={item} />}
+          renderItem={({ item }) => (
+            <WordListItem word={item} onDelete={handleDelete} />
+          )}
         />
       )}
       <StatusBar style="auto" />
