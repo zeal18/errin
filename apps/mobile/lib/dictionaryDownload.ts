@@ -7,7 +7,9 @@ import {
   type DownloadProgressData,
 } from 'expo-file-system/legacy';
 
-const WIKDICT_BASE_URL = 'https://download.wikdict.com/dictionaries/sqlite/2_2025-11/';
+export const WIKDICT_VERSION = '2_2025-11';
+
+const WIKDICT_BASE_URL = `https://download.wikdict.com/dictionaries/sqlite/${WIKDICT_VERSION}/`;
 const DICT_SUBDIR = 'dictionaries';
 
 export interface DictionaryDownloadResult {
