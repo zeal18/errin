@@ -131,6 +131,7 @@ export function AddTargetLanguageModal({
     if (existingHandle) {
       await existingHandle.cancel().catch(() => {});
     }
+    downloadHandlesRef.current.delete(pairKey);
     const handle = startDictionaryDownload(sourceLang, selectedLang, (progress) => {
       setDownloadItems((prev) =>
         prev.map((item) =>
