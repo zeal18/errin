@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { FlatList, Pressable, Text, TextInput, View } from 'react-native';
+import { Alert, FlatList, Pressable, Text, TextInput, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { getLanguageName, SUPPORTED_LANGUAGES } from '@errin/core';
 import { useAppStore } from '../../store';
@@ -22,6 +22,7 @@ export default function SettingsScreen() {
   const [showAddSourceModal, setShowAddSourceModal] = useState(false);
   const [showAddTargetModal, setShowAddTargetModal] = useState(false);
   const [limitInput, setLimitInput] = useState(String(settings.dailyReviewLimit));
+  const [limitError, setLimitError] = useState('');
 
   // Get already installed source and target languages
   const installedSourceLangs = new Set(dictionaries.map((d) => d.sourceLang));
@@ -39,6 +40,7 @@ export default function SettingsScreen() {
     // Only allow numeric input
     if (/^\d*$/.test(text)) {
       setLimitInput(text);
+      setLimitError('');
     }
   };
 
@@ -50,7 +52,10 @@ export default function SettingsScreen() {
     const num = parseInt(limitInput, 10);
     if (num > 0) {
       setDailyReviewLimit(num);
+      setLimitError('');
     } else {
+      setLimitError('Must be a positive number');
+      Alert.alert('Invalid Value', 'Daily review limit must be greater than 0');
       setLimitInput(String(settings.dailyReviewLimit));
     }
   };
@@ -128,6 +133,7 @@ export default function SettingsScreen() {
             maxLength={3}
           />
         </View>
+        {limitError ? <Text className="text-sm text-red-600 mt-1">{limitError}</Text> : null}
       </View>
 
       <AddSourceLanguageModal
