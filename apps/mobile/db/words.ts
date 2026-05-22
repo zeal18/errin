@@ -65,3 +65,26 @@ export async function getDueWords(limit: number): Promise<Word[]> {
   );
   return rows.map(rowToWord);
 }
+
+export async function updateWord(word: Word): Promise<void> {
+  const db = await getDatabase();
+  await db.runAsync(
+    `UPDATE words 
+     SET source = ?, target = ?, sense = ?, source_lang = ?, target_lang = ?,
+         created_at = ?, due_at = ?, interval = ?, ease = ?, reviews = ?
+     WHERE id = ?`,
+    [
+      word.source,
+      word.target,
+      word.sense,
+      word.sourceLang,
+      word.targetLang,
+      word.createdAt,
+      word.dueAt,
+      word.interval,
+      word.ease,
+      word.reviews,
+      word.id,
+    ]
+  );
+}
