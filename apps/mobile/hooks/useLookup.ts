@@ -1,8 +1,8 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { lookupRich } from '@errin/core';
 import type { LookupResult } from '@errin/core';
 import { useAppStore } from '../store';
-import { openDictionaryDatabase } from '../lib/dictionaryDb';
+import { openDictionaryDatabase, closeDictionaryDatabase } from '../lib/dictionaryDb';
 
 const DEBOUNCE_MS = 300;
 
@@ -38,6 +38,23 @@ export function useLookup(): UseLookupResult {
     : undefined;
 
   const activeFilePath = activeDict?.filePath;
+
+  const prevFilePathRef = useRef<string | null>(null);
+
+  // Cleanup old dictionary database connection when activeFilePath changes or on unmount
+  useEffect(() => {
+    const prevFilePath = prevFilePathRef.current;
+    if (prevFilePath !== null && prevFilePath !== activeFilePath) {
+      closeDictionaryDatabase(prevFilePath).catch(() => {});
+    }
+    prevFilePathRef.current = activeFilePath ?? null;
+
+    return () => {
+      if (activeFilePath) {
+        closeDictionaryDatabase(activeFilePath).catch(() => {});
+      }
+    };
+  }, [activeFilePath]);
 
   const submit = useCallback(() => {
     const trimmed = query.trim();
