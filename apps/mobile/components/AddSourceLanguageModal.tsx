@@ -263,6 +263,7 @@ export function AddSourceLanguageModal({
                 <Pressable
                   accessibilityRole="button"
                   disabled={!canAdd}
+                  accessibilityState={{ disabled: !canAdd }}
                   className={`rounded-lg py-3 px-6 items-center ${
                     canAdd ? 'bg-blue-600' : 'bg-neutral-300'
                   }`}
