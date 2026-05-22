@@ -232,7 +232,6 @@ export function AddTargetLanguageModal({
                       key={lang.code}
                       accessibilityRole="button"
                       accessibilityState={{ selected: isSelected }}
-                      disabled={!availableLanguages.some(l => l.code === lang.code)}
                       onPress={() => setSelectedLang(lang.code)}
                       className={`m-1 px-4 py-3 rounded-lg border ${
                         isSelected
