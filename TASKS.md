@@ -16,7 +16,7 @@
 - [x] T5.1: Build scrollable word list with source word, translation, and learning status badge per entry [----B-]
 - [x] T5.2: Compute and display learning status from SM-2 fields using `computeStatus` [--P-B-]
 - [x] T5.3: Add "Start learning" button that navigates to the Review screen [----B-]
-- [ ] T5.4: Implement swipe-to-delete for word entries
+- [ ] T5.4: Implement swipe-to-delete for word entries [----B-!]
 
 ## Phase 6: Review Screen
 - [ ] T6.1: Load due words from DB up to the daily review limit defined in Settings
