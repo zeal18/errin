@@ -397,6 +397,8 @@ export function AddSourceLanguageModal({
                         <Pressable
                           className="mt-1"
                           onPress={() => onRetry(item.targetLang)}
+                          accessibilityRole="button"
+                          accessibilityLabel={`Retry downloading ${item.sourceLang}-${item.targetLang}`}
                         >
                           <Text className="text-xs text-blue-600 font-medium">Retry</Text>
                         </Pressable>
