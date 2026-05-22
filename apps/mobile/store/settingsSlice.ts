@@ -49,7 +49,7 @@ export const createSettingsSlice: StateCreator<
   setDailyReviewLimit: async (limit) => {
     const db = await getDatabase();
     await db.runAsync('UPDATE settings SET daily_review_limit = ? WHERE id = 1', [limit]);
-    set({ settings: { ...get().settings, dailyReviewLimit: limit } });
+    set((state) => ({ settings: { ...state.settings, dailyReviewLimit: limit } }));
   },
 
   setLastActivePair: async (pair) => {
@@ -58,6 +58,6 @@ export const createSettingsSlice: StateCreator<
       'UPDATE settings SET last_active_source_lang = ?, last_active_target_lang = ? WHERE id = 1',
       [pair?.sourceLang ?? null, pair?.targetLang ?? null]
     );
-    set({ settings: { ...get().settings, lastActivePair: pair } });
+    set((state) => ({ settings: { ...state.settings, lastActivePair: pair } }));
   },
 });
