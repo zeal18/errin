@@ -40,12 +40,16 @@ export default function SettingsScreen() {
   const handleLimitChange = (text: string) => {
     // Only allow numeric input
     if (/^\d*$/.test(text)) {
-      const num = parseInt(text, 10);
-      if (num <= MAX_DAILY_REVIEW_LIMIT) {
-        setLimitInput(text);
+      setLimitInput(text);
+      if (text === '') {
         setLimitError('');
       } else {
-        setLimitError('Maximum 200');
+        const num = parseInt(text, 10);
+        if (num > MAX_DAILY_REVIEW_LIMIT) {
+          setLimitError('Maximum 200');
+        } else {
+          setLimitError('');
+        }
       }
     }
   };
