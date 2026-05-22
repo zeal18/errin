@@ -76,56 +76,54 @@ export default function SettingsScreen() {
         <Text className="text-lg font-semibold text-neutral-900">Languages</Text>
       </View>
 
-      {dictionaries.length === 0 ? (
-        <View className="flex-1 items-center justify-center">
-          <Text className="text-lg text-neutral-600">No dictionaries installed</Text>
+      {(canAddSourceLanguage || canAddTargetLanguage) && (
+        <View className="px-4 py-3 gap-3">
+          {canAddSourceLanguage && (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Add source language"
+              className="w-full rounded-lg py-3 items-center bg-blue-600"
+              onPress={() => setShowAddSourceModal(true)}
+            >
+              <Text className="text-white font-semibold text-base">Add Source Language</Text>
+            </Pressable>
+          )}
+          {canAddTargetLanguage && (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Add target language"
+              className="w-full rounded-lg py-3 items-center bg-blue-600"
+              onPress={() => setShowAddTargetModal(true)}
+            >
+              <Text className="text-white font-semibold text-base">Add Target Language</Text>
+            </Pressable>
+          )}
         </View>
-      ) : (
-        <FlatList
-          data={dictionaries}
-          keyExtractor={(dict) => `${dict.sourceLang}-${dict.targetLang}`}
-          ListHeaderComponent={
-            canAddSourceLanguage || canAddTargetLanguage ? (
-              <View className="px-4 py-3 gap-3">
-                {canAddSourceLanguage && (
-                  <Pressable
-                    accessibilityRole="button"
-                    accessibilityLabel="Add source language"
-                    className="w-full rounded-lg py-3 items-center bg-blue-600"
-                    onPress={() => setShowAddSourceModal(true)}
-                  >
-                    <Text className="text-white font-semibold text-base">Add Source Language</Text>
-                  </Pressable>
-                )}
-                {canAddTargetLanguage && (
-                  <Pressable
-                    accessibilityRole="button"
-                    accessibilityLabel="Add target language"
-                    className="w-full rounded-lg py-3 items-center bg-blue-600"
-                    onPress={() => setShowAddTargetModal(true)}
-                  >
-                    <Text className="text-white font-semibold text-base">Add Target Language</Text>
-                  </Pressable>
-                )}
-              </View>
-            ) : null
-          }
-          renderItem={({ item: dict }) => {
-            const sourceName = getLanguageName(dict.sourceLang) ?? dict.sourceLang;
-            const targetName = getLanguageName(dict.targetLang) ?? dict.targetLang;
-            return (
-              <View className="px-4 py-3 border-b border-neutral-200">
-                <Text className="text-lg font-medium">
-                  {sourceName} → {targetName}
-                </Text>
-                <Text className="text-sm text-neutral-500">
-                  Downloaded: {formatDate(dict.downloadedAt)}
-                </Text>
-              </View>
-            );
-          }}
-        />
       )}
+
+      <FlatList
+        data={dictionaries}
+        keyExtractor={(dict) => `${dict.sourceLang}-${dict.targetLang}`}
+        ListEmptyComponent={
+          <View className="flex-1 items-center justify-center py-20">
+            <Text className="text-lg text-neutral-600">No dictionaries installed</Text>
+          </View>
+        }
+        renderItem={({ item: dict }) => {
+          const sourceName = getLanguageName(dict.sourceLang) ?? dict.sourceLang;
+          const targetName = getLanguageName(dict.targetLang) ?? dict.targetLang;
+          return (
+            <View className="px-4 py-3 border-b border-neutral-200">
+              <Text className="text-lg font-medium">
+                {sourceName} → {targetName}
+              </Text>
+              <Text className="text-sm text-neutral-500">
+                Downloaded: {formatDate(dict.downloadedAt)}
+              </Text>
+            </View>
+          );
+        }}
+      />
 
       <View className="px-4 py-3 border-b border-neutral-200">
         <Text className="text-lg font-semibold text-neutral-900">Daily Review Limit</Text>
