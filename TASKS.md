@@ -12,7 +12,7 @@
 - [x] T6.1: Load due words from DB up to the daily review limit defined in Settings [----B-]
 - [x] T6.2: Build flashcard UI: show source word → tap to reveal translation and sense [--P-B-]
 - [x] T6.3: Build rating controls (Again / Hard / Good / Easy) and apply SM-2 update after each rating [----B-]
-- [ ] T6.4: Build session summary screen showing words reviewed and breakdown by rating
+- [x] T6.4: Build session summary screen showing words reviewed and breakdown by rating [--P-B-]
 
 ## Phase 7: Settings Screen
 - [ ] T7.1: Display list of installed dictionaries

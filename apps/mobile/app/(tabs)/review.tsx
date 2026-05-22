@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import { useRouter } from 'expo-router';
 import { getDueWords, updateWord } from '../../db/words';
 import { useAppStore } from '../../store';
 import { applyReview } from '@errin/core';
@@ -29,12 +30,15 @@ function getRatingColor(rating: Rating, pressed: boolean): string {
 }
 
 export default function ReviewScreen() {
+  const router = useRouter();
   const { settings } = useAppStore();
   const [dueWords, setDueWords] = useState<Word[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState<number>(0);
   const [side, setSide] = useState<CardSide>('front');
   const [showRating, setShowRating] = useState(false);
+  const [ratings, setRatings] = useState<Record<Rating, number>>({ again: 0, hard: 0, good: 0, easy: 0 });
+  const [sessionComplete, setSessionComplete] = useState(false);
 
   const loadDueWords = useCallback(async () => {
     setLoading(true);
@@ -57,15 +61,20 @@ export default function ReviewScreen() {
     // Apply SM-2 update
     const updatedWord = applyReview(currentWord, rating);
     await updateWord(updatedWord);
+    setRatings((r) => ({ ...r, [rating]: r[rating] + 1 }));
     // Move to next card or end session
     if (currentIndex < dueWords.length - 1) {
       setCurrentIndex((i) => i + 1);
       setSide('front');
       setShowRating(false);
     } else {
-      setShowRating(false);
+      setSessionComplete(true);
     }
-  }, [currentIndex, currentWord, dueWords.length]);
+  }, [currentIndex, currentWord, dueWords.length, ratings]);
+
+  const handleSummaryDismiss = useCallback(() => {
+    router.push('/(tabs)/words');
+  }, [router]);
 
   const handleReveal = useCallback(() => {
     setSide('back');
@@ -90,6 +99,22 @@ export default function ReviewScreen() {
         <Text className="text-xl text-neutral-500">Loading...</Text>
       ) : dueWords.length === 0 ? (
         <Text className="text-xl text-neutral-500">No words due for review</Text>
+      ) : sessionComplete ? (
+        <View className="flex-1 items-center justify-center bg-white p-4">
+          <Text className="text-2xl font-bold text-neutral-900 mb-4">Session Complete</Text>
+          <Text className="text-xl text-neutral-600 mb-6">You reviewed {dueWords.length} words</Text>
+          <View className="w-full max-w-md mb-8">
+            {RATING_BUTTONS.map(({ label, rating }) => (
+              <View key={rating} className="flex-row justify-between py-2 border-b border-neutral-200">
+                <Text className="text-neutral-700">{label}</Text>
+                <Text className="text-neutral-900 font-medium">{ratings[rating]}</Text>
+              </View>
+            ))}
+          </View>
+          <Pressable className="bg-blue-600 rounded-xl px-8 py-3 active:opacity-75" onPress={handleSummaryDismiss}>
+            <Text className="text-white font-semibold text-base">Done</Text>
+          </Pressable>
+        </View>
       ) : (
         <View className="flex-1 justify-center items-center w-full">
           <View className="flex-1 w-full items-center justify-center">
