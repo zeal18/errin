@@ -13,7 +13,7 @@
 - [x] T4.4: Implement tap-to-save: persist word to DB with active pair stamped on it, show brief confirmation [----B-]
 
 ## Phase 5: Word List Screen
-- [ ] T5.1: Build scrollable word list with source word, translation, and learning status badge per entry
+- [x] T5.1: Build scrollable word list with source word, translation, and learning status badge per entry [----B-]
 - [ ] T5.2: Compute and display learning status from SM-2 fields using `computeStatus`
 - [ ] T5.3: Add "Start learning" button that navigates to the Review screen
 - [ ] T5.4: Implement swipe-to-delete for word entries

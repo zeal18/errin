@@ -1,5 +1,30 @@
 import { getDatabase } from './index';
 import type { Word } from '@errin/core';
+import type { WordRow } from './schema';
+
+function rowToWord(row: WordRow): Word {
+  return {
+    id: row.id,
+    source: row.source,
+    target: row.target,
+    sense: row.sense,
+    sourceLang: row.source_lang,
+    targetLang: row.target_lang,
+    createdAt: row.created_at,
+    dueAt: row.due_at,
+    interval: row.interval,
+    ease: row.ease,
+    reviews: row.reviews,
+  };
+}
+
+export async function getAllWords(): Promise<Word[]> {
+  const db = await getDatabase();
+  const rows = await db.getAllAsync<WordRow>(
+    'SELECT * FROM words ORDER BY created_at DESC'
+  );
+  return rows.map(rowToWord);
+}
 
 export async function saveWord(word: Word): Promise<void> {
   const db = await getDatabase();
