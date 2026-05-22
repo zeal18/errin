@@ -24,7 +24,7 @@ export function ResultsList({ results, onPress }: ResultsListProps) {
           onPress={() => onPress(item)}
           activeOpacity={0.6}
           accessibilityRole="button"
-          accessibilityLabel={"Save " + item.writtenRep + ". Translation: " + item.transList.join(', ')}
+          accessibilityLabel={"Save " + item.writtenRep + ". Translation: " + item.transList.join(', ') + ". Sense: " + item.senseList.join('. ')}
           className="px-4 py-3 border-b border-neutral-100"
         >
           <Text className="text-base font-bold text-neutral-900 mb-1">{item.writtenRep}</Text>

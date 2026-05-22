@@ -101,12 +101,12 @@ export default function ReviewScreen() {
       ) : dueWords.length === 0 ? (
         <Text className="text-xl text-neutral-500">No words due for review</Text>
       ) : sessionComplete ? (
-        <View className="flex-1 items-center justify-center bg-white p-4">
+        <View className="flex-1 items-center justify-center bg-white p-4" accessible={true} accessibilityRole="text" accessibilityLabel={`Session complete. You reviewed ${dueWords.length} words`}>
           <Text className="text-2xl font-bold text-neutral-900 mb-4">Session Complete</Text>
           <Text className="text-xl text-neutral-600 mb-6">You reviewed {dueWords.length} words</Text>
-          <View className="w-full max-w-md mb-8">
+          <View className="w-full max-w-md mb-8" accessible={true} accessibilityRole="text">
             {RATING_BUTTONS.map(({ label, rating }) => (
-              <View key={rating} className="flex-row justify-between py-2 border-b border-neutral-200">
+              <View key={rating} className="flex-row justify-between py-2 border-b border-neutral-200" accessible={true} accessibilityRole="text" accessibilityLabel={`${label}: ${ratings[rating]}`}>
                 <Text className="text-neutral-700">{label}</Text>
                 <Text className="text-neutral-900 font-medium">{ratings[rating]}</Text>
               </View>
@@ -127,7 +127,7 @@ export default function ReviewScreen() {
                 </View>
               </Pressable>
             ) : (
-              <View className="flex-1 bg-white rounded-2xl shadow-lg p-8 m-4 justify-center items-center w-full">
+              <View className="flex-1 bg-white rounded-2xl shadow-lg p-8 m-4 justify-center items-center w-full" accessible={true} accessibilityRole="text" accessibilityLabel={`Translation: ${currentWord.target}. Sense: ${currentWord.sense}`}>
                 <Text className="text-xl font-semibold text-neutral-900">{currentWord.source}</Text>
                 <Text className="text-blue-600 text-lg mt-2">{currentWord.target}</Text>
                 <Text className="text-neutral-600 text-base mt-4">{currentWord.sense}</Text>

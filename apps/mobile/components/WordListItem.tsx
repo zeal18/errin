@@ -103,7 +103,7 @@ export function WordListItem({ word, onDelete }: WordListItemProps) {
           </Text>
           <Text className="text-sm text-blue-600 mt-0.5">{word.target}</Text>
         </View>
-        <View className={`px-2 py-0.5 rounded-full ${STATUS_STYLE[status]}`}>
+        <View className={`px-2 py-0.5 rounded-full ${STATUS_STYLE[status]}`} accessible={true} accessibilityRole="text" accessibilityLabel={STATUS_LABEL[status]}>
           <Text
             className={`text-xs font-medium ${STATUS_TEXT_STYLE[status]}`}
           >
