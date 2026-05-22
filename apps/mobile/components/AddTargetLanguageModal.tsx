@@ -54,7 +54,8 @@ export function AddTargetLanguageModal({
     if (!selectedLang) return;
     
     setStep('download');
-    const items: DownloadItem[] = installedSourceLangs.map((sourceLang) => ({
+    const validSourceLangs = installedSourceLangs.filter((s) => s !== selectedLang);
+    const items: DownloadItem[] = validSourceLangs.map((sourceLang) => ({
       sourceLang,
       targetLang: selectedLang,
       progress: { totalBytesWritten: 0, totalBytesExpectedToWrite: 0, fraction: 0 },
@@ -65,7 +66,7 @@ export function AddTargetLanguageModal({
     // Start all downloads concurrently
     const handles: Map<string, DownloadHandle> = new Map();
     
-    for (const sourceLang of installedSourceLangs) {
+    for (const sourceLang of validSourceLangs) {
       const pairKey = `${sourceLang}-${selectedLang}`;
       const handle = startDictionaryDownload(sourceLang, selectedLang, (progress) => {
         setDownloadItems((prev) =>

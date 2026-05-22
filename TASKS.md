@@ -27,6 +27,6 @@
 - [x] T8.4: Add app icon and splash screen [----B-]
 
 ## Discovery Round 1
-- [ ] D1.1: Prevent same-language dictionary downloads in AddSourceLanguageModal and AddTargetLanguageModal - When adding a language, the modals attempt to download dictionaries for source=target pairs (e.g., de-de, en-en) which don't exist and will always fail. Add validation to skip pairs where sourceLang === targetLang.
+- [x] D1.1: Prevent same-language dictionary downloads in AddSourceLanguageModal and AddTargetLanguageModal - When adding a language, the modals attempt to download dictionaries for source=target pairs (e.g., de-de, en-en) which don't exist and will always fail. Add validation to skip pairs where sourceLang === targetLang. [--P-B-]
 - [ ] D1.2: Remove unused `showDelete` ref in WordListItem.tsx - The ref is set in panResponder handlers but never read anywhere. Clean up dead code.
 - [ ] D1.3: Add user feedback when invalid daily review limit is entered in Settings - Screen silently reverts to previous value when user enters 0 or negative without any toast or inline error message.
