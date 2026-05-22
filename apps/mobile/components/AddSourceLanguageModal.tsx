@@ -99,7 +99,7 @@ export function AddSourceLanguageModal({
                 : item
             )
           );
-          downloadHandlesRef.current.delete(pairKey);
+          if (downloadHandlesRef.current.get(pairKey) === handle) downloadHandlesRef.current.delete(pairKey);
         })
         .catch((err: unknown) => {
           const message =
@@ -111,7 +111,7 @@ export function AddSourceLanguageModal({
                 : item
             )
           );
-          downloadHandlesRef.current.delete(pairKey);
+          if (downloadHandlesRef.current.get(pairKey) === handle) downloadHandlesRef.current.delete(pairKey);
         });
     }
 
@@ -159,7 +159,7 @@ export function AddSourceLanguageModal({
               : item
           )
         );
-        downloadHandlesRef.current.delete(pairKey);
+        if (downloadHandlesRef.current.get(pairKey) === handle) downloadHandlesRef.current.delete(pairKey);
       })
       .catch((err: unknown) => {
         const message =
@@ -171,7 +171,7 @@ export function AddSourceLanguageModal({
               : item
           )
         );
-        downloadHandlesRef.current.delete(pairKey);
+        if (downloadHandlesRef.current.get(pairKey) === handle) downloadHandlesRef.current.delete(pairKey);
       });
   };
 
