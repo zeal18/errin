@@ -257,6 +257,7 @@ export function AddTargetLanguageModal({
               <View className="flex-row justify-end gap-3">
                 <Pressable
                   accessibilityRole="button"
+                  accessibilityLabel="Cancel"
                   className="rounded-lg py-3 px-6 items-center bg-neutral-200"
                   onPress={closeAndReset}
                 >
@@ -264,6 +265,7 @@ export function AddTargetLanguageModal({
                 </Pressable>
                 <Pressable
                   accessibilityRole="button"
+                  accessibilityLabel="Add"
                   disabled={!canAdd}
                   accessibilityState={{ disabled: !canAdd }}
                   className={`rounded-lg py-3 px-6 items-center ${
@@ -311,6 +313,7 @@ export function AddTargetLanguageModal({
               <View className="flex-row justify-end gap-3">
                 <Pressable
                   accessibilityRole="button"
+                  accessibilityLabel="Back"
                   className="rounded-lg py-3 px-6 items-center bg-blue-600"
                   onPress={closeAndReset}
                 >
@@ -419,6 +422,7 @@ export function AddTargetLanguageModal({
               <View className="flex-row justify-end gap-3">
                 <Pressable
                   accessibilityRole="button"
+                  accessibilityLabel={hasErrors ? 'Close' : 'Done'}
                   className="rounded-lg py-3 px-6 items-center bg-blue-600"
                   onPress={closeAndReset}
                 >
