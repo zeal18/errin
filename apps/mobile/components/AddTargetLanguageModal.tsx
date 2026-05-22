@@ -215,6 +215,8 @@ export function AddTargetLanguageModal({
           <Pressable
             className="bg-white rounded-xl w-80 overflow-hidden"
             onPress={(e) => e.stopPropagation()}
+            accessibilityRole="button"
+            accessibilityLabel="Add target language modal content"
           >
             <View className="px-4 py-3 border-b border-neutral-200">
               <Text className="text-sm font-semibold text-neutral-500 uppercase tracking-wide">
@@ -300,6 +302,8 @@ export function AddTargetLanguageModal({
           <Pressable
             className="bg-white rounded-xl w-80 overflow-hidden"
             onPress={(e) => e.stopPropagation()}
+            accessibilityRole="button"
+            accessibilityLabel="Add target language modal content"
           >
             <View className="px-4 py-3 border-b border-neutral-200">
               <Text className="text-sm font-semibold text-neutral-500 uppercase tracking-wide">
@@ -345,6 +349,8 @@ export function AddTargetLanguageModal({
         <Pressable
           className="bg-white rounded-xl w-80 overflow-hidden"
           onPress={(e) => e.stopPropagation()}
+          accessibilityRole="button"
+          accessibilityLabel="Add target language modal content"
         >
           <View className="px-4 py-3 border-b border-neutral-200">
             <Text className="text-sm font-semibold text-neutral-500 uppercase tracking-wide">

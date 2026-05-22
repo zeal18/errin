@@ -61,6 +61,8 @@ export function LanguagePairSelector() {
           <Pressable
             className="bg-white rounded-xl w-72 overflow-hidden"
             onPress={(e) => e.stopPropagation()}
+            accessibilityRole="button"
+            accessibilityLabel="Select language pair modal content"
           >
             <View className="px-4 py-3 border-b border-neutral-200">
               <Text className="text-sm font-semibold text-neutral-500 uppercase tracking-wide">
