@@ -78,6 +78,7 @@ export default function OnboardingScreen() {
 
   const onRetry = () => {
     if (!nativeLang || !targetLang) return;
+    handleRef.current?.cancel().catch(() => {});
     startDownload(nativeLang, targetLang);
   };
 
