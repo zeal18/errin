@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { FlatList, Pressable, Text, View } from 'react-native';
+import { FlatList, Pressable, Text, TextInput, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { getLanguageName, SUPPORTED_LANGUAGES } from '@errin/core';
 import { useAppStore } from '../../store';
@@ -17,8 +17,11 @@ function formatDate(timestamp: number): string {
 
 export default function SettingsScreen() {
   const dictionaries = useAppStore((s) => s.dictionaries);
+  const settings = useAppStore((s) => s.settings);
+  const setDailyReviewLimit = useAppStore((s) => s.setDailyReviewLimit);
   const [showAddSourceModal, setShowAddSourceModal] = useState(false);
   const [showAddTargetModal, setShowAddTargetModal] = useState(false);
+  const [limitInput, setLimitInput] = useState(String(settings.dailyReviewLimit));
 
   // Get already installed source and target languages
   const installedSourceLangs = new Set(dictionaries.map((d) => d.sourceLang));
@@ -31,6 +34,26 @@ export default function SettingsScreen() {
   const canAddTargetLanguage = SUPPORTED_LANGUAGES.some(
     (l) => !installedTargetLangs.has(l.code)
   );
+
+  const handleLimitChange = (text: string) => {
+    // Only allow numeric input
+    if (/^\d*$/.test(text)) {
+      setLimitInput(text);
+    }
+  };
+
+  const handleLimitBlur = () => {
+    if (limitInput === '') {
+      setLimitInput(String(settings.dailyReviewLimit));
+      return;
+    }
+    const num = parseInt(limitInput, 10);
+    if (num > 0) {
+      setDailyReviewLimit(num);
+    } else {
+      setLimitInput(String(settings.dailyReviewLimit));
+    }
+  };
 
   return (
     <View className="flex-1 bg-white">
@@ -88,6 +111,24 @@ export default function SettingsScreen() {
           }}
         />
       )}
+
+      <View className="px-4 py-3 border-b border-neutral-200">
+        <Text className="text-lg font-semibold text-neutral-900">Daily Review Limit</Text>
+      </View>
+      <View className="px-4 py-3 border-b border-neutral-200">
+        <View className="flex-row items-center gap-4">
+          <Text className="text-base text-neutral-700 flex-1">Words per session</Text>
+          <TextInput
+            className="w-20 h-10 text-center border border-neutral-300 rounded-lg px-2"
+            keyboardType="numeric"
+            value={limitInput}
+            onChangeText={handleLimitChange}
+            onBlur={handleLimitBlur}
+            onSubmitEditing={handleLimitBlur}
+            maxLength={3}
+          />
+        </View>
+      </View>
 
       <AddSourceLanguageModal
         visible={showAddSourceModal}
