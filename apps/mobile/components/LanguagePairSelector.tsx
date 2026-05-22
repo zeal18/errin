@@ -74,6 +74,7 @@ export function LanguagePairSelector() {
                   key={`${dict.sourceLang}-${dict.targetLang}`}
                   accessibilityRole="menuitem"
                   accessibilityState={{ selected: isActive }}
+                  accessibilityLabel={"Select " + pairLabel(dict)}
                   className={`px-4 py-4 border-b border-neutral-100 ${isActive ? 'bg-blue-50' : 'bg-white'}`}
                   onPress={async () => {
                     await setActivePair({ sourceLang: dict.sourceLang, targetLang: dict.targetLang });

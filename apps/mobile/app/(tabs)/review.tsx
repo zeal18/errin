@@ -112,7 +112,7 @@ export default function ReviewScreen() {
               </View>
             ))}
           </View>
-          <Pressable className="bg-blue-600 rounded-xl px-8 py-3 active:opacity-75" onPress={handleSummaryDismiss}>
+          <Pressable className="bg-blue-600 rounded-xl px-8 py-3 active:opacity-75" onPress={handleSummaryDismiss} accessibilityRole="button" accessibilityLabel="Done">
             <Text className="text-white font-semibold text-base">Done</Text>
           </Pressable>
         </View>
@@ -120,7 +120,7 @@ export default function ReviewScreen() {
         <View className="flex-1 justify-center items-center w-full">
           <View className="flex-1 w-full items-center justify-center">
             {side === 'front' ? (
-              <Pressable className="flex-1" onPress={handleReveal}>
+              <Pressable className="flex-1" onPress={handleReveal} accessibilityRole="button" accessibilityLabel="Tap to reveal answer" accessibilityHint="Double tap to show the translation and sense">
                 <View className="flex-1 bg-white rounded-2xl shadow-lg p-8 m-4 justify-center items-center w-full">
                   <Text className="text-3xl font-bold text-neutral-900">{currentWord.source}</Text>
                   <Text className="text-neutral-500 mt-2">Tap to reveal</Text>
@@ -145,6 +145,8 @@ export default function ReviewScreen() {
                           },
                         ]}
                         onPress={() => handleRate(rating)}
+                        accessibilityRole="button"
+                        accessibilityLabel={label}
                       >
                         <Text className="text-center text-white font-semibold">{label}</Text>
                       </Pressable>
@@ -159,6 +161,8 @@ export default function ReviewScreen() {
               className="px-6 py-2 bg-neutral-100 rounded-xl"
               onPress={handlePrev}
               disabled={currentIndex === 0}
+              accessibilityRole="button"
+              accessibilityLabel="Previous"
             >
               <Text className={currentIndex === 0 ? 'opacity-50' : ''}>← Prev</Text>
             </Pressable>
@@ -166,6 +170,8 @@ export default function ReviewScreen() {
               className="px-6 py-2 bg-neutral-100 rounded-xl"
               onPress={handleNext}
               disabled={currentIndex === dueWords.length - 1}
+              accessibilityRole="button"
+              accessibilityLabel="Next"
             >
               <Text className={currentIndex === dueWords.length - 1 ? 'opacity-50' : ''}>Next →</Text>
             </Pressable>

@@ -231,6 +231,7 @@ function DownloadStep({ sourceLang, targetLang, state, onRetry }: DownloadStepPr
       {state.kind === 'error' ? (
         <Pressable
           accessibilityRole="button"
+          accessibilityLabel={"Retry downloading " + pairLabel}
           className="rounded-lg py-4 items-center bg-blue-600"
           onPress={onRetry}
         >

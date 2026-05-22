@@ -143,6 +143,7 @@ export default function SettingsScreen() {
             onBlur={handleLimitBlur}
             onSubmitEditing={handleLimitBlur}
             maxLength={3}
+            accessibilityLabel="Words per session, daily review limit"
           />
         </View>
         {limitError ? <Text className="text-sm text-red-600 mt-1">{limitError}</Text> : null}

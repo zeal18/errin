@@ -32,6 +32,8 @@ export default function WordsScreen() {
         <Pressable
           className="bg-blue-600 rounded-xl py-3 items-center active:opacity-75"
           onPress={() => router.push('/(tabs)/review')}
+          accessibilityRole="button"
+          accessibilityLabel="Start learning"
         >
           <Text className="text-white font-semibold text-base">Start learning</Text>
         </Pressable>
