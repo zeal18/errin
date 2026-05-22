@@ -61,7 +61,7 @@ export default function OnboardingScreen() {
         });
         await setActivePair({ sourceLang, targetLang: targetLangCode });
         setDownloadState({ kind: 'success' });
-        router.replace('/');
+        router.replace('/(tabs)/');
       })
       .catch((err: unknown) => {
         const message =

@@ -1,13 +1,13 @@
 {
   "scout_provider": "mistal",
   "planner_provider": "mistral",
-  "builder_provider": "mistral",
+  "builder_provider": "claude",
   "reviewer_provider": "mistral",
   "fixer_provider": "mistral",
   "discovery_provider": "mistral",
   "scout_model": "mistal-medium-3.5",
   "planner_model": "mistral-medium-3.5",
-  "builder_model": "mistral-medium-3.5",
+  "builder_model": "sonnet",
   "reviewer_model": "mistral-medium-3.5",
   "fixer_model": "mistral-medium-3.5",
   "discovery_model": "mistral-medium-3.5"
