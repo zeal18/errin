@@ -100,6 +100,7 @@ export function startDictionaryDownload(
     if (resumable) {
       await resumable.cancelAsync();
     }
+    await deleteAsync(destPath, { idempotent: true });
   };
 
   return { promise, cancel };
