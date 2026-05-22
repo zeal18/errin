@@ -83,7 +83,7 @@ export default function SettingsScreen() {
       ) : (
         <FlatList
           data={dictionaries}
-          keyExtractor={(dict, index) => `${dict.sourceLang}-${dict.targetLang}-${index}`}
+          keyExtractor={(dict) => `${dict.sourceLang}-${dict.targetLang}`}
           ListHeaderComponent={
             canAddSourceLanguage || canAddTargetLanguage ? (
               <View className="px-4 py-3 gap-3">
