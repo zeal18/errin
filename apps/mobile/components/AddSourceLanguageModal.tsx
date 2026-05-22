@@ -205,6 +205,7 @@ export function AddSourceLanguageModal({
         transparent
         animationType="fade"
         onRequestClose={closeAndReset}
+        accessible={true}
       >
         <Pressable
           className="flex-1 bg-black/40 justify-center items-center"
@@ -217,6 +218,7 @@ export function AddSourceLanguageModal({
             onPress={(e) => e.stopPropagation()}
             accessibilityRole="button"
             accessibilityLabel="Add source language modal content"
+            accessibilityViewIsModal={true}
           >
             <View className="px-4 py-3 border-b border-neutral-200">
               <Text className="text-sm font-semibold text-neutral-500 uppercase tracking-wide">
@@ -292,6 +294,7 @@ export function AddSourceLanguageModal({
         transparent
         animationType="fade"
         onRequestClose={closeAndReset}
+        accessible={true}
       >
         <Pressable
           className="flex-1 bg-black/40 justify-center items-center"
@@ -304,6 +307,7 @@ export function AddSourceLanguageModal({
             onPress={(e) => e.stopPropagation()}
             accessibilityRole="button"
             accessibilityLabel="Add source language modal content"
+            accessibilityViewIsModal={true}
           >
             <View className="px-4 py-3 border-b border-neutral-200">
               <Text className="text-sm font-semibold text-neutral-500 uppercase tracking-wide">
@@ -339,6 +343,7 @@ export function AddSourceLanguageModal({
         transparent
         animationType="fade"
         onRequestClose={allDownloadsComplete ? closeAndReset : undefined}
+        accessible={true}
       >
       <Pressable
         className="flex-1 bg-black/40 justify-center items-center"
@@ -351,6 +356,7 @@ export function AddSourceLanguageModal({
           onPress={(e) => e.stopPropagation()}
           accessibilityRole="button"
           accessibilityLabel="Add source language modal content"
+          accessibilityViewIsModal={true}
         >
           <View className="px-4 py-3 border-b border-neutral-200">
             <Text className="text-sm font-semibold text-neutral-500 uppercase tracking-wide">

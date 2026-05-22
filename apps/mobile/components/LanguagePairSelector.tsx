@@ -51,6 +51,7 @@ export function LanguagePairSelector() {
         transparent
         animationType="fade"
         onRequestClose={() => setOpen(false)}
+        accessible={true}
       >
         <Pressable
           className="flex-1 bg-black/40 justify-center items-center"
@@ -63,6 +64,7 @@ export function LanguagePairSelector() {
             onPress={(e) => e.stopPropagation()}
             accessibilityRole="button"
             accessibilityLabel="Select language pair modal content"
+            accessibilityViewIsModal={true}
           >
             <View className="px-4 py-3 border-b border-neutral-200">
               <Text className="text-sm font-semibold text-neutral-500 uppercase tracking-wide">
