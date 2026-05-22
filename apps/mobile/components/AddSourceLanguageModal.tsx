@@ -177,18 +177,22 @@ export function AddSourceLanguageModal({
   // Clean up download handles on unmount or close
   useEffect(() => {
     return () => {
-      downloadHandlesRef.current.forEach(async (handle) => {
-        await handle.cancel().catch(() => {});
+      const cancelPromises = Array.from(downloadHandlesRef.current.values()).map(
+        (handle) => handle.cancel().catch(() => {})
+      );
+      Promise.all(cancelPromises).then(() => {
+        downloadHandlesRef.current.clear();
       });
-      downloadHandlesRef.current.clear();
     };
   }, []);
 
-  const closeAndReset = () => {
+  const closeAndReset = async () => {
     // Cancel all in-progress downloads
-    downloadHandlesRef.current.forEach(async (handle) => {
-      await handle.cancel().catch(() => {});
-    });
+    await Promise.all(
+      Array.from(downloadHandlesRef.current.values()).map((handle) =>
+        handle.cancel().catch(() => {})
+      )
+    );
     downloadHandlesRef.current.clear();
     setSelectedLang(null);
     setStep('select');
