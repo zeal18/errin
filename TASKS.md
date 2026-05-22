@@ -1,17 +1,7 @@
 - Phase 1: Foundation (5 tasks archived to TASKS-ARCHIVE.md)
 - Phase 2: Core Logic (4 tasks archived to TASKS-ARCHIVE.md)
-## Phase 3: Onboarding
-- [x] T3.1: Implement first-launch detection (redirect to onboarding when no dictionary is installed) [----B-]
-- [x] T3.2: Build language selection step (native language + language to learn, from supported list) [----B-]
-- [x] T3.3: Build dictionary download step with progress indicator; block navigation until download completes [----B-]
-- [x] T3.4: Redirect to Lookup tab on completion and ensure onboarding never shown again [QRP-B-]
-
-## Phase 4: Lookup Screen
-- [x] T4.1: Build language pair selector — dropdown when multiple pairs installed, static label when only one [----B-]
-- [x] T4.2: Build text input with lookup against the active dictionary [----B-]
-- [x] T4.3: Build results list showing translations and sense for each result [--P-B-]
-- [x] T4.4: Implement tap-to-save: persist word to DB with active pair stamped on it, show brief confirmation [----B-]
-
+- Phase 3: Onboarding (4 tasks archived to TASKS-ARCHIVE.md)
+- Phase 4: Lookup Screen (4 tasks archived to TASKS-ARCHIVE.md)
 ## Phase 5: Word List Screen
 - [x] T5.1: Build scrollable word list with source word, translation, and learning status badge per entry [----B-]
 - [x] T5.2: Compute and display learning status from SM-2 fields using `computeStatus` [--P-B-]
