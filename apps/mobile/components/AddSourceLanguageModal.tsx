@@ -350,6 +350,7 @@ export function AddSourceLanguageModal({
         onPress={allDownloadsComplete ? closeAndReset : undefined}
         accessibilityRole="button"
         accessibilityLabel="Close add source language modal"
+        accessibilityState={{ disabled: !allDownloadsComplete }}
       >
         <Pressable
           className="bg-white rounded-xl w-80 overflow-hidden"
