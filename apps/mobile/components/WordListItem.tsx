@@ -67,6 +67,10 @@ export function WordListItem({ word, onDelete }: WordListItemProps) {
   const handleDeletePress = () => {
     if (onDelete) {
       onDelete(word.id);
+      Animated.spring(pan, {
+        toValue: 0,
+        useNativeDriver: true,
+      }).start();
     }
   };
 
