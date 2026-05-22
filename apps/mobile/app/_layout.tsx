@@ -1,8 +1,9 @@
 import '../global.css';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, View } from 'react-native';
+import { ActivityIndicator, AppState, View } from 'react-native';
 import { Stack } from 'expo-router';
 import { hydrateAppStore } from '../store';
+import { closeAllDictionaryDatabases } from '../lib/dictionaryDb';
 import * as SplashScreen from 'expo-splash-screen';
 
 // Prevent the splash screen from auto-hiding
@@ -32,6 +33,15 @@ export default function RootLayout() {
       SplashScreen.hideAsync();
     }
   }, [hydrated]);
+
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (next) => {
+      if (next === 'background') {
+        closeAllDictionaryDatabases().catch(() => {});
+      }
+    });
+    return () => sub.remove();
+  }, []);
 
   if (!hydrated) {
     return (

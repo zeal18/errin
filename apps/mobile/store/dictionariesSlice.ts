@@ -1,5 +1,6 @@
 import type { StateCreator } from 'zustand';
 import { getDatabase, type InstalledDictionaryRow } from '../db';
+import { closeDictionaryDatabase } from '../lib/dictionaryDb';
 import type { InstalledDictionary } from './types';
 
 export interface DictionariesSlice {
@@ -52,6 +53,10 @@ export const createDictionariesSlice: StateCreator<
   },
 
   removeDictionary: async (sourceLang, targetLang) => {
+    const dict = get().dictionaries.find(
+      (d) => d.sourceLang === sourceLang && d.targetLang === targetLang
+    );
+    if (dict) await closeDictionaryDatabase(dict.filePath);
     const db = await getDatabase();
     await db.runAsync(
       'DELETE FROM installed_dictionaries WHERE source_lang = ? AND target_lang = ?',

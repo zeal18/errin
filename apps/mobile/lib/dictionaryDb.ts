@@ -15,14 +15,36 @@ function toDictionaryDatabase(db: SQLite.SQLiteDatabase): DictionaryDatabase {
 }
 
 // Cache open connections by filePath to avoid re-opening on every keystroke
-const openCache = new Map<string, Promise<DictionaryDatabase>>();
+const openCache = new Map<string, { rawDb: Promise<SQLite.SQLiteDatabase>; dictDb: Promise<DictionaryDatabase> }>();
 
 export function openDictionaryDatabase(filePath: string): Promise<DictionaryDatabase> {
   const cached = openCache.get(filePath);
-  if (cached) return cached;
+  if (cached) return cached.dictDb;
 
   const path = uriToPath(filePath);
-  const promise = SQLite.openDatabaseAsync(path).then(toDictionaryDatabase);
-  openCache.set(filePath, promise);
-  return promise;
+  const rawDb = SQLite.openDatabaseAsync(path);
+  const dictDb = rawDb.then(toDictionaryDatabase);
+  openCache.set(filePath, { rawDb, dictDb });
+  return dictDb;
+}
+
+export async function closeDictionaryDatabase(filePath: string): Promise<void> {
+  const cached = openCache.get(filePath);
+  if (cached === undefined) return;
+
+  openCache.delete(filePath);
+
+  try {
+    const rawDb = await cached.rawDb;
+    await rawDb.closeAsync();
+  } catch {
+    // Ignore errors during close
+  }
+}
+
+export function closeAllDictionaryDatabases(): Promise<void> {
+  const closePromises = Array.from(openCache.keys()).map((fp) =>
+    closeDictionaryDatabase(fp).catch(() => {})
+  );
+  return Promise.all(closePromises).then(() => openCache.clear());
 }
