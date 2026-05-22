@@ -163,6 +163,7 @@ export default function ReviewScreen() {
               disabled={currentIndex === 0}
               accessibilityRole="button"
               accessibilityLabel="Previous"
+              accessibilityState={{ disabled: currentIndex === 0 }}
             >
               <Text className={currentIndex === 0 ? 'opacity-50' : ''}>← Prev</Text>
             </Pressable>
@@ -172,6 +173,7 @@ export default function ReviewScreen() {
               disabled={currentIndex === dueWords.length - 1}
               accessibilityRole="button"
               accessibilityLabel="Next"
+              accessibilityState={{ disabled: currentIndex === dueWords.length - 1 }}
             >
               <Text className={currentIndex === dueWords.length - 1 ? 'opacity-50' : ''}>Next →</Text>
             </Pressable>
