@@ -47,10 +47,14 @@ export const createDictionariesSlice: StateCreator<
       'INSERT OR REPLACE INTO installed_dictionaries (source_lang, target_lang, file_path, downloaded_at) VALUES (?, ?, ?, ?)',
       [dict.sourceLang, dict.targetLang, dict.filePath, dict.downloadedAt]
     );
-    const existing = get().dictionaries.filter(
-      (d) => !(d.sourceLang === dict.sourceLang && d.targetLang === dict.targetLang)
-    );
-    set({ dictionaries: [...existing, dict] });
+    set((state) => ({
+      dictionaries: [
+        ...state.dictionaries.filter(
+          (d) => !(d.sourceLang === dict.sourceLang && d.targetLang === dict.targetLang)
+        ),
+        dict,
+      ],
+    }));
   },
 
   removeDictionary: async (sourceLang, targetLang) => {
@@ -66,10 +70,10 @@ export const createDictionariesSlice: StateCreator<
       'DELETE FROM installed_dictionaries WHERE source_lang = ? AND target_lang = ?',
       [sourceLang, targetLang]
     );
-    set({
-      dictionaries: get().dictionaries.filter(
+    set((state) => ({
+      dictionaries: state.dictionaries.filter(
         (d) => !(d.sourceLang === sourceLang && d.targetLang === targetLang)
       ),
-    });
+    }));
   },
 });
