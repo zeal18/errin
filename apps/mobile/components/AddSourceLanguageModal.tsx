@@ -209,6 +209,8 @@ export function AddSourceLanguageModal({
         <Pressable
           className="flex-1 bg-black/40 justify-center items-center"
           onPress={closeAndReset}
+          accessibilityRole="button"
+          accessibilityLabel="Close add source language modal"
         >
           <Pressable
             className="bg-white rounded-xl w-80 overflow-hidden"
@@ -290,6 +292,8 @@ export function AddSourceLanguageModal({
         <Pressable
           className="flex-1 bg-black/40 justify-center items-center"
           onPress={closeAndReset}
+          accessibilityRole="button"
+          accessibilityLabel="Close add source language modal"
         >
           <Pressable
             className="bg-white rounded-xl w-80 overflow-hidden"
@@ -332,6 +336,8 @@ export function AddSourceLanguageModal({
       <Pressable
         className="flex-1 bg-black/40 justify-center items-center"
         onPress={allDownloadsComplete ? closeAndReset : undefined}
+        accessibilityRole="button"
+        accessibilityLabel="Close add source language modal"
       >
         <Pressable
           className="bg-white rounded-xl w-80 overflow-hidden"

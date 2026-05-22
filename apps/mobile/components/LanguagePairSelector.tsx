@@ -55,6 +55,8 @@ export function LanguagePairSelector() {
         <Pressable
           className="flex-1 bg-black/40 justify-center items-center"
           onPress={() => setOpen(false)}
+          accessibilityRole="button"
+          accessibilityLabel="Close language pair selector"
         >
           <Pressable
             className="bg-white rounded-xl w-72 overflow-hidden"
