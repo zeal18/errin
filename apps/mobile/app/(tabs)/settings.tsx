@@ -23,6 +23,7 @@ export default function SettingsScreen() {
   const [showAddTargetModal, setShowAddTargetModal] = useState(false);
   const [limitInput, setLimitInput] = useState(String(settings.dailyReviewLimit));
   const [limitError, setLimitError] = useState('');
+  const MAX_DAILY_REVIEW_LIMIT = 200;
 
   // Get already installed source and target languages
   const installedSourceLangs = new Set(dictionaries.map((d) => d.sourceLang));
@@ -39,8 +40,13 @@ export default function SettingsScreen() {
   const handleLimitChange = (text: string) => {
     // Only allow numeric input
     if (/^\d*$/.test(text)) {
-      setLimitInput(text);
-      setLimitError('');
+      const num = parseInt(text, 10);
+      if (num <= MAX_DAILY_REVIEW_LIMIT) {
+        setLimitInput(text);
+        setLimitError('');
+      } else {
+        setLimitError('Maximum 200');
+      }
     }
   };
 
@@ -50,7 +56,11 @@ export default function SettingsScreen() {
       return;
     }
     const num = parseInt(limitInput, 10);
-    if (num > 0) {
+    if (num > MAX_DAILY_REVIEW_LIMIT) {
+      setLimitError('Maximum 200');
+      Alert.alert('Invalid Value', 'Daily review limit cannot exceed 200');
+      setLimitInput(String(settings.dailyReviewLimit));
+    } else if (num > 0) {
       setDailyReviewLimit(num);
       setLimitError('');
     } else {
