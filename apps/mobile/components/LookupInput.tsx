@@ -4,15 +4,17 @@ interface LookupInputProps {
   value: string;
   onChangeText: (text: string) => void;
   isLoading: boolean;
+  onSubmit?: () => void;
 }
 
-export function LookupInput({ value, onChangeText, isLoading }: LookupInputProps) {
+export function LookupInput({ value, onChangeText, isLoading, onSubmit }: LookupInputProps) {
   return (
     <View className="mx-4 my-3 flex-row items-center bg-neutral-100 rounded-xl px-4">
       <TextInput
         className="flex-1 text-base text-neutral-900 py-3"
         value={value}
         onChangeText={onChangeText}
+        onSubmitEditing={onSubmit}
         placeholder="Type a word…"
         placeholderTextColor="#a3a3a3"
         autoCapitalize="none"

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { lookupRich } from '@errin/core';
 import type { LookupResult } from '@errin/core';
 import { useAppStore } from '../store';
@@ -6,11 +6,17 @@ import { openDictionaryDatabase } from '../lib/dictionaryDb';
 
 const DEBOUNCE_MS = 300;
 
+async function performLookup(activeFilePath: string, trimmed: string): Promise<LookupResult[]> {
+  const db = await openDictionaryDatabase(activeFilePath);
+  return lookupRich(db, trimmed);
+}
+
 export interface UseLookupResult {
   query: string;
   setQuery: (q: string) => void;
   results: LookupResult[];
   isLoading: boolean;
+  submit: () => void;
 }
 
 export function useLookup(): UseLookupResult {
@@ -33,6 +39,25 @@ export function useLookup(): UseLookupResult {
 
   const activeFilePath = activeDict?.filePath;
 
+  const submit = useCallback(() => {
+    const trimmed = query.trim();
+    if (trimmed.length === 0 || !activeFilePath) {
+      setResults([]);
+      setIsLoading(false);
+      return;
+    }
+    setIsLoading(true);
+    performLookup(activeFilePath, trimmed)
+      .then((rows) => {
+        setResults(rows);
+        setIsLoading(false);
+      })
+      .catch(() => {
+        setResults([]);
+        setIsLoading(false);
+      });
+  }, [query, activeFilePath]);
+
   useEffect(() => {
     const trimmed = query.trim();
 
@@ -47,8 +72,7 @@ export function useLookup(): UseLookupResult {
 
     const timer = setTimeout(async () => {
       try {
-        const db = await openDictionaryDatabase(activeFilePath);
-        const rows = await lookupRich(db, trimmed);
+        const rows = await performLookup(activeFilePath, trimmed);
         if (!cancelled) {
           setResults(rows);
           setIsLoading(false);
@@ -67,5 +91,5 @@ export function useLookup(): UseLookupResult {
     };
   }, [query, activeFilePath]);
 
-  return { query, setQuery, results, isLoading };
+  return { query, setQuery, results, isLoading, submit };
 }

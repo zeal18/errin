@@ -18,7 +18,7 @@ function generateId(): string {
 }
 
 export default function LookupScreen() {
-  const { query, setQuery, results, isLoading } = useLookup();
+  const { query, setQuery, results, isLoading, submit } = useLookup();
   const activePair = useAppStore((s) => s.activePair);
   const dictionaries = useAppStore((s) => s.dictionaries);
   const [showSaved, setShowSaved] = useState(false);
@@ -57,7 +57,7 @@ export default function LookupScreen() {
   return (
     <View className="flex-1 bg-white">
       <LanguagePairSelector />
-      <LookupInput value={query} onChangeText={setQuery} isLoading={isLoading} />
+      <LookupInput value={query} onChangeText={setQuery} isLoading={isLoading} onSubmit={submit} />
       <ResultsList results={results} onPress={handlePress} />
       {showSaved && (
         <View className="absolute bottom-6 left-0 right-0 items-center pointer-events-none">
