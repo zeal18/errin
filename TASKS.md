@@ -15,7 +15,7 @@
 ## Phase 5: Word List Screen
 - [x] T5.1: Build scrollable word list with source word, translation, and learning status badge per entry [----B-]
 - [x] T5.2: Compute and display learning status from SM-2 fields using `computeStatus` [--P-B-]
-- [ ] T5.3: Add "Start learning" button that navigates to the Review screen
+- [x] T5.3: Add "Start learning" button that navigates to the Review screen [----B-]
 - [ ] T5.4: Implement swipe-to-delete for word entries
 
 ## Phase 6: Review Screen
