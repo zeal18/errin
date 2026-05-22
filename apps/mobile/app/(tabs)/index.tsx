@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from 'react';
-import { Text, View } from 'react-native';
+import { AccessibilityInfo, Text, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { LanguagePairSelector } from '../../components/LanguagePairSelector';
 import { LookupInput } from '../../components/LookupInput';
@@ -48,6 +48,7 @@ export default function LookupScreen() {
         reviews: 0,
       });
       setShowSaved(true);
+      AccessibilityInfo.announceForAccessibility("Saved");
       if (savedTimer.current) clearTimeout(savedTimer.current);
       savedTimer.current = setTimeout(() => setShowSaved(false), 1500);
     },
@@ -60,7 +61,7 @@ export default function LookupScreen() {
       <LookupInput value={query} onChangeText={setQuery} isLoading={isLoading} onSubmit={submit} />
       <ResultsList results={results} onPress={handlePress} />
       {showSaved && (
-        <View className="absolute bottom-6 left-0 right-0 items-center pointer-events-none" accessibilityLiveRegion="polite">
+        <View className="absolute bottom-6 left-0 right-0 items-center pointer-events-none">
           <View className="bg-neutral-800 px-4 py-2 rounded-full">
             <Text className="text-white text-sm font-medium">Saved</Text>
           </View>
