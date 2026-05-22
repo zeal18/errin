@@ -45,8 +45,8 @@ export default function RootLayout() {
 
   if (!hydrated) {
     return (
-      <View className="flex-1 items-center justify-center bg-white">
-        <ActivityIndicator />
+      <View className="flex-1 items-center justify-center bg-white" accessible={true} accessibilityRole="text" accessibilityLabel="Loading app, please wait">
+        <ActivityIndicator accessibilityLabel="Loading" />
       </View>
     );
   }
