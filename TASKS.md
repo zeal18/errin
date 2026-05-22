@@ -10,7 +10,7 @@
 - [x] T4.1: Build language pair selector — dropdown when multiple pairs installed, static label when only one [----B-]
 - [x] T4.2: Build text input with lookup against the active dictionary [----B-]
 - [x] T4.3: Build results list showing translations and sense for each result [--P-B-]
-- [ ] T4.4: Implement tap-to-save: persist word to DB with active pair stamped on it, show brief confirmation
+- [x] T4.4: Implement tap-to-save: persist word to DB with active pair stamped on it, show brief confirmation [----B-]
 
 ## Phase 5: Word List Screen
 - [ ] T5.1: Build scrollable word list with source word, translation, and learning status badge per entry
