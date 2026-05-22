@@ -121,10 +121,14 @@ export function AddTargetLanguageModal({
     startDownloads();
   };
 
-  const onRetry = (sourceLang: string) => {
+  const onRetry = async (sourceLang: string) => {
     if (!selectedLang) return;
     
     const pairKey = `${sourceLang}-${selectedLang}`;
+    const existingHandle = downloadHandlesRef.current.get(pairKey);
+    if (existingHandle) {
+      await existingHandle.cancel().catch(() => {});
+    }
     const handle = startDictionaryDownload(sourceLang, selectedLang, (progress) => {
       setDownloadItems((prev) =>
         prev.map((item) =>
