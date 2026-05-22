@@ -95,7 +95,7 @@ export default function SettingsScreen() {
               (d) => !(d.sourceLang === dict.sourceLang && d.targetLang === dict.targetLang)
             );
             if (isActive) {
-              const newActivePair = remainingDictionaries.length > 0 ? remainingDictionaries[0] : null;
+              const newActivePair = remainingDictionaries.length > 0 ? { sourceLang: remainingDictionaries[0].sourceLang, targetLang: remainingDictionaries[0].targetLang } : null;
               await setActivePair(newActivePair);
             }
             await removeDictionary(dict.sourceLang, dict.targetLang);
