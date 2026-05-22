@@ -122,6 +122,8 @@ export function WordListItem({ word, onDelete }: WordListItemProps) {
         <Pressable
           className="flex-1 items-center justify-center"
           onPress={handleDeletePress}
+          accessibilityRole="button"
+          accessibilityLabel="Delete"
         >
           <Text className="text-white font-semibold text-base">Delete</Text>
         </Pressable>
