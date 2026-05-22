@@ -8,7 +8,7 @@
 
 ## Phase 4: Lookup Screen
 - [x] T4.1: Build language pair selector — dropdown when multiple pairs installed, static label when only one [----B-]
-- [ ] T4.2: Build text input with lookup against the active dictionary
+- [x] T4.2: Build text input with lookup against the active dictionary [----B-]
 - [ ] T4.3: Build results list showing translations and sense for each result
 - [ ] T4.4: Implement tap-to-save: persist word to DB with active pair stamped on it, show brief confirmation
 

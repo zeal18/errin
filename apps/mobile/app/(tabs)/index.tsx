@@ -1,14 +1,16 @@
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { LanguagePairSelector } from '../../components/LanguagePairSelector';
+import { LookupInput } from '../../components/LookupInput';
+import { useLookup } from '../../hooks/useLookup';
 
 export default function LookupScreen() {
+  const { query, setQuery, results, isLoading } = useLookup();
+
   return (
     <View className="flex-1 bg-white">
       <LanguagePairSelector />
-      <View className="flex-1 items-center justify-center">
-        <Text className="text-2xl font-bold">Lookup</Text>
-      </View>
+      <LookupInput value={query} onChangeText={setQuery} isLoading={isLoading} />
       <StatusBar style="auto" />
     </View>
   );
