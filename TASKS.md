@@ -22,6 +22,6 @@
 
 ## Phase 8: Polish & Testing
 - [x] T8.1: Write unit tests for SM-2 algorithm [--P-B-]
-- [ ] T8.2: Write unit tests for WikDict lookup parsing
+- [x] T8.2: Write unit tests for WikDict lookup parsing [Q-P-B-]
 - [ ] T8.3: Write unit tests for `computeStatus`
 - [ ] T8.4: Add app icon and splash screen
