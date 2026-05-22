@@ -58,14 +58,15 @@ export const createDictionariesSlice: StateCreator<
   },
 
   removeDictionary: async (sourceLang, targetLang) => {
-    const dict = get().dictionaries.find(
-      (d) => d.sourceLang === sourceLang && d.targetLang === targetLang
-    );
-    if (dict) {
-      await closeDictionaryDatabase(dict.filePath);
-      await deleteAsync(dict.filePath, { idempotent: true });
-    }
     const db = await getDatabase();
+    const row = await db.getFirstAsync<{ file_path: string }>(
+      'SELECT file_path FROM installed_dictionaries WHERE source_lang = ? AND target_lang = ?',
+      [sourceLang, targetLang]
+    );
+    if (row?.file_path) {
+      await closeDictionaryDatabase(row.file_path);
+      await deleteAsync(row.file_path, { idempotent: true });
+    }
     await db.runAsync(
       'DELETE FROM installed_dictionaries WHERE source_lang = ? AND target_lang = ?',
       [sourceLang, targetLang]
