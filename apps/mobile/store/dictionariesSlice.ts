@@ -1,6 +1,7 @@
 import type { StateCreator } from 'zustand';
 import { getDatabase, type InstalledDictionaryRow } from '../db';
 import { closeDictionaryDatabase } from '../lib/dictionaryDb';
+import { deleteAsync } from 'expo-file-system/legacy';
 import type { InstalledDictionary } from './types';
 
 export interface DictionariesSlice {
@@ -56,7 +57,10 @@ export const createDictionariesSlice: StateCreator<
     const dict = get().dictionaries.find(
       (d) => d.sourceLang === sourceLang && d.targetLang === targetLang
     );
-    if (dict) await closeDictionaryDatabase(dict.filePath);
+    if (dict) {
+      await closeDictionaryDatabase(dict.filePath);
+      await deleteAsync(dict.filePath, { idempotent: true });
+    }
     const db = await getDatabase();
     await db.runAsync(
       'DELETE FROM installed_dictionaries WHERE source_lang = ? AND target_lang = ?',
