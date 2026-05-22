@@ -8,7 +8,7 @@ import {
 } from '../lib/dictionaryDownload';
 import { useAppStore } from '../store';
 
-type Step = 'select' | 'download';
+type Step = 'select' | 'download' | 'empty';
 
 interface DownloadItem {
   sourceLang: string;
@@ -53,8 +53,13 @@ export function AddSourceLanguageModal({
   const startDownloads = async () => {
     if (!selectedLang) return;
     
-    setStep('download');
     const validTargetLangs = installedTargetLangs.filter((t) => t !== selectedLang);
+    if (validTargetLangs.length === 0) {
+      setStep('empty');
+      return;
+    }
+    
+    setStep('download');
     const items: DownloadItem[] = validTargetLangs.map((targetLang) => ({
       sourceLang: selectedLang,
       targetLang,
@@ -270,14 +275,56 @@ export function AddSourceLanguageModal({
     );
   }
 
+  if (step === 'empty') {
+    return (
+      <Modal
+        visible={visible}
+        transparent
+        animationType="fade"
+        onRequestClose={closeAndReset}
+      >
+        <Pressable
+          className="flex-1 bg-black/40 justify-center items-center"
+          onPress={closeAndReset}
+        >
+          <Pressable
+            className="bg-white rounded-xl w-80 overflow-hidden"
+            onPress={(e) => e.stopPropagation()}
+          >
+            <View className="px-4 py-3 border-b border-neutral-200">
+              <Text className="text-sm font-semibold text-neutral-500 uppercase tracking-wide">
+                Add Source Language
+              </Text>
+            </View>
+            <View className="p-4">
+              <Text className="text-sm text-neutral-600 mb-4">
+                No target languages installed. Please add a target language first, then try adding a source language again.
+              </Text>
+              <View className="flex-row justify-end gap-3">
+                <Pressable
+                  accessibilityRole="button"
+                  className="rounded-lg py-3 px-6 items-center bg-blue-600"
+                  onPress={closeAndReset}
+                >
+                  <Text className="text-white font-semibold text-base">Back</Text>
+                </Pressable>
+              </View>
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
+    );
+  }
+
   // Download step
-  return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="fade"
-      onRequestClose={allDownloadsComplete ? closeAndReset : undefined}
-    >
+  if (step === 'download') {
+    return (
+      <Modal
+        visible={visible}
+        transparent
+        animationType="fade"
+        onRequestClose={allDownloadsComplete ? closeAndReset : undefined}
+      >
       <Pressable
         className="flex-1 bg-black/40 justify-center items-center"
         onPress={allDownloadsComplete ? closeAndReset : undefined}
@@ -380,4 +427,5 @@ export function AddSourceLanguageModal({
       </Pressable>
     </Modal>
   );
+  }
 }
