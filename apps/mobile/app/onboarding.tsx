@@ -61,14 +61,12 @@ export default function OnboardingScreen() {
         });
         await setActivePair({ sourceLang, targetLang: targetLangCode });
         setDownloadState({ kind: 'success' });
-        handleRef.current = null;
         router.replace('/(tabs)/');
       })
       .catch((err: unknown) => {
         const message =
           err instanceof Error ? err.message : 'Download failed. Please try again.';
         setDownloadState({ kind: 'error', message });
-        handleRef.current = null;
       });
   };
 
@@ -80,8 +78,10 @@ export default function OnboardingScreen() {
 
   const onRetry = async () => {
     if (!nativeLang || !targetLang) return;
+    const oldHandle = handleRef.current;
+    handleRef.current = null;
     try {
-      await handleRef.current?.cancel();
+      await oldHandle?.cancel();
     } catch {}
     startDownload(nativeLang, targetLang);
   };
@@ -89,9 +89,11 @@ export default function OnboardingScreen() {
   // Cancel any in-flight download if the screen unmounts.
   useEffect(() => {
     return () => {
-      handleRef.current?.cancel().catch(() => {});
+      if (downloadState.kind === 'downloading') {
+        handleRef.current?.cancel().catch(() => {});
+      }
     };
-  }, []);
+  }, [downloadState.kind]);
 
   if (step === 'download') {
     return (
