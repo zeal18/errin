@@ -17,7 +17,7 @@
 ## Phase 7: Settings Screen
 - [x] T7.1: Display list of installed dictionaries [--P-B-]
 - [x] T7.2: Implement "Add source language" flow: pick language, download pairs against all installed targets [----B-]
-- [ ] T7.3: Implement "Add target language" flow: pick language, download pairs against all installed sources
+- [x] T7.3: Implement "Add target language" flow: pick language, download pairs against all installed sources [----B-]
 - [ ] T7.4: Add daily review limit control (numeric input, default 20)
 
 ## Phase 8: Polish & Testing
