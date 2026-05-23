@@ -73,7 +73,7 @@ export function startDictionaryDownload(
     });
   };
 
-  let resumable: ReturnType<typeof createDownloadResumable> | null = null;
+  const resumable = createDownloadResumable(url, destPath, {}, progressCallback);
 
   let completed = false;
 
@@ -84,7 +84,6 @@ export function startDictionaryDownload(
     if (existing.exists) {
       await deleteAsync(destPath, { idempotent: true });
     }
-    resumable = createDownloadResumable(url, destPath, {}, progressCallback);
     const result = await resumable.downloadAsync();
     if (!result) {
       throw new Error('Download was cancelled');
@@ -103,9 +102,7 @@ export function startDictionaryDownload(
   });
 
   const cancel = async () => {
-    if (resumable) {
-      await resumable.cancelAsync();
-    }
+    await resumable.cancelAsync();
     if (!completed) {
       await deleteAsync(destPath, { idempotent: true });
     }
