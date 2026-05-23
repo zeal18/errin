@@ -21,6 +21,11 @@ export interface InstalledDictionary {
   downloadedAt: number;
 }
 
+export interface LanguagePair {
+  sourceLang: string;
+  targetLang: string;
+}
+
 export interface LookupResult {
   writtenRep: string;
   transList: string[];
@@ -30,5 +35,5 @@ export interface LookupResult {
 
 export interface Settings {
   dailyReviewLimit: number;
-  lastActivePair: { sourceLang: string; targetLang: string } | null;
+  lastActivePair: LanguagePair | null;
 }

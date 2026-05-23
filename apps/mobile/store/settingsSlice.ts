@@ -1,6 +1,6 @@
 import type { StateCreator } from 'zustand';
 import { getDatabase, type SettingsRow } from '../db';
-import type { LanguagePair, Settings } from './types';
+import type { LanguagePair, Settings } from '@errin/core';
 
 export interface SettingsSlice {
   settings: Settings;

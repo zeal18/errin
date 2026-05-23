@@ -21,7 +21,7 @@ export async function hydrateAppStore(): Promise<void> {
   useAppStore.setState({ activePair: settings.lastActivePair });
 }
 
-export type { InstalledDictionary, LanguagePair, Settings } from './types';
+export type { InstalledDictionary, LanguagePair, Settings } from '@errin/core';
 export type { DictionariesSlice } from './dictionariesSlice';
 export type { ActivePairSlice } from './activePairSlice';
 export type { SettingsSlice } from './settingsSlice';

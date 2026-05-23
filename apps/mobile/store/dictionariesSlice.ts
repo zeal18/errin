@@ -2,7 +2,7 @@ import type { StateCreator } from 'zustand';
 import { getDatabase, type InstalledDictionaryRow } from '../db';
 import { closeDictionaryDatabase } from '../lib/dictionaryDb';
 import { deleteAsync } from 'expo-file-system/legacy';
-import type { InstalledDictionary } from './types';
+import type { InstalledDictionary } from '@errin/core';
 
 export interface DictionariesSlice {
   dictionaries: InstalledDictionary[];

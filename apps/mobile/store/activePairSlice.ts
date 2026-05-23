@@ -1,6 +1,6 @@
 import type { StateCreator } from 'zustand';
 import type { SettingsSlice } from './settingsSlice';
-import type { LanguagePair } from './types';
+import type { LanguagePair } from '@errin/core';
 
 export interface ActivePairSlice {
   activePair: LanguagePair | null;

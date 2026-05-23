@@ -5,7 +5,7 @@ import { getLanguageName, SUPPORTED_LANGUAGES } from '@errin/core';
 import { useAppStore } from '../../store';
 import { AddSourceLanguageModal } from '../../components/AddSourceLanguageModal';
 import { AddTargetLanguageModal } from '../../components/AddTargetLanguageModal';
-import type { InstalledDictionary } from '../../store/types';
+import type { InstalledDictionary } from '@errin/core';
 
 function formatDate(timestamp: number): string {
   const date = new Date(timestamp);

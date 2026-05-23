@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { Modal, Pressable, Text, View } from 'react-native';
-import { getLanguageName } from '@errin/core';
+import { getLanguageName, type LanguagePair } from '@errin/core';
 import { useAppStore } from '../store';
-import type { LanguagePair } from '../store';
 
 function pairLabel(pair: LanguagePair): string {
   const src = getLanguageName(pair.sourceLang) ?? pair.sourceLang;
