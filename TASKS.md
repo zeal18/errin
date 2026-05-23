@@ -46,3 +46,6 @@ No new tasks discovered.
 - [x] T9.3: Remove unnecessary `ratings` dependency from `handleRate` useCallback in ReviewScreen [----B-]
 - [x] T9.4: Add `useEffect` keyed on `visible` to reset state in `AddSourceLanguageModal` and `AddTargetLanguageModal` when modal re-opens after being closed mid-download [----B-]
 - [x] T9.5: Consolidate `InstalledDictionary` and `Settings` type definitions — remove duplicates from `apps/mobile/store/types.ts` and import from `@errin/core` instead [----B-]
+
+## Discovery Round 38
+- [ ] D38.1: Restore missing computeStatus edge case tests after D35.1 — D35.1 deleted computeStatus.test.ts (11 tests) claiming they were duplicated in srs.test.ts, but srs.test.ts only had 4 computeStatus tests. Two unique edge cases lack explicit coverage: (1) reviews>0 with interval===0 should return 'in_progress' (validates interval 0 handling for reviewed words), and (2) reviews===0 with interval>=21 should return 'not_started' (validates reviews precedence over interval). Fix by adding these 2 edge case tests to srs.test.ts.
