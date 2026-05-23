@@ -1,4 +1,4 @@
-package com.errin.app
+package com.errin
 
 import android.app.Application
 import android.content.res.Configuration

@@ -5,6 +5,7 @@ import {
   type DictionariesSlice,
 } from './dictionariesSlice';
 import { createSettingsSlice, type SettingsSlice } from './settingsSlice';
+import type { LanguagePair } from '@errin/core';
 
 export type AppStore = DictionariesSlice & ActivePairSlice & SettingsSlice;
 
@@ -17,8 +18,36 @@ export const useAppStore = create<AppStore>()((...a) => ({
 export async function hydrateAppStore(): Promise<void> {
   const { hydrateDictionaries, hydrateSettings } = useAppStore.getState();
   await Promise.all([hydrateDictionaries(), hydrateSettings()]);
-  const { settings } = useAppStore.getState();
-  useAppStore.setState({ activePair: settings.lastActivePair });
+  const { settings, dictionaries } = useAppStore.getState();
+  
+  // Validate settings.lastActivePair against installed dictionaries
+  let activePair: LanguagePair | null = null;
+  
+  if (settings.lastActivePair && dictionaries.length > 0) {
+    // Check if the last active pair still exists in dictionaries
+    const pairExists = dictionaries.some(
+      (d) => d.sourceLang === settings.lastActivePair!.sourceLang && 
+             d.targetLang === settings.lastActivePair!.targetLang
+    );
+    if (pairExists) {
+      activePair = settings.lastActivePair;
+    } else {
+      // Fall back to the first dictionary's pair
+      activePair = {
+        sourceLang: dictionaries[0].sourceLang,
+        targetLang: dictionaries[0].targetLang,
+      };
+    }
+  } else if (dictionaries.length > 0) {
+    // No lastActivePair but dictionaries exist, use first one
+    activePair = {
+      sourceLang: dictionaries[0].sourceLang,
+      targetLang: dictionaries[0].targetLang,
+    };
+  }
+  // If no dictionaries, activePair remains null
+  
+  useAppStore.setState({ activePair });
 }
 
 export type { InstalledDictionary, LanguagePair, Settings } from '@errin/core';
