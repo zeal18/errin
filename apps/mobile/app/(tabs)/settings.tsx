@@ -68,6 +68,7 @@ export default function SettingsScreen() {
       setLimitError('Maximum 200');
       Alert.alert('Invalid Value', 'Daily review limit cannot exceed 200');
       setLimitInput(String(settings.dailyReviewLimit));
+      setLimitError('');
     } else if (num > 0) {
       setDailyReviewLimit(num);
       setLimitError('');
@@ -75,6 +76,7 @@ export default function SettingsScreen() {
       setLimitError('Must be a positive number');
       Alert.alert('Invalid Value', 'Daily review limit must be greater than 0');
       setLimitInput(String(settings.dailyReviewLimit));
+      setLimitError('');
     }
   };
 
