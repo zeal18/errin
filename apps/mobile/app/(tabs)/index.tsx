@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { AccessibilityInfo, Text, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { LanguagePairSelector } from '../../components/LanguagePairSelector';
@@ -16,6 +16,8 @@ export default function LookupScreen() {
   const dictionaries = useAppStore((s) => s.dictionaries);
   const [showSaved, setShowSaved] = useState(false);
   const savedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => () => { if (savedTimer.current) clearTimeout(savedTimer.current); }, []);
 
   const effectivePair =
     activePair ??
