@@ -79,11 +79,10 @@ export default function OnboardingScreen() {
   const onRetry = async () => {
     if (!nativeLang || !targetLang) return;
     const oldHandle = handleRef.current;
-    handleRef.current = null;
+    startDownload(nativeLang, targetLang);
     try {
       await oldHandle?.cancel();
     } catch {}
-    startDownload(nativeLang, targetLang);
   };
 
   // Cancel any in-flight download if the screen unmounts.
