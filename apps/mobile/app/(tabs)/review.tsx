@@ -72,12 +72,12 @@ export default function ReviewScreen() {
   const handleRate = useCallback(async (rating: Rating) => {
     if (!currentWord) return;
     if (ratedWordIds.has(currentWord.id)) return;
+    setRatedWordIds((s) => new Set(s).add(currentWord.id));
     // Apply SM-2 update
     const updatedWord = applyReview(currentWord, rating);
     await updateWord(updatedWord);
     setRatings((r) => ({ ...r, [rating]: r[rating] + 1 }));
     setDueWords((words) => words.map((w, i) => (i === currentIndex ? updatedWord : w)));
-    setRatedWordIds((s) => new Set(s).add(currentWord.id));
     // Move to next card or end session
     if (currentIndex < dueWords.length - 1) {
       setCurrentIndex((i) => i + 1);
