@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
-import { useRouter } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { getDueWords, updateWord } from '../../db/words';
 import { useAppStore } from '../../store';
 import { applyReview } from '@errin/core';
@@ -54,6 +54,18 @@ export default function ReviewScreen() {
   useEffect(() => {
     loadDueWords();
   }, [loadDueWords]);
+
+  useFocusEffect(
+    useCallback(() => {
+      setSessionComplete(false);
+      setCurrentIndex(0);
+      setSide('front');
+      setShowRating(false);
+      setRatedWordIds(new Set());
+      setRatings({ again: 0, hard: 0, good: 0, easy: 0 });
+      loadDueWords();
+    }, [loadDueWords])
+  );
 
   const currentWord = dueWords[currentIndex];
 
