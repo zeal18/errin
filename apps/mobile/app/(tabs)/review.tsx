@@ -37,6 +37,7 @@ export default function ReviewScreen() {
   const [currentIndex, setCurrentIndex] = useState<number>(0);
   const [side, setSide] = useState<CardSide>('front');
   const [showRating, setShowRating] = useState(false);
+  const [ratedWordIds, setRatedWordIds] = useState<Set<string>>(new Set());
   const [ratings, setRatings] = useState<Record<Rating, number>>({ again: 0, hard: 0, good: 0, easy: 0 });
   const [sessionComplete, setSessionComplete] = useState(false);
 
@@ -58,11 +59,13 @@ export default function ReviewScreen() {
 
   const handleRate = useCallback(async (rating: Rating) => {
     if (!currentWord) return;
+    if (ratedWordIds.has(currentWord.id)) return;
     // Apply SM-2 update
     const updatedWord = applyReview(currentWord, rating);
     await updateWord(updatedWord);
     setRatings((r) => ({ ...r, [rating]: r[rating] + 1 }));
     setDueWords((words) => words.map((w, i) => (i === currentIndex ? updatedWord : w)));
+    setRatedWordIds((s) => new Set(s).add(currentWord.id));
     // Move to next card or end session
     if (currentIndex < dueWords.length - 1) {
       setCurrentIndex((i) => i + 1);
@@ -71,7 +74,7 @@ export default function ReviewScreen() {
     } else {
       setSessionComplete(true);
     }
-  }, [currentIndex, currentWord, dueWords.length]);
+  }, [currentIndex, currentWord, dueWords.length, ratedWordIds]);
 
   const handleSummaryDismiss = useCallback(() => {
     router.push('/(tabs)/words');
