@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useFocusEffect, useRouter } from 'expo-router';
@@ -38,6 +38,7 @@ export default function ReviewScreen() {
   const [side, setSide] = useState<CardSide>('front');
   const [showRating, setShowRating] = useState(false);
   const [ratedWordIds, setRatedWordIds] = useState<Set<string>>(new Set());
+  const ratedWordIdsRef = useRef<Set<string>>(new Set());
   const [ratings, setRatings] = useState<Record<Rating, number>>({ again: 0, hard: 0, good: 0, easy: 0 });
   const [sessionComplete, setSessionComplete] = useState(false);
 
@@ -62,6 +63,7 @@ export default function ReviewScreen() {
       setSide('front');
       setShowRating(false);
       setRatedWordIds(new Set());
+      ratedWordIdsRef.current.clear();
       setRatings({ again: 0, hard: 0, good: 0, easy: 0 });
       loadDueWords();
     }, [loadDueWords])
@@ -71,7 +73,8 @@ export default function ReviewScreen() {
 
   const handleRate = useCallback(async (rating: Rating) => {
     if (!currentWord) return;
-    if (ratedWordIds.has(currentWord.id)) return;
+    if (ratedWordIdsRef.current.has(currentWord.id)) return;
+    ratedWordIdsRef.current.add(currentWord.id);
     setRatedWordIds((s) => new Set(s).add(currentWord.id));
     // Apply SM-2 update
     const updatedWord = applyReview(currentWord, rating);
@@ -86,7 +89,7 @@ export default function ReviewScreen() {
     } else {
       setSessionComplete(true);
     }
-  }, [currentIndex, currentWord, dueWords.length, ratedWordIds]);
+  }, [currentIndex, currentWord, dueWords.length]);
 
   const handleSummaryDismiss = useCallback(() => {
     router.push('/(tabs)/words');
