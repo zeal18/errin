@@ -32,7 +32,7 @@ export function ResultsList({ results, onPress }: ResultsListProps) {
             <Text className="text-sm text-blue-600 mb-1">{item.transList.join(', ')}</Text>
           )}
           {item.senseList.map((sense, i) => (
-            <Text key={sense} className="text-sm text-neutral-500">{sense}</Text>
+            <Text key={i} className="text-sm text-neutral-500">{sense}</Text>
           ))}
         </TouchableOpacity>
       )}
