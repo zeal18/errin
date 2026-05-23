@@ -49,3 +49,9 @@ No new tasks discovered.
 
 ## Discovery Round 38
 - [x] D38.1: Restore missing computeStatus edge case tests after D35.1 — D35.1 deleted computeStatus.test.ts (11 tests) claiming they were duplicated in srs.test.ts, but srs.test.ts only had 4 computeStatus tests. Two unique edge cases lack explicit coverage: (1) reviews>0 with interval===0 should return 'in_progress' (validates interval 0 handling for reviewed words), and (2) reviews===0 with interval>=21 should return 'not_started' (validates reviews precedence over interval). Fix by adding these 2 edge case tests to srs.test.ts. [--P-B-]
+
+## Discovery Round 39
+No new tasks discovered.
+
+## Discovery Round 40
+- [ ] D40.1: Fix ResultsList keyExtractor to use unique keys — In apps/mobile/components/ResultsList.tsx line 21, the FlatList keyExtractor uses item.writtenRep + item.score which may not be unique. The translation_grouped view groups by (lexentry, written_rep, trans_list) and returns max(score) per group, so multiple rows can share the same written_rep and score values (with different lexentry/trans_list). React requires unique keys for proper reconciliation. Fix by including the index: keyExtractor={(item, index) => item.writtenRep + item.score + index}. [Q--B-]
