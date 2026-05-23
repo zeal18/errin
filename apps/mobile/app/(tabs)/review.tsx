@@ -71,7 +71,7 @@ export default function ReviewScreen() {
     } else {
       setSessionComplete(true);
     }
-  }, [currentIndex, currentWord, dueWords.length, ratings]);
+  }, [currentIndex, currentWord, dueWords.length]);
 
   const handleSummaryDismiss = useCallback(() => {
     router.push('/(tabs)/words');
