@@ -67,3 +67,9 @@ No new tasks discovered.
 
 ## Discovery Round 49
 - [x] D49.1: Fix ReviewScreen stale state when navigating back to tab — In apps/mobile/app/(tabs)/review.tsx, the Review screen does not reset its session state when the user navigates away and returns. Expo Router's Tabs navigator keeps tab screens mounted, so when a user completes a session (sessionComplete=true), switches to another tab, and returns to Review, the screen still displays the "Session Complete" summary instead of loading fresh due words. Fix by adding useFocusEffect from expo-router that resets sessionComplete, currentIndex, side, showRating, ratedWordIds, ratings to initial values and calls loadDueWords() when the screen is focused. [--P-B-]
+
+## Discovery Round 50
+No new tasks discovered.
+
+## Discovery Round 52
+- [ ] D52.1: Fix race condition in ReviewScreen handleRate that allows duplicate SM-2 updates — In apps/mobile/app/(tabs)/review.tsx, the handleRate useCallback (line 70) calls setRatedWordIds after the async updateWord call (line 75). If the user taps a rating button twice quickly, both calls pass the ratedWordIds.has(currentWord.id) guard (line 72) because the Set is not updated until after updateWord completes, causing the word to receive duplicate SM-2 updates. Fix by moving setRatedWordIds((s) => new Set(s).add(currentWord.id)) (currently line 78) before await updateWord(updatedWord) (line 75). [--P-B-]
