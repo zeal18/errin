@@ -38,7 +38,7 @@ No new tasks discovered.
 - Discovery Round 33 (1 tasks archived to TASKS-ARCHIVE.md)
 ## Discovery Round 35
 - [x] D35.1: Remove duplicate computeStatus.test.ts file from packages/core - In packages/core/src/, computeStatus.test.ts (191 lines) contains tests that are entirely duplicated in srs.test.ts (226 lines). Both files test the same computeStatus function exported from './srs'. This causes redundant test execution and maintenance overhead. Fix by deleting packages/core/src/computeStatus.test.ts. [--P-B-]
-- [ ] D35.2: Add tsconfig.json to packages/core for TypeScript test compilation - The packages/core directory lacks a tsconfig.json file, causing TypeScript compilation errors (TS2593: Cannot find name 'describe', 'it', 'expect') when running Jest tests. While @types/jest is in devDependencies, TypeScript needs a tsconfig.json with types: ["jest"] and esModuleInterop: true to properly resolve Jest globals. Fix by creating a tsconfig.json with appropriate compilerOptions. [QRP-B-!]
+- [ ] D35.2: Add tsconfig.json to packages/core for TypeScript test compilation - The packages/core directory lacks a tsconfig.json file, causing TypeScript compilation errors (TS2593: Cannot find name 'describe', 'it', 'expect') when running Jest tests. While @types/jest is in devDependencies, TypeScript needs a tsconfig.json with types: ["jest"] and esModuleInterop: true to properly resolve Jest globals. Fix by creating a tsconfig.json with appropriate compilerOptions. [--P-B-!]
 
 ## Phase 9: Bug Fixes & Code Quality
 - [ ] T9.1: Replace hardcoded `ease: 2.5` with imported `INITIAL_EASE` constant in LookupScreen word save
