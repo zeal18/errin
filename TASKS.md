@@ -61,3 +61,6 @@ No new tasks discovered.
 
 ## Discovery Round 42
 - [x] D42.1: Fix non-unique keys in ResultsList senseList rendering — In apps/mobile/components/ResultsList.tsx line 35, the senseList items use key={sense} which may produce duplicate keys if the same sense string appears multiple times in the parsed senseList array (e.g., from WikDict data like "noun | noun | verb"). React requires unique keys among siblings. Fix by changing to key={index} or key={`${item.writtenRep}-${index}`} to ensure uniqueness. [--P-B-]
+
+## Discovery Round 48
+- [ ] D48.1: Fix incomplete D2.1 implementation — The Review screen still allows duplicate ratings of the same word in a single session. D2.1 added setDueWords update to reflect the rated word's new state, but this only shows updated data and does not prevent re-rating. After rating word N and auto-advancing to word N+1, the user can use Prev to return to word N, tap to reveal, and rate it again, applying a second SM-2 update to the same word. Fix by removing rated words from the dueWords array after each rating, or tracking rated word IDs in a Set and preventing re-rating of words already rated in the current session. [--P-B-]
