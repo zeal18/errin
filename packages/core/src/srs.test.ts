@@ -69,6 +69,40 @@ describe('computeStatus', () => {
     };
     expect(computeStatus(word)).toBe('in_progress');
   });
+
+  it('returns in_progress when reviews > 0 and interval === 0', () => {
+    const word: Word = {
+      id: 'w1',
+      source: 'test',
+      target: 'prueba',
+      sense: 'test sense',
+      sourceLang: 'en',
+      targetLang: 'es',
+      createdAt: 1000000,
+      dueAt: 1000000,
+      interval: 0,
+      ease: INITIAL_EASE,
+      reviews: 5,
+    };
+    expect(computeStatus(word)).toBe('in_progress');
+  });
+
+  it('returns not_started when reviews === 0 and interval >= 21', () => {
+    const word: Word = {
+      id: 'w1',
+      source: 'test',
+      target: 'prueba',
+      sense: 'test sense',
+      sourceLang: 'en',
+      targetLang: 'es',
+      createdAt: 1000000,
+      dueAt: 1000000,
+      interval: 21,
+      ease: INITIAL_EASE,
+      reviews: 0,
+    };
+    expect(computeStatus(word)).toBe('not_started');
+  });
 });
 
 describe('applyReview', () => {
