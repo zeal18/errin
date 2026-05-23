@@ -55,3 +55,6 @@ No new tasks discovered.
 
 ## Discovery Round 40
 - [x] D40.1: Fix ResultsList keyExtractor to use unique keys — In apps/mobile/components/ResultsList.tsx line 21, the FlatList keyExtractor uses item.writtenRep + item.score which may not be unique. The translation_grouped view groups by (lexentry, written_rep, trans_list) and returns max(score) per group, so multiple rows can share the same written_rep and score values (with different lexentry/trans_list). React requires unique keys for proper reconciliation. Fix by including the index: keyExtractor={(item, index) => item.writtenRep + item.score + index}. [--P-B-]
+
+## Discovery Round 41
+- [ ] D41.1: Fix race condition in startDictionaryDownload — In apps/mobile/lib/dictionaryDownload.ts, the resumable variable is set asynchronously inside the promise (after ensureDictionaryDir, getInfoAsync, and deleteAsync complete), so if cancel() is called immediately after startDictionaryDownload() returns, before the promise has set resumable, the cancel won't work and the partial file won't be deleted. Fix by creating the resumable object synchronously before the async promise starts, so it is always available for cancellation.
