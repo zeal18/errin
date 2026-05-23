@@ -44,5 +44,5 @@ No new tasks discovered.
 - [x] T9.1: Replace hardcoded `ease: 2.5` with imported `INITIAL_EASE` constant in LookupScreen word save [----B-]
 - [x] T9.2: Replace `Math.random()`-based `generateId()` with `crypto.randomUUID()` in LookupScreen [----B-]
 - [x] T9.3: Remove unnecessary `ratings` dependency from `handleRate` useCallback in ReviewScreen [----B-]
-- [ ] T9.4: Add `useEffect` keyed on `visible` to reset state in `AddSourceLanguageModal` and `AddTargetLanguageModal` when modal re-opens after being closed mid-download
+- [x] T9.4: Add `useEffect` keyed on `visible` to reset state in `AddSourceLanguageModal` and `AddTargetLanguageModal` when modal re-opens after being closed mid-download [----B-]
 - [ ] T9.5: Consolidate `InstalledDictionary` and `Settings` type definitions — remove duplicates from `apps/mobile/store/types.ts` and import from `@errin/core` instead

@@ -175,6 +175,16 @@ export function AddTargetLanguageModal({
       });
   };
 
+  // Reset state when modal becomes visible
+  useEffect(() => {
+    if (visible) {
+      setStep('select');
+      setSelectedLang(null);
+      setDownloadItems([]);
+      downloadHandlesRef.current.clear();
+    }
+  }, [visible]);
+
   // Clean up download handles on unmount or close
   useEffect(() => {
     return () => {
