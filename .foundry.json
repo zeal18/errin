@@ -1,5 +1,5 @@
 {
-  "scout_provider": "mistal",
+  "scout_provider": "mistral",
   "planner_provider": "mistral",
   "builder_provider": "mistral",
   "reviewer_provider": "mistral",
