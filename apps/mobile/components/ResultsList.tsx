@@ -18,7 +18,7 @@ export function ResultsList({ results, onPress }: ResultsListProps) {
   return (
     <FlatList
       data={results}
-      keyExtractor={(item) => item.writtenRep + item.score}
+      keyExtractor={(item, index) => item.writtenRep + item.score + index}
       renderItem={({ item }) => (
         <TouchableOpacity
           onPress={() => onPress(item)}
