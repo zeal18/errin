@@ -86,3 +86,9 @@ No new tasks discovered.
 
 ## Discovery Round 60
 - [x] D60.1: Fix memory leak in LookupScreen — The savedTimer ref in apps/mobile/app/(tabs)/index.tsx (line 25) stores a setTimeout ID that is never cleared when the component unmounts. If the user navigates away from the Lookup screen within 1500ms of saving a word, the timer will fire after unmount and call setShowSaved(false), triggering a React warning: "Can't perform a React state update on an unmounted component". Fix by adding a useEffect cleanup: useEffect(() => () => { if (savedTimer.current) clearTimeout(savedTimer.current); }, []). [--P-B-]
+
+## Discovery Round 61
+No new tasks discovered.
+
+## Discovery Round 67
+- [ ] D67.1: Fix stale activePair after dictionary deletion and app restart — In apps/mobile/store/index.ts, the hydrateAppStore function (lines 17-19) sets activePair to settings.lastActivePair without validating that the dictionary pair is still installed. If a user deletes a dictionary that was the active pair (e.g., en→de) and then restarts the app, activePair will be set to {sourceLang: 'en', targetLang: 'de'} even though that dictionary no longer exists. This causes lookups to silently fail because activeFilePath becomes undefined in useLookup.ts (line 34), while the LanguagePairSelector continues to display the non-existent pair as active. Fix by validating settings.lastActivePair against the hydrated dictionaries array in hydrateAppStore: check if the pair exists in dictionaries, and if not, fall back to the first installed dictionary or null if none exist. [--P-B-]
