@@ -127,11 +127,14 @@ export function AddTargetLanguageModal({
     if (!selectedLang) return;
     
     const pairKey = `${sourceLang}-${selectedLang}`;
+    setDownloadItems((prev) =>
+      prev.map((item) =>
+        item.sourceLang === sourceLang && item.targetLang === selectedLang
+          ? { ...item, status: 'downloading' }
+          : item
+      )
+    );
     const existingHandle = downloadHandlesRef.current.get(pairKey);
-    if (existingHandle) {
-      await existingHandle.cancel().catch(() => {});
-    }
-    downloadHandlesRef.current.delete(pairKey);
     const handle = startDictionaryDownload(sourceLang, selectedLang, (progress) => {
       setDownloadItems((prev) =>
         prev.map((item) =>
@@ -143,6 +146,7 @@ export function AddTargetLanguageModal({
     });
     
     downloadHandlesRef.current.set(pairKey, handle);
+    await existingHandle?.cancel().catch(() => {});
 
     handle.promise
       .then(async (result) => {
