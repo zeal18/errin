@@ -47,7 +47,7 @@ export async function hydrateAppStore(): Promise<void> {
   }
   // If no dictionaries, activePair remains null
   
-  useAppStore.setState({ activePair });
+  await useAppStore.getState().setActivePair(activePair);
 }
 
 export type { InstalledDictionary, LanguagePair, Settings } from '@errin/core';
