@@ -7,6 +7,7 @@ import { ResultsList } from '../../components/ResultsList';
 import { useLookup } from '../../hooks/useLookup';
 import { useAppStore } from '../../store';
 import { saveWord } from '../../db/words';
+import { INITIAL_EASE } from '@errin/core';
 import type { LookupResult } from '@errin/core';
 
 function generateId(): string {
@@ -44,7 +45,7 @@ export default function LookupScreen() {
         createdAt: now,
         dueAt: now,
         interval: 0,
-        ease: 2.5,
+        ease: INITIAL_EASE,
         reviews: 0,
       });
       setShowSaved(true);

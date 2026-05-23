@@ -41,7 +41,7 @@ No new tasks discovered.
 - [x] D35.2: Add tsconfig.json to packages/core for TypeScript test compilation - The packages/core directory lacks a tsconfig.json file, causing TypeScript compilation errors (TS2593: Cannot find name 'describe', 'it', 'expect') when running Jest tests. While @types/jest is in devDependencies, TypeScript needs a tsconfig.json with types: ["jest"] and esModuleInterop: true to properly resolve Jest globals. Fix by creating a tsconfig.json with appropriate compilerOptions. [QRP-B-]
 
 ## Phase 9: Bug Fixes & Code Quality
-- [ ] T9.1: Replace hardcoded `ease: 2.5` with imported `INITIAL_EASE` constant in LookupScreen word save
+- [x] T9.1: Replace hardcoded `ease: 2.5` with imported `INITIAL_EASE` constant in LookupScreen word save [----B-]
 - [ ] T9.2: Replace `Math.random()`-based `generateId()` with `crypto.randomUUID()` in LookupScreen
 - [ ] T9.3: Remove unnecessary `ratings` dependency from `handleRate` useCallback in ReviewScreen
 - [ ] T9.4: Add `useEffect` keyed on `visible` to reset state in `AddSourceLanguageModal` and `AddTargetLanguageModal` when modal re-opens after being closed mid-download
