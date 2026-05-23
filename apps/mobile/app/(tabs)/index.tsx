@@ -10,14 +10,6 @@ import { saveWord } from '../../db/words';
 import { INITIAL_EASE } from '@errin/core';
 import type { LookupResult } from '@errin/core';
 
-function generateId(): string {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
-    const r = (Math.random() * 16) | 0;
-    const v = c === 'x' ? r : (r & 0x3) | 0x8;
-    return v.toString(16);
-  });
-}
-
 export default function LookupScreen() {
   const { query, setQuery, results, isLoading, submit } = useLookup();
   const activePair = useAppStore((s) => s.activePair);
@@ -36,7 +28,7 @@ export default function LookupScreen() {
       if (!effectivePair) return;
       const now = Date.now();
       await saveWord({
-        id: generateId(),
+        id: crypto.randomUUID(),
         source: result.writtenRep,
         target: result.transList[0] ?? '',
         sense: result.senseList[0] ?? '',
