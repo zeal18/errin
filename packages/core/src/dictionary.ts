@@ -14,6 +14,10 @@ export interface RichLookupOptions {
 
 const DEFAULT_RICH_LIMIT = 20;
 
+interface TableInfo {
+  name: string;
+}
+
 interface SimpleTranslationRow {
   written_rep: string | null;
   trans_list: string | null;
@@ -25,6 +29,66 @@ interface TranslationGroupedRow {
   sense_list: string | null;
   trans_list: string | null;
   score: number | null;
+}
+
+const SIMPLE_TRANSLATION_TABLES = [
+  'simple_translation',
+  'translation',
+  'translations',
+  'simple_trans',
+] as const;
+
+const GROUPED_TRANSLATION_TABLES = [
+  'translation_grouped',
+  'grouped_translation',
+  'grouped_trans',
+  'translations_grouped',
+] as const;
+
+async function getAvailableTables(db: DictionaryDatabase): Promise<string[]> {
+  try {
+    const rows = await db.getAllAsync<TableInfo>(
+      'SELECT name FROM sqlite_master WHERE type = "table"',
+      []
+    );
+    const tableNames = rows.map((row) => row.name);
+    devLog('getAvailableTables: found tables=', tableNames);
+    return tableNames;
+  } catch (error: any) {
+    devLog('getAvailableTables: error=', error.message);
+    return [];
+  }
+}
+
+function findMatchingTable(
+  availableTables: string[],
+  candidates: readonly string[]
+): string | null {
+  for (const candidate of candidates) {
+    if (availableTables.includes(candidate)) {
+      return candidate;
+    }
+  }
+  return null;
+}
+
+async function resolveTableName(
+  db: DictionaryDatabase,
+  candidates: readonly string[],
+  tableType: string
+): Promise<string> {
+  const availableTables = await getAvailableTables(db);
+  const matchedName = findMatchingTable(availableTables, candidates);
+
+  if (matchedName) {
+    devLog('resolveTableName:', tableType, 'using table=', matchedName);
+    return matchedName;
+  }
+
+  devLog('resolveTableName:', tableType, 'no matching table found, available=', availableTables);
+  throw new Error(
+    `No ${tableType} table found. Available tables: ${availableTables.join(', ')}`
+  );
 }
 
 export function parseTransList(value: string | null | undefined): string[] {
@@ -53,12 +117,17 @@ export async function lookupExact(
   devLog('lookupExact: started, queryLength=', term.length);
 
   try {
+    const tableName = await resolveTableName(
+      db,
+      SIMPLE_TRANSLATION_TABLES,
+      'simple_translation'
+    );
     const rows = await db.getAllAsync<SimpleTranslationRow>(
-      'SELECT written_rep, trans_list, max_score FROM simple_translation WHERE written_rep = ? LIMIT 1',
+      `SELECT written_rep, trans_list, max_score FROM ${tableName} WHERE written_rep = ? LIMIT 1`,
       [term]
     );
 
-    devLog('lookupExact: success, results=', rows.length);
+    devLog('lookupExact: success, results=', rows.length, 'table=', tableName);
 
     if (rows.length === 0) return null;
 
@@ -87,12 +156,17 @@ export async function lookupRich(
   devLog('lookupRich: started, queryLength=', term.length, 'limit=', limit);
 
   try {
+    const tableName = await resolveTableName(
+      db,
+      GROUPED_TRANSLATION_TABLES,
+      'translation_grouped'
+    );
     const rows = await db.getAllAsync<TranslationGroupedRow>(
-      'SELECT written_rep, sense_list, trans_list, score FROM translation_grouped WHERE written_rep = ? ORDER BY score DESC LIMIT ?',
+      `SELECT written_rep, sense_list, trans_list, score FROM ${tableName} WHERE written_rep = ? ORDER BY score DESC LIMIT ?`,
       [term, limit]
     );
 
-    devLog('lookupRich: success, results=', rows.length);
+    devLog('lookupRich: success, results=', rows.length, 'table=', tableName);
 
     return rows.map((row) => ({
       writtenRep: row.written_rep ?? term,

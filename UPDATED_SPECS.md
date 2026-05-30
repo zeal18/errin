@@ -1,1 +1,1 @@
-add more logs to debug words lookup errors
+there is an error when I try to search for a translation:  [DEV] lookupRich: error, message= Call to function 'NativeDatabase.prepareAsync' has been rejected.→ Caused by: Error code : no such table: translation_grouped LOG  [DEV] Lookup error for "table", pair: en-de.  you can find all dictionaries and corresponding schemas available locally in ../wikdict directory
