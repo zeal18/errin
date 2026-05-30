@@ -14,6 +14,7 @@
   "dependencies": {
     "@errin/core": "workspace:*",
     "@expo/metro-runtime": "~55.0.11",
+    "@expo/vector-icons": "^14.0.0",
     "expo": "~55.0.26",
     "expo-constants": "~55.0.16",
     "expo-file-system": "~55.0.22",
