@@ -6,6 +6,7 @@ import {
   deleteAsync,
   type DownloadProgressData,
 } from 'expo-file-system/legacy';
+import { devLog } from './devLog';
 
 export const WIKDICT_VERSION = '2_2025-11';
 
@@ -60,8 +61,11 @@ export function startDictionaryDownload(
   targetLang: string,
   onProgress: (progress: DownloadProgress) => void
 ): DownloadHandle {
+  const langPair = `${sourceLang}-${targetLang}`;
   const url = getDictionaryUrl(sourceLang, targetLang);
   const destPath = getDictionaryFilePath(sourceLang, targetLang);
+
+  devLog(`Download started: ${langPair}`);
 
   const progressCallback = (data: DownloadProgressData) => {
     const total = data.totalBytesExpectedToWrite;
@@ -92,12 +96,14 @@ export function startDictionaryDownload(
       throw new Error(`Download failed with HTTP ${result.status}`);
     }
     completed = true;
+    devLog(`Download completed: ${langPair}`);
     return {
       filePath: result.uri,
       downloadedAt: Date.now(),
     };
   })().catch((e) => {
     completed = true;
+    devLog(`Download failed: ${langPair}, error: ${e}`);
     throw e;
   });
 

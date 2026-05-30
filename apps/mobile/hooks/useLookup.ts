@@ -3,12 +3,30 @@ import { lookupRich } from '@errin/core';
 import type { LookupResult } from '@errin/core';
 import { useAppStore } from '../store';
 import { openDictionaryDatabase, closeDictionaryDatabase } from '../lib/dictionaryDb';
+import { devLog } from '../lib/devLog';
 
 const DEBOUNCE_MS = 300;
 
+function getLangPairFromPath(filePath: string): string {
+  // Extract filename from path
+  const filename = filePath.split('/').pop() || '';
+  // Remove .sqlite3 extension
+  const baseName = filename.replace(/\.sqlite3$/, '');
+  return baseName;
+}
+
 async function performLookup(activeFilePath: string, trimmed: string): Promise<LookupResult[]> {
-  const db = await openDictionaryDatabase(activeFilePath);
-  return lookupRich(db, trimmed);
+  const langPair = getLangPairFromPath(activeFilePath);
+  devLog(`Lookup query: "${trimmed}", pair: ${langPair}`);
+  try {
+    const db = await openDictionaryDatabase(activeFilePath);
+    const rows = await lookupRich(db, trimmed);
+    devLog(`Lookup results: ${rows.length} for "${trimmed}", pair: ${langPair}`);
+    return rows;
+  } catch (error) {
+    devLog(`Lookup error for "${trimmed}", pair: ${langPair}`);
+    throw error;
+  }
 }
 
 export interface UseLookupResult {
