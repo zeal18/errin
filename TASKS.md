@@ -61,7 +61,7 @@ No new tasks discovered.
 - Discovery Round 67 (1 tasks archived to TASKS-ARCHIVE.md)
 - Discovery Round 68 (1 tasks archived to TASKS-ARCHIVE.md)
 ## Phase 10
-- [ ] T10.1: Replace separate AddSourceLanguageModal and AddTargetLanguageModal buttons with single AddLanguagePairModal in Settings screen — Currently there are two separate buttons for adding source or target language, which leads to bad UX when no dictionaries are installed. Replace with a single button that opens a modal to select both source and target languages at once, downloading the required dictionary pair. [QRP--!]
+- [x] T10.1: Replace separate AddSourceLanguageModal and AddTargetLanguageModal buttons with single AddLanguagePairModal in Settings screen — Currently there are two separate buttons for adding source or target language, which leads to bad UX when no dictionaries are installed. Replace with a single button that opens a modal to select both source and target languages at once, downloading the required dictionary pair. [QRP-B-]
 
 ## Phase 11
 - [ ] T11.1: Add extensive dev-mode logging throughout the app — Create a devLog utility using __DEV__ global and add logging to key operations: dictionary download (start/complete/fail with sizes), database open/close in dictionaryDb.ts, lookup query execution in useLookup.ts (query, activeFilePath, results count), active pair changes in store, and store hydration in index.ts. Ensure no logs contain personal data, device information, or file paths.

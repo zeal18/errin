@@ -3,8 +3,7 @@ import { Alert, FlatList, Pressable, Text, TextInput, View } from 'react-native'
 import { StatusBar } from 'expo-status-bar';
 import { getLanguageName, SUPPORTED_LANGUAGES } from '@errin/core';
 import { useAppStore } from '../../store';
-import { AddSourceLanguageModal } from '../../components/AddSourceLanguageModal';
-import { AddTargetLanguageModal } from '../../components/AddTargetLanguageModal';
+import { AddLanguagePairModal } from '../../components/AddLanguagePairModal';
 import type { InstalledDictionary } from '@errin/core';
 
 function formatDate(timestamp: number): string {
@@ -23,26 +22,22 @@ export default function SettingsScreen() {
   const activePair = useAppStore((s) => s.activePair);
   const setActivePair = useAppStore((s) => s.setActivePair);
   const removeDictionary = useAppStore((s) => s.removeDictionary);
-  const [showAddSourceModal, setShowAddSourceModal] = useState(false);
-  const [showAddTargetModal, setShowAddTargetModal] = useState(false);
+  const [showAddPairModal, setShowAddPairModal] = useState(false);
   const [limitInput, setLimitInput] = useState(String(settings.dailyReviewLimit));
   const [limitError, setLimitError] = useState('');
   const MAX_DAILY_REVIEW_LIMIT = 200;
 
-  // Get already installed source and target languages
-  const installedSourceLangs = new Set(dictionaries.map((d) => d.sourceLang));
-  const installedTargetLangs = new Set(dictionaries.map((d) => d.targetLang));
-  
-  // Check if there are available languages to add as source or target
-  const canAddSourceLanguage = SUPPORTED_LANGUAGES.some(
-    (l) => !installedSourceLangs.has(l.code)
-  );
-  const canAddTargetLanguage = SUPPORTED_LANGUAGES.some(
-    (l) => !installedTargetLangs.has(l.code)
+  const installedPairKeys = new Set(dictionaries.map((d) => `${d.sourceLang}-${d.targetLang}`));
+
+  const canAddPair = SUPPORTED_LANGUAGES.some((sourceLang) =>
+    SUPPORTED_LANGUAGES.some(
+      (targetLang) =>
+        sourceLang.code !== targetLang.code &&
+        !installedPairKeys.has(`${sourceLang.code}-${targetLang.code}`)
+    )
   );
 
   const handleLimitChange = (text: string) => {
-    // Only allow numeric input
     if (/^\d*$/.test(text)) {
       setLimitInput(text);
       if (text === '') {
@@ -113,28 +108,16 @@ export default function SettingsScreen() {
         <Text className="text-lg font-semibold text-neutral-900">Languages</Text>
       </View>
 
-      {(canAddSourceLanguage || canAddTargetLanguage) && (
-        <View className="px-4 py-3 gap-3">
-          {canAddSourceLanguage && (
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Add source language"
-              className="w-full rounded-lg py-3 items-center bg-blue-600"
-              onPress={() => setShowAddSourceModal(true)}
-            >
-              <Text className="text-white font-semibold text-base">Add Source Language</Text>
-            </Pressable>
-          )}
-          {canAddTargetLanguage && (
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Add target language"
-              className="w-full rounded-lg py-3 items-center bg-blue-600"
-              onPress={() => setShowAddTargetModal(true)}
-            >
-              <Text className="text-white font-semibold text-base">Add Target Language</Text>
-            </Pressable>
-          )}
+      {canAddPair && (
+        <View className="px-4 py-3">
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Add language pair"
+            className="w-full rounded-lg py-3 items-center bg-blue-600"
+            onPress={() => setShowAddPairModal(true)}
+          >
+            <Text className="text-white font-semibold text-base">Add Language Pair</Text>
+          </Pressable>
         </View>
       )}
 
@@ -153,7 +136,7 @@ export default function SettingsScreen() {
             <View className="px-4 py-3 border-b border-neutral-200 flex-row items-center">
               <View className="flex-1" accessible={true} accessibilityRole="text" accessibilityLabel={`${sourceName} to ${targetName}, downloaded ${formatDate(dict.downloadedAt)}`}>
                 <Text className="text-lg font-medium">
-                  {sourceName} → {targetName}
+                  {sourceName} -> {targetName}
                 </Text>
                 <Text className="text-sm text-neutral-500">
                   Downloaded: {formatDate(dict.downloadedAt)}
@@ -192,14 +175,9 @@ export default function SettingsScreen() {
         {limitError ? <Text className="text-sm text-red-600 mt-1">{limitError}</Text> : null}
       </View>
 
-      <AddSourceLanguageModal
-        visible={showAddSourceModal}
-        onClose={() => setShowAddSourceModal(false)}
-      />
-
-      <AddTargetLanguageModal
-        visible={showAddTargetModal}
-        onClose={() => setShowAddTargetModal(false)}
+      <AddLanguagePairModal
+        visible={showAddPairModal}
+        onClose={() => setShowAddPairModal(false)}
       />
 
       <StatusBar style="auto" />
