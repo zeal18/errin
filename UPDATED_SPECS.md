@@ -1,0 +1,1 @@
+add more logs to debug words lookup errors

@@ -1,4 +1,5 @@
 import type { LookupResult } from './types';
+import { devLog } from './devLog';
 
 export interface DictionaryDatabase {
   getAllAsync<T = Record<string, unknown>>(
@@ -49,20 +50,29 @@ export async function lookupExact(
   const term = word.trim();
   if (term.length === 0) return null;
 
-  const rows = await db.getAllAsync<SimpleTranslationRow>(
-    'SELECT written_rep, trans_list, max_score FROM simple_translation WHERE written_rep = ? LIMIT 1',
-    [term]
-  );
+  devLog('lookupExact: started, queryLength=', term.length);
 
-  if (rows.length === 0) return null;
+  try {
+    const rows = await db.getAllAsync<SimpleTranslationRow>(
+      'SELECT written_rep, trans_list, max_score FROM simple_translation WHERE written_rep = ? LIMIT 1',
+      [term]
+    );
 
-  const row = rows[0];
-  return {
-    writtenRep: row.written_rep ?? term,
-    transList: parseTransList(row.trans_list),
-    senseList: [],
-    score: row.max_score ?? 0,
-  };
+    devLog('lookupExact: success, results=', rows.length);
+
+    if (rows.length === 0) return null;
+
+    const row = rows[0];
+    return {
+      writtenRep: row.written_rep ?? term,
+      transList: parseTransList(row.trans_list),
+      senseList: [],
+      score: row.max_score ?? 0,
+    };
+  } catch (error: any) {
+    devLog('lookupExact: error, message=', error.message);
+    throw error;
+  }
 }
 
 export async function lookupRich(
@@ -74,15 +84,24 @@ export async function lookupRich(
   if (term.length === 0) return [];
 
   const limit = options.limit ?? DEFAULT_RICH_LIMIT;
-  const rows = await db.getAllAsync<TranslationGroupedRow>(
-    'SELECT written_rep, sense_list, trans_list, score FROM translation_grouped WHERE written_rep = ? ORDER BY score DESC LIMIT ?',
-    [term, limit]
-  );
+  devLog('lookupRich: started, queryLength=', term.length, 'limit=', limit);
 
-  return rows.map((row) => ({
-    writtenRep: row.written_rep ?? term,
-    transList: parseTransList(row.trans_list),
-    senseList: parseSenseList(row.sense_list),
-    score: row.score ?? 0,
-  }));
+  try {
+    const rows = await db.getAllAsync<TranslationGroupedRow>(
+      'SELECT written_rep, sense_list, trans_list, score FROM translation_grouped WHERE written_rep = ? ORDER BY score DESC LIMIT ?',
+      [term, limit]
+    );
+
+    devLog('lookupRich: success, results=', rows.length);
+
+    return rows.map((row) => ({
+      writtenRep: row.written_rep ?? term,
+      transList: parseTransList(row.trans_list),
+      senseList: parseSenseList(row.sense_list),
+      score: row.score ?? 0,
+    }));
+  } catch (error: any) {
+    devLog('lookupRich: error, message=', error.message);
+    throw error;
+  }
 }

@@ -66,8 +66,6 @@ No new tasks discovered.
 - Phase 13 (1 tasks archived to TASKS-ARCHIVE.md)
 - Phase 14 (1 tasks archived to TASKS-ARCHIVE.md)
 - Discovery Round 62 (4 tasks archived to TASKS-ARCHIVE.md)
-## Discovery Round 64
-- [x] D64.1: Clean up leftover development/test files from source tree — Remove apps/mobile/components/test.txt, apps/mobile/app/test_write.txt, apps/mobile/app/(tabs)/test_write.txt, and apps/mobile/app/(tabs)/review_new.tsx which are leftover files from development that should not be committed [--P-B-]
-- [x] D64.2: Fix duplicate formatBytes function — The formatBytes utility function is defined identically in both apps/mobile/app/(tabs)/settings.tsx:20 and apps/mobile/app/onboarding.tsx:299. Extract this to a shared utility file (e.g., apps/mobile/lib/formatUtils.ts) and import from both locations to avoid duplication [--P-B-]
-- [ ] D64.3: Fix incomplete download handle cleanup in onboarding — OnboardingScreen in apps/mobile/app/onboarding.tsx does not properly clean up download handles on component unmount. The useEffect cleanup only cancels when downloadState.kind === 'downloading', but the handleRef.current may still hold a download handle that needs cleanup when the component unmounts during other states (success, error, idle) [QRP-B-!]
-
+- Discovery Round 64 (2 tasks archived to TASKS-ARCHIVE.md)
+## Phase 15
+- [x] T15.1: Add debug logging to core dictionary lookup functions — Add devLog calls to packages/core/src/dictionary.ts in lookupExact and lookupRich functions to log query input, results count, and errors; create a devLog utility in packages/core/src/devLog.ts that mirrors the mobile implementation, ensuring no personal data or file paths are logged; import and use this logger for all lookup operations to help debug words lookup errors [QRP-B-]
