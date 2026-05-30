@@ -1,1 +1,1 @@
-update the last task: no need to check the ../wikdict directory, you have no access there. Instead, look at the local file SCHEMA.md
+modify last tasks: no need to create dynamic sqlite tables check, all schemas are known and stable

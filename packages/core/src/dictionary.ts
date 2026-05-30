@@ -48,7 +48,7 @@ const GROUPED_TRANSLATION_TABLES = [
 async function getAvailableTables(db: DictionaryDatabase): Promise<string[]> {
   try {
     const rows = await db.getAllAsync<TableInfo>(
-      'SELECT name FROM sqlite_master WHERE type = "table"',
+      'SELECT name FROM sqlite_master WHERE type IN ("table", "view")',
       []
     );
     const tableNames = rows.map((row) => row.name);
