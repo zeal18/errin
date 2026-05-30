@@ -60,29 +60,14 @@ No new tasks discovered.
 
 - Discovery Round 67 (1 tasks archived to TASKS-ARCHIVE.md)
 - Discovery Round 68 (1 tasks archived to TASKS-ARCHIVE.md)
-## Phase 10
-- [x] T10.1: Replace separate AddSourceLanguageModal and AddTargetLanguageModal buttons with single AddLanguagePairModal in Settings screen — Currently there are two separate buttons for adding source or target language, which leads to bad UX when no dictionaries are installed. Replace with a single button that opens a modal to select both source and target languages at once, downloading the required dictionary pair. [QRP-B-]
-
-## Phase 11
-- [x] T11.1: Add extensive dev-mode logging throughout the app — Create a devLog utility using __DEV__ global and add logging to key operations: dictionary download (start/complete/fail with sizes), database open/close in dictionaryDb.ts, lookup query execution in useLookup.ts (query, activeFilePath, results count), active pair changes in store, and store hydration in index.ts. Ensure no logs contain personal data, device information, or file paths. [--P-B-]
-
-## Phase 12
-- [x] T12.1: Display dictionary file sizes in Settings language list — In apps/mobile/app/(tabs)/settings.tsx, add file size display next to each installed dictionary in the Languages section. Use expo-file-system/getInfoAsync to get file size and format it in human-readable form (KB/MB). Show size alongside the language pair name (e.g., "English → German • 25 MB"). [--P-B-]
-
-## Phase 13
-- [x] T13.1: Fix app header overlapping with system top bar — The app header does not respect the system status bar and overlaps with it on Android. Add proper safe area insets or padding to the root View in LookupScreen (and other screens) to prevent content from being obscured by the system UI. Use SafeAreaView from react-native-safe-area-context or add StatusBar padding. [--P-B-]
-
-## Phase 14
-- [x] T14.1: Add icons to bottom tab bar — In apps/mobile/app/(tabs)/_layout.tsx, add icons to each tab using system symbols or commonly available icons. Use icon libraries like @expo/vector-icons or react-native-vector-icons with appropriate icons for Lookup (search), Words (list), Review (book/flashcards), and Settings (gear/cog). [--P-B-]
-
-## Discovery Round 62
-- [x] D62.1: Fix invisible character encoding issues in review.tsx navigation buttons — Lines 184 and 194 in apps/mobile/app/(tabs)/review.tsx contain invisible/special characters before "Prev" and after "Next" that appear as artifact characters in the UI. Clean up these lines to only contain the text "Prev" and "Next" without any hidden characters. [--P-B-]
-- [x] D62.2: Fix separator character in settings.tsx dictionary list to use Unicode bullet — Line 176 in apps/mobile/app/(tabs)/settings.tsx uses hyphen "-" as separator between language pair and file size ("{sourceName} -> {targetName} - {formatBytes(size)}"), but T12.1 specification requires Unicode bullet character "•" ("{source} -> {target} • {size}"). Replace hyphen with bullet character. [--P-B-]
-- [x] D62.3: Fix code duplication of getLangPairFromPath function — The getLangPairFromPath helper function is defined identically in both apps/mobile/lib/dictionaryDb.ts:11 and apps/mobile/hooks/useLookup.ts:10. Extract this function to a shared utility file (e.g., apps/mobile/lib/pathUtils.ts) and import it from both locations to avoid duplication and ensure consistency. [--P-B-]
-- [x] D62.4: Fix AddLanguagePairModal target language disabled check when sourceLang is null — Line 284 in apps/mobile/components/AddLanguagePairModal.tsx computes isDisabled as "isSource || installedPairKeys.has(\`${sourceLang}-${lang.code}\`)" which evaluates to "null-en" when sourceLang is null, incorrectly disabling all target languages before source is selected. Fix by guarding the installedPairKeys check: isDisabled should be "isSource || (sourceLang !== null && installedPairKeys.has(\`${sourceLang}-${lang.code}\`))" [--P-B-]
-
+- Phase 10 (1 tasks archived to TASKS-ARCHIVE.md)
+- Phase 11 (1 tasks archived to TASKS-ARCHIVE.md)
+- Phase 12 (1 tasks archived to TASKS-ARCHIVE.md)
+- Phase 13 (1 tasks archived to TASKS-ARCHIVE.md)
+- Phase 14 (1 tasks archived to TASKS-ARCHIVE.md)
+- Discovery Round 62 (4 tasks archived to TASKS-ARCHIVE.md)
 ## Discovery Round 64
 - [x] D64.1: Clean up leftover development/test files from source tree — Remove apps/mobile/components/test.txt, apps/mobile/app/test_write.txt, apps/mobile/app/(tabs)/test_write.txt, and apps/mobile/app/(tabs)/review_new.tsx which are leftover files from development that should not be committed [--P-B-]
 - [x] D64.2: Fix duplicate formatBytes function — The formatBytes utility function is defined identically in both apps/mobile/app/(tabs)/settings.tsx:20 and apps/mobile/app/onboarding.tsx:299. Extract this to a shared utility file (e.g., apps/mobile/lib/formatUtils.ts) and import from both locations to avoid duplication [--P-B-]
-- [ ] D64.3: Fix incomplete download handle cleanup in onboarding — OnboardingScreen in apps/mobile/app/onboarding.tsx does not properly clean up download handles on component unmount. The useEffect cleanup only cancels when downloadState.kind === 'downloading', but the handleRef.current may still hold a download handle that needs cleanup when the component unmounts during other states (success, error, idle) [--P-B-!]
+- [ ] D64.3: Fix incomplete download handle cleanup in onboarding — OnboardingScreen in apps/mobile/app/onboarding.tsx does not properly clean up download handles on component unmount. The useEffect cleanup only cancels when downloadState.kind === 'downloading', but the handleRef.current may still hold a download handle that needs cleanup when the component unmounts during other states (success, error, idle) [QRP-B-!]
 
