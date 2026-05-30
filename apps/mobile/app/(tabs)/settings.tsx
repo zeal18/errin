@@ -7,6 +7,7 @@ import { getLanguageName, SUPPORTED_LANGUAGES } from '@errin/core';
 import { useAppStore } from '../../store';
 import { AddLanguagePairModal } from '../../components/AddLanguagePairModal';
 import type { InstalledDictionary } from '@errin/core';
+import { formatBytes } from '../../lib/formatUtils';
 
 function formatDate(timestamp: number): string {
   const date = new Date(timestamp);
@@ -15,21 +16,6 @@ function formatDate(timestamp: number): string {
     month: 'short',
     day: 'numeric',
   });
-}
-
-function formatBytes(bytes: number): string {
-  if (!Number.isFinite(bytes) || bytes <= 0) {
-    return '0 B';
-  }
-  const units = ['B', 'KB', 'MB', 'GB'];
-  let value = bytes;
-  let unitIndex = 0;
-  while (value >= 1024 && unitIndex < units.length - 1) {
-    value /= 1024;
-    unitIndex++;
-  }
-  const formatted = value >= 10 || unitIndex === 0 ? value.toFixed(0) : value.toFixed(1);
-  return `${formatted} ${units[unitIndex]}`;
 }
 
 export default function SettingsScreen() {
