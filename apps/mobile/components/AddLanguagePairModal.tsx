@@ -282,7 +282,7 @@ export function AddLanguagePairModal({
                   {SUPPORTED_LANGUAGES.map((lang) => {
                     const isSelected = targetLang === lang.code;
                     const isSource = sourceLang === lang.code;
-                    const isDisabled = isSource || installedPairKeys.has(`${sourceLang}-${lang.code}`);
+                    const isDisabled = isSource || (sourceLang !== null && installedPairKeys.has(`${sourceLang}-${lang.code}`));
                     return (
                       <Pressable
                         key={lang.code}
