@@ -67,7 +67,7 @@ No new tasks discovered.
 - [x] T11.1: Add extensive dev-mode logging throughout the app — Create a devLog utility using __DEV__ global and add logging to key operations: dictionary download (start/complete/fail with sizes), database open/close in dictionaryDb.ts, lookup query execution in useLookup.ts (query, activeFilePath, results count), active pair changes in store, and store hydration in index.ts. Ensure no logs contain personal data, device information, or file paths. [--P-B-]
 
 ## Phase 12
-- [ ] T12.1: Display dictionary file sizes in Settings language list — In apps/mobile/app/(tabs)/settings.tsx, add file size display next to each installed dictionary in the Languages section. Use expo-file-system/getInfoAsync to get file size and format it in human-readable form (KB/MB). Show size alongside the language pair name (e.g., "English → German • 25 MB").
+- [x] T12.1: Display dictionary file sizes in Settings language list — In apps/mobile/app/(tabs)/settings.tsx, add file size display next to each installed dictionary in the Languages section. Use expo-file-system/getInfoAsync to get file size and format it in human-readable form (KB/MB). Show size alongside the language pair name (e.g., "English → German • 25 MB"). [--P-B-]
 
 ## Phase 13
 - [ ] T13.1: Fix app header overlapping with system top bar — The app header does not respect the system status bar and overlaps with it on Android. Add proper safe area insets or padding to the root View in LookupScreen (and other screens) to prevent content from being obscured by the system UI. Use SafeAreaView from react-native-safe-area-context or add StatusBar padding.

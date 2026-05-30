@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Alert, FlatList, Pressable, Text, TextInput, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import { getInfoAsync } from 'expo-file-system/legacy';
 import { getLanguageName, SUPPORTED_LANGUAGES } from '@errin/core';
 import { useAppStore } from '../../store';
 import { AddLanguagePairModal } from '../../components/AddLanguagePairModal';
@@ -15,6 +16,21 @@ function formatDate(timestamp: number): string {
   });
 }
 
+function formatBytes(bytes: number): string {
+  if (!Number.isFinite(bytes) || bytes <= 0) {
+    return '0 B';
+  }
+  const units = ['B', 'KB', 'MB', 'GB'];
+  let value = bytes;
+  let unitIndex = 0;
+  while (value >= 1024 && unitIndex < units.length - 1) {
+    value /= 1024;
+    unitIndex++;
+  }
+  const formatted = value >= 10 || unitIndex === 0 ? value.toFixed(0) : value.toFixed(1);
+  return `${formatted} ${units[unitIndex]}`;
+}
+
 export default function SettingsScreen() {
   const dictionaries = useAppStore((s) => s.dictionaries);
   const settings = useAppStore((s) => s.settings);
@@ -25,7 +41,26 @@ export default function SettingsScreen() {
   const [showAddPairModal, setShowAddPairModal] = useState(false);
   const [limitInput, setLimitInput] = useState(String(settings.dailyReviewLimit));
   const [limitError, setLimitError] = useState('');
+  const [fileSizes, setFileSizes] = useState<Map<string, number>>(new Map());
   const MAX_DAILY_REVIEW_LIMIT = 200;
+
+  useEffect(() => {
+    const loadFileSizes = async () => {
+      const sizesMap = new Map<string, number>();
+      for (const dict of dictionaries) {
+        try {
+          const info = await getInfoAsync(dict.filePath);
+          if (info.exists) {
+            sizesMap.set(`${dict.sourceLang}-${dict.targetLang}`, info.size);
+          }
+        } catch {
+          // ignore error
+        }
+      }
+      setFileSizes(sizesMap);
+    };
+    loadFileSizes();
+  }, [dictionaries]);
 
   const installedPairKeys = new Set(dictionaries.map((d) => `${d.sourceLang}-${d.targetLang}`));
 
@@ -132,11 +167,12 @@ export default function SettingsScreen() {
         renderItem={({ item: dict }) => {
           const sourceName = getLanguageName(dict.sourceLang) ?? dict.sourceLang;
           const targetName = getLanguageName(dict.targetLang) ?? dict.targetLang;
+          const size = fileSizes.get(`${dict.sourceLang}-${dict.targetLang}`) || 0;
           return (
             <View className="px-4 py-3 border-b border-neutral-200 flex-row items-center">
-              <View className="flex-1" accessible={true} accessibilityRole="text" accessibilityLabel={`${sourceName} to ${targetName}, downloaded ${formatDate(dict.downloadedAt)}`}>
+              <View className="flex-1" accessible={true} accessibilityRole="text" accessibilityLabel={`${sourceName} to ${targetName}, ${formatBytes(size)}, downloaded ${formatDate(dict.downloadedAt)}`}>
                 <Text className="text-lg font-medium">
-                  {sourceName} -> {targetName}
+                  {sourceName} -> {targetName} \u2022 {formatBytes(size)}
                 </Text>
                 <Text className="text-sm text-neutral-500">
                   Downloaded: {formatDate(dict.downloadedAt)}
