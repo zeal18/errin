@@ -2,6 +2,7 @@ import '../global.css';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, AppState, View } from 'react-native';
 import { Stack } from 'expo-router';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { hydrateAppStore } from '../store';
 import { closeAllDictionaryDatabases } from '../lib/dictionaryDb';
 import * as SplashScreen from 'expo-splash-screen';
@@ -45,11 +46,17 @@ export default function RootLayout() {
 
   if (!hydrated) {
     return (
-      <View className="flex-1 items-center justify-center bg-white" accessible={true} accessibilityRole="text" accessibilityLabel="Loading app, please wait">
-        <ActivityIndicator accessibilityLabel="Loading" />
-      </View>
+      <SafeAreaProvider>
+        <View className="flex-1 items-center justify-center bg-white" accessible={true} accessibilityRole="text" accessibilityLabel="Loading app, please wait">
+          <ActivityIndicator accessibilityLabel="Loading" />
+        </View>
+      </SafeAreaProvider>
     );
   }
 
-  return <Stack screenOptions={{ headerShown: false }} />;
+  return (
+    <SafeAreaProvider>
+      <Stack screenOptions={{ headerShown: false }} />
+    </SafeAreaProvider>
+  );
 }

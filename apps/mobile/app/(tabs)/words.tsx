@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react';
 import { FlatList, Pressable, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { WordListItem } from '../../components/WordListItem';
@@ -27,7 +28,7 @@ export default function WordsScreen() {
   );
 
   return (
-    <View className="flex-1 bg-white">
+    <SafeAreaView className="flex-1 bg-white" edges={['top']}>
       <View className="px-4 pt-4 pb-2">
         <Pressable
           className="bg-blue-600 rounded-xl py-3 items-center active:opacity-75"
@@ -52,6 +53,6 @@ export default function WordsScreen() {
         />
       )}
       <StatusBar style="auto" />
-    </View>
+    </SafeAreaView>
   );
 }

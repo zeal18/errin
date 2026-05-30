@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { getDueWords, updateWord } from '../../db/words';
@@ -8,7 +9,6 @@ import { applyReview } from '@errin/core';
 import type { Word, ReviewRating } from '@errin/core';
 
 type CardSide = 'front' | 'back';
-
 type Rating = ReviewRating;
 
 const RATING_BUTTONS: { label: string; rating: Rating }[] = [
@@ -20,10 +20,10 @@ const RATING_BUTTONS: { label: string; rating: Rating }[] = [
 
 function getRatingColor(rating: Rating, pressed: boolean): string {
   const colors = {
-    again: '#ef4444', // red-500
-    hard: '#f97316', // orange-500
-    good: '#22c55e', // green-500
-    easy: '#3b82f6', // blue-500
+    again: '#ef4444',
+    hard: '#f97316',
+    good: '#22c55e',
+    easy: '#3b82f6',
   };
   const base = colors[rating];
   return pressed ? base : base;
@@ -76,12 +76,10 @@ export default function ReviewScreen() {
     if (ratedWordIdsRef.current.has(currentWord.id)) return;
     ratedWordIdsRef.current.add(currentWord.id);
     setRatedWordIds((s) => new Set(s).add(currentWord.id));
-    // Apply SM-2 update
     const updatedWord = applyReview(currentWord, rating);
     await updateWord(updatedWord);
     setRatings((r) => ({ ...r, [rating]: r[rating] + 1 }));
     setDueWords((words) => words.map((w, i) => (i === currentIndex ? updatedWord : w)));
-    // Move to next card or end session
     if (currentIndex < dueWords.length - 1) {
       setCurrentIndex((i) => i + 1);
       setSide('front');
@@ -113,7 +111,7 @@ export default function ReviewScreen() {
   }, []);
 
   return (
-    <View className="flex-1 items-center justify-center bg-white">
+    <SafeAreaView className="flex-1 items-center justify-center bg-white" edges={['top']}>
       {loading ? (
         <Text className="text-xl text-neutral-500">Loading...</Text>
       ) : dueWords.length === 0 ? (
@@ -183,7 +181,7 @@ export default function ReviewScreen() {
               accessibilityLabel="Previous"
               accessibilityState={{ disabled: currentIndex === 0 }}
             >
-              <Text className={currentIndex === 0 ? 'opacity-50' : ''}>← Prev</Text>
+              <Text className={currentIndex === 0 ? 'opacity-50' : ''}> Prev</Text>
             </Pressable>
             <Pressable
               className="px-6 py-2 bg-neutral-100 rounded-xl"
@@ -193,12 +191,12 @@ export default function ReviewScreen() {
               accessibilityLabel="Next"
               accessibilityState={{ disabled: currentIndex === dueWords.length - 1 }}
             >
-              <Text className={currentIndex === dueWords.length - 1 ? 'opacity-50' : ''}>Next →</Text>
+              <Text className={currentIndex === dueWords.length - 1 ? 'opacity-50' : ''}>Next </Text>
             </Pressable>
           </View>
         </View>
       )}
       <StatusBar style="auto" />
-    </View>
+    </SafeAreaView>
   );
 }

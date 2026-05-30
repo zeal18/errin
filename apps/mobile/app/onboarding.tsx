@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
 import { SUPPORTED_LANGUAGES, getLanguageName } from '@errin/core';
@@ -85,7 +86,6 @@ export default function OnboardingScreen() {
     } catch {}
   };
 
-  // Cancel any in-flight download if the screen unmounts.
   useEffect(() => {
     return () => {
       if (downloadState.kind === 'downloading') {
@@ -106,7 +106,7 @@ export default function OnboardingScreen() {
   }
 
   return (
-    <View className="flex-1 bg-white p-6">
+    <SafeAreaView className="flex-1 bg-white p-6" edges={['top']}>
       <View className="mt-12 mb-8">
         <Text className="text-2xl font-bold mb-2">Welcome to Errin</Text>
         <Text className="text-sm text-neutral-500">
@@ -148,7 +148,7 @@ export default function OnboardingScreen() {
       </Pressable>
 
       <StatusBar style="auto" />
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -213,11 +213,11 @@ interface DownloadStepProps {
 function DownloadStep({ sourceLang, targetLang, state, onRetry }: DownloadStepProps) {
   const pairLabel =
     sourceLang && targetLang
-      ? `${getLanguageName(sourceLang) ?? sourceLang} → ${getLanguageName(targetLang) ?? targetLang}`
+      ? `${getLanguageName(sourceLang) ?? sourceLang} -> ${getLanguageName(targetLang) ?? targetLang}`
       : '';
 
   return (
-    <View className="flex-1 bg-white p-6">
+    <SafeAreaView className="flex-1 bg-white p-6" edges={['top']}>
       <View className="mt-12 mb-8">
         <Text className="text-2xl font-bold mb-2">Downloading dictionary</Text>
         <Text className="text-sm text-neutral-500">{pairLabel}</Text>
@@ -250,13 +250,13 @@ function DownloadStep({ sourceLang, targetLang, state, onRetry }: DownloadStepPr
           className="rounded-lg py-4 items-center bg-neutral-200"
         >
           <Text className="text-neutral-500 font-semibold text-base">
-            Please wait…
+            Please wait...
           </Text>
         </View>
       )}
 
       <StatusBar style="auto" />
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -279,7 +279,7 @@ function DownloadProgressView({ progress }: { progress: DownloadProgress }) {
       </View>
       <View className="mt-3 flex-row justify-between">
         <Text className="text-sm text-neutral-600">
-          {knownTotal ? `${percent}%` : 'Starting…'}
+          {knownTotal ? `${percent}%` : 'Starting...'}
         </Text>
         <Text className="text-sm text-neutral-600">
           {knownTotal

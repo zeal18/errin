@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Alert, FlatList, Pressable, Text, TextInput, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { getInfoAsync } from 'expo-file-system/legacy';
 import { getLanguageName, SUPPORTED_LANGUAGES } from '@errin/core';
@@ -138,7 +139,7 @@ export default function SettingsScreen() {
   };
 
   return (
-    <View className="flex-1 bg-white">
+    <SafeAreaView className="flex-1 bg-white" edges={['top']}>
       <View className="px-4 py-3 border-b border-neutral-200">
         <Text className="text-lg font-semibold text-neutral-900">Languages</Text>
       </View>
@@ -172,7 +173,7 @@ export default function SettingsScreen() {
             <View className="px-4 py-3 border-b border-neutral-200 flex-row items-center">
               <View className="flex-1" accessible={true} accessibilityRole="text" accessibilityLabel={`${sourceName} to ${targetName}, ${formatBytes(size)}, downloaded ${formatDate(dict.downloadedAt)}`}>
                 <Text className="text-lg font-medium">
-                  {sourceName} -> {targetName} \u2022 {formatBytes(size)}
+                  {sourceName} -> {targetName} - {formatBytes(size)}
                 </Text>
                 <Text className="text-sm text-neutral-500">
                   Downloaded: {formatDate(dict.downloadedAt)}
@@ -217,6 +218,6 @@ export default function SettingsScreen() {
       />
 
       <StatusBar style="auto" />
-    </View>
+    </SafeAreaView>
   );
 }

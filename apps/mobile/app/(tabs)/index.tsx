@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { AccessibilityInfo, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { LanguagePairSelector } from '../../components/LanguagePairSelector';
 import { LookupInput } from '../../components/LookupInput';
@@ -19,39 +20,32 @@ export default function LookupScreen() {
 
   useEffect(() => () => { if (savedTimer.current) clearTimeout(savedTimer.current); }, []);
 
-  const effectivePair =
-    activePair ??
-    (dictionaries.length > 0
-      ? { sourceLang: dictionaries[0].sourceLang, targetLang: dictionaries[0].targetLang }
-      : null);
+  const effectivePair = activePair ?? (dictionaries.length > 0 ? { sourceLang: dictionaries[0].sourceLang, targetLang: dictionaries[0].targetLang } : null);
 
-  const handlePress = useCallback(
-    async (result: LookupResult) => {
-      if (!effectivePair) return;
-      const now = Date.now();
-      await saveWord({
-        id: crypto.randomUUID(),
-        source: result.writtenRep,
-        target: result.transList[0] ?? '',
-        sense: result.senseList[0] ?? '',
-        sourceLang: effectivePair.sourceLang,
-        targetLang: effectivePair.targetLang,
-        createdAt: now,
-        dueAt: now,
-        interval: 0,
-        ease: INITIAL_EASE,
-        reviews: 0,
-      });
-      setShowSaved(true);
-      AccessibilityInfo.announceForAccessibility("Saved");
-      if (savedTimer.current) clearTimeout(savedTimer.current);
-      savedTimer.current = setTimeout(() => setShowSaved(false), 1500);
-    },
-    [effectivePair]
-  );
+  const handlePress = useCallback(async (result: LookupResult) => {
+    if (!effectivePair) return;
+    const now = Date.now();
+    await saveWord({
+      id: crypto.randomUUID(),
+      source: result.writtenRep,
+      target: result.transList[0] ?? '',
+      sense: result.senseList[0] ?? '',
+      sourceLang: effectivePair.sourceLang,
+      targetLang: effectivePair.targetLang,
+      createdAt: now,
+      dueAt: now,
+      interval: 0,
+      ease: INITIAL_EASE,
+      reviews: 0,
+    });
+    setShowSaved(true);
+    AccessibilityInfo.announceForAccessibility("Saved");
+    if (savedTimer.current) clearTimeout(savedTimer.current);
+    savedTimer.current = setTimeout(() => setShowSaved(false), 1500);
+  }, [effectivePair]);
 
   return (
-    <View className="flex-1 bg-white">
+    <SafeAreaView className="flex-1 bg-white" edges={['top']}>
       <LanguagePairSelector />
       <LookupInput value={query} onChangeText={setQuery} isLoading={isLoading} onSubmit={submit} />
       <ResultsList results={results} onPress={handlePress} />
@@ -63,6 +57,6 @@ export default function LookupScreen() {
         </View>
       )}
       <StatusBar style="auto" />
-    </View>
+    </SafeAreaView>
   );
 }
