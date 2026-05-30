@@ -6,7 +6,7 @@ An Android app for looking up words and phrases from locally stored dictionaries
 
 - **Offline lookup**: Look up words from locally stored dictionaries — no internet required after download
 - **Guided onboarding**: Pick your native language and the language you're learning on first launch; the app downloads the required dictionary automatically
-- **Add more languages**: In settings, add more source or target languages at any time; new dictionaries are downloaded on demand
+- **Add more languages**: In settings, add more language pairs at any time; new dictionaries are downloaded on demand
 - **Smart language selector**: When multiple pairs are available, the translator lets you pick the active pair; when only one is downloaded, it shows the language names as a static label
 - **Save automatically**: Every lookup is added to your word list, tagged with the language pair used at that moment
 - **Word list is permanent**: Changing or adding languages never affects existing words — they keep the translation they were saved with
@@ -18,7 +18,7 @@ An Android app for looking up words and phrases from locally stored dictionaries
 The app tracks two independent sets: **source languages** (what you type) and **target languages** (what you learn). Any combination of the two forms an active language pair, with a corresponding dictionary file downloaded to the device.
 
 - Onboarding selects the initial source + target and downloads one dictionary
-- Settings let you add more source or target languages; each new combination triggers a download
+- Settings let you add more language pairs; each new pair triggers a download
 - The translator's active pair is remembered per session and defaults to the most recently used
 - Words store their `sourceLang` and `targetLang` at save time and are never retroactively changed
 
@@ -185,7 +185,7 @@ A flashcard session for words that are currently due.
 The number of words included in a session is capped by the **daily review limit** set in Settings (default: 20).
 
 ### Settings
-- **Languages** — view installed dictionaries; add a new source or target language (triggers download of the required pairs)
+- **Languages** — view installed dictionaries; add a new language pair (triggers download of the required dictionary)
 - **Daily review limit** — number of words per review session (default: 20)
 
 ## Getting Started
@@ -203,3 +203,23 @@ pnpm expo start
 ```
 
 Scan the QR code with Expo Go to run on your device. On first launch, the onboarding flow will guide you through language selection and dictionary download before you can use the app.
+
+## Debugging & Logging
+
+Use `__DEV__` global for development-only logging. Create a utility helper:
+
+```typescript
+// utils/devLog.ts
+export const devLog = (...args: any[]) => {
+  if (__DEV__) console.log('[DEV]', ...args);
+};
+```
+
+**Important:** No logs should contain personal data, device information, user input, or dictionary file paths. Use redaction for any sensitive values.
+
+Log key events:
+- Dictionary download start/complete/fail
+- Database open/close operations  
+- Lookup query execution and results count
+- Active pair changes
+- Store hydration
