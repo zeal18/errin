@@ -198,5 +198,3 @@ export default function ReviewScreen() {
       )}
       <StatusBar style="auto" />
     </SafeAreaView>
-  );
-}
