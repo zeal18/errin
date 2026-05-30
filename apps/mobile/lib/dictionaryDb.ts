@@ -2,18 +2,11 @@ import * as SQLite from 'expo-sqlite';
 import type { SQLiteBindParams } from 'expo-sqlite';
 import type { DictionaryDatabase } from '@errin/core';
 import { devLog } from './devLog';
+import { getLangPairFromPath } from './pathUtils';
 
 // expo-sqlite needs a plain absolute path; expo-file-system returns file:// URIs
 function uriToPath(uri: string): string {
   return uri.startsWith('file://') ? uri.slice('file://'.length) : uri;
-}
-
-function getLangPairFromPath(filePath: string): string {
-  // Extract filename from path
-  const filename = filePath.split('/').pop() || '';
-  // Remove .sqlite3 extension
-  const baseName = filename.replace(/\.sqlite3$/, '');
-  return baseName;
 }
 
 // Adapt expo-sqlite's getAllAsync (required params) to DictionaryDatabase (optional params)
@@ -37,13 +30,13 @@ export function openDictionaryDatabase(filePath: string): Promise<DictionaryData
   const rawDb = SQLite.openDatabaseAsync(path);
   const dictDb = rawDb.then(toDictionaryDatabase);
   openCache.set(filePath, { rawDb, dictDb });
-  
+
   dictDb.then(() => {
     devLog(`Database opened: ${langPair}`);
   }).catch(() => {
     devLog(`Database open failed: ${langPair}`);
   });
-  
+
   return dictDb;
 }
 

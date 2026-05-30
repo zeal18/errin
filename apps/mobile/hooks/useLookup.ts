@@ -4,16 +4,9 @@ import type { LookupResult } from '@errin/core';
 import { useAppStore } from '../store';
 import { openDictionaryDatabase, closeDictionaryDatabase } from '../lib/dictionaryDb';
 import { devLog } from '../lib/devLog';
+import { getLangPairFromPath } from '../lib/pathUtils';
 
 const DEBOUNCE_MS = 300;
-
-function getLangPairFromPath(filePath: string): string {
-  // Extract filename from path
-  const filename = filePath.split('/').pop() || '';
-  // Remove .sqlite3 extension
-  const baseName = filename.replace(/\.sqlite3$/, '');
-  return baseName;
-}
 
 async function performLookup(activeFilePath: string, trimmed: string): Promise<LookupResult[]> {
   const langPair = getLangPairFromPath(activeFilePath);
