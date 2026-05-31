@@ -1,5 +1,5 @@
 import { getDatabase } from './index';
-import type { Word } from '@errin/core';
+import { INITIAL_EASE, type Word } from '@errin/core';
 import type { WordRow } from './schema';
 
 function rowToWord(row: WordRow): Word {
@@ -64,6 +64,48 @@ export async function getDueWords(limit: number): Promise<Word[]> {
     [now, limit]
   );
   return rows.map(rowToWord);
+}
+
+export async function getWordsBySource(
+  sources: string[],
+  sourceLang: string
+): Promise<Map<string, Word>> {
+  if (sources.length === 0) return new Map();
+  const db = await getDatabase();
+  const placeholders = sources.map(() => '?').join(', ');
+  const rows = await db.getAllAsync<WordRow>(
+    `SELECT * FROM words WHERE source IN (${placeholders}) AND source_lang = ? ORDER BY created_at DESC`,
+    [...sources, sourceLang]
+  );
+  const map = new Map<string, Word>();
+  for (const row of rows) {
+    if (!map.has(row.source)) {
+      map.set(row.source, rowToWord(row));
+    }
+  }
+  return map;
+}
+
+export async function replaceWord(
+  id: string,
+  newTarget: string,
+  newSense: string
+): Promise<void> {
+  const db = await getDatabase();
+  const now = Date.now();
+  await db.runAsync(
+    `UPDATE words SET target = ?, sense = ?, reviews = 0, interval = 0, ease = ?, due_at = ? WHERE id = ?`,
+    [newTarget, newSense, INITIAL_EASE, now, id]
+  );
+}
+
+export async function resetWordProgress(id: string): Promise<void> {
+  const db = await getDatabase();
+  const now = Date.now();
+  await db.runAsync(
+    `UPDATE words SET reviews = 0, interval = 0, ease = ?, due_at = ? WHERE id = ?`,
+    [INITIAL_EASE, now, id]
+  );
 }
 
 export async function updateWord(word: Word): Promise<void> {

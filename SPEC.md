@@ -178,9 +178,17 @@ The main working screen. User types a word and gets results from the locally ins
   2. All remaining prefix matches are sorted by `importance` descending — more common words rank higher
 - Each result card shows the **looked-up word** with its **translation variants** listed below it:
   - Variants are sorted by `importance` descending; the first is **pre-selected**
-  - Each variant shows its native-language translations and a meaning description in the native language
-  - Tapping a variant selects it (highlighted); the previously selected variant is deselected
-  - Only the **selected variant** is saved to the learning list when the user taps the save button for that result
+  - Each variant shows its synonyms as selectable chips (individual items from `transList`) and a meaning description in the native language below them
+  - Tapping a variant selects it; within the selected variant, tapping a synonym chip selects that synonym — the first is pre-selected
+  - Only the selected synonym of the selected variant is used when saving
+  - A **Save button** on each result card changes state based on whether the studied word already exists in the learning list:
+
+| Condition | Button |
+|---|---|
+| Studied word not in the learning list | **Save** (enabled) |
+| In list, status `in_progress` or `not_started`, **same** synonym selected | **Save** (disabled) |
+| In list, status `in_progress` or `not_started`, **different** synonym selected | **Replace** — confirmation dialog shows the synonym currently in progress; confirming replaces it and resets SM-2 progress to zero |
+| In list, status `learned` | **Reset** — resets SM-2 progress to unstarted |
 
 ### Word List
 A scrollable list of all saved words.
