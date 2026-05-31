@@ -130,16 +130,25 @@ export default function ReviewScreen() {
         </View>
       ) : (
         <View className="flex-1 justify-center items-center w-full">
-          <View className="flex-1 w-full items-center justify-center">
+          <View className="flex-1 w-full p-4">
             {side === 'front' ? (
-              <Pressable className="flex-1" onPress={handleReveal} accessibilityRole="button" accessibilityLabel="Tap to reveal answer" accessibilityHint="Double tap to show the translation and sense">
-                <View className="flex-1 bg-white rounded-2xl shadow-lg p-8 m-4 justify-center items-center w-full">
-                  <Text className="text-3xl font-bold text-neutral-900">{currentWord.source}</Text>
-                  <Text className="text-neutral-500 mt-2">Tap to reveal</Text>
-                </View>
+              <Pressable
+                className="flex-1 w-full bg-white rounded-2xl shadow-lg p-8 justify-center items-center"
+                onPress={handleReveal}
+                accessibilityRole="button"
+                accessibilityLabel="Tap to reveal answer"
+                accessibilityHint="Double tap to show the translation and sense"
+              >
+                <Text className="text-3xl font-bold text-neutral-900">{currentWord.source}</Text>
+                <Text className="text-neutral-500 mt-2">Tap to reveal</Text>
               </Pressable>
             ) : (
-              <View className="flex-1 bg-white rounded-2xl shadow-lg p-8 m-4 justify-center items-center w-full" accessible={true} accessibilityRole="text" accessibilityLabel={`Translation: ${currentWord.target}. Sense: ${currentWord.sense}`}>
+              <View
+                className="flex-1 w-full bg-white rounded-2xl shadow-lg p-8 justify-center items-center"
+                accessible={true}
+                accessibilityRole="text"
+                accessibilityLabel={`Translation: ${currentWord.target}. Sense: ${currentWord.sense}`}
+              >
                 <Text className="text-xl font-semibold text-neutral-900">{currentWord.source}</Text>
                 <Text className="text-blue-600 text-lg mt-2">{currentWord.target}</Text>
                 <Text className="text-neutral-600 text-base mt-4">{currentWord.sense}</Text>
