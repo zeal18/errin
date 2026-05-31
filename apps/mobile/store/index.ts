@@ -33,9 +33,7 @@ async function bothDictionariesExist(nativeLang: string, studiedLang: string): P
 }
 
 function pairToActivePair(pair: LanguagePair, lookupDirection: LookupDirection): ActivePair {
-  return lookupDirection === 'native_to_studied'
-    ? { nativeLang: pair.sourceLang, studiedLang: pair.targetLang, lookupDirection }
-    : { nativeLang: pair.targetLang, studiedLang: pair.sourceLang, lookupDirection };
+  return { nativeLang: pair.sourceLang, studiedLang: pair.targetLang, lookupDirection };
 }
 
 export async function hydrateAppStore(): Promise<void> {

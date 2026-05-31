@@ -7,9 +7,7 @@ function languagePairToActivePair(
   pair: LanguagePair,
   lookupDirection: LookupDirection
 ): ActivePair {
-  return lookupDirection === 'native_to_studied'
-    ? { nativeLang: pair.sourceLang, studiedLang: pair.targetLang, lookupDirection }
-    : { nativeLang: pair.targetLang, studiedLang: pair.sourceLang, lookupDirection };
+  return { nativeLang: pair.sourceLang, studiedLang: pair.targetLang, lookupDirection };
 }
 
 function activePairToLanguagePair(activePair: ActivePair): LanguagePair {
@@ -56,16 +54,7 @@ export const createActivePairSlice: StateCreator<
         : 'native_to_studied';
 
     await get().setLookupDirection(newDirection);
-
-    set({
-      activePair: {
-        nativeLang: current.studiedLang,
-        studiedLang: current.nativeLang,
-        lookupDirection: newDirection,
-      },
-    });
-
-    await get().setLastActivePair(activePairToLanguagePair(current));
+    set({ activePair: { ...current, lookupDirection: newDirection } });
 
     devLog(`Lookup direction swapped to: ${newDirection}`);
   },

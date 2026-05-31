@@ -168,7 +168,7 @@ export default function SettingsScreen() {
             <View className="px-4 py-3 border-b border-neutral-200 flex-row items-center">
               <View className="flex-1" accessible={true} accessibilityRole="text" accessibilityLabel={`${sourceName} to ${targetName}, ${formatBytes(size)}, downloaded ${formatDate(dict.downloadedAt)}`}>
                 <Text className="text-lg font-medium">
-                  {sourceName} -> {targetName} • {formatBytes(size)}
+                  {sourceName}{' → '}{targetName} • {formatBytes(size)}
                 </Text>
                 <Text className="text-sm text-neutral-500">
                   Downloaded: {formatDate(dict.downloadedAt)}

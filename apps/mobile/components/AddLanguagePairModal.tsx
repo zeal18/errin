@@ -383,7 +383,7 @@ export function AddLanguagePairModal({
             </View>
             <View className="p-4">
               <Text className="text-sm text-neutral-600 mb-4">
-                Downloading both directions for {getLanguageName(nativeLang ?? '') ?? nativeLang} <-> {getLanguageName(studiedLang ?? '') ?? studiedLang}
+                Downloading both directions for {getLanguageName(nativeLang ?? '') ?? nativeLang}{' ↔ '}{getLanguageName(studiedLang ?? '') ?? studiedLang}
               </Text>
               <View className="gap-3 mb-4">
                 {downloadItems.map((item) => {
@@ -398,7 +398,7 @@ export function AddLanguagePairModal({
                       className="border border-neutral-200 rounded-lg p-3"
                     >
                       <Text className="text-sm font-medium text-neutral-900">
-                        {sourceName} -> {targetName}
+                        {sourceName}{' → '}{targetName}
                       </Text>
                       {item.status === 'pending' && (
                         <View className="mt-2">
