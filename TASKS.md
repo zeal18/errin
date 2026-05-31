@@ -67,6 +67,16 @@ No new tasks discovered.
 - Phase 14 (1 tasks archived to TASKS-ARCHIVE.md)
 - Discovery Round 62 (4 tasks archived to TASKS-ARCHIVE.md)
 - Discovery Round 64 (2 tasks archived to TASKS-ARCHIVE.md)
-## Phase 15
-- [x] T15.1: Add debug logging to core dictionary lookup functions — Add devLog calls to packages/core/src/dictionary.ts in lookupExact and lookupRich functions to log query input, results count, and errors; create a devLog utility in packages/core/src/devLog.ts that mirrors the mobile implementation, ensuring no personal data or file paths are logged; import and use this logger for all lookup operations to help debug words lookup errors [QRP-B-]
-- [x] H15.2: Fix missing translation_grouped table error in dictionary lookup — Inspect the local SCHEMA.md file to identify the correct table names; update packages/core/src/dictionary.ts lookupRich function to use the actual table name (translation_grouped is a VIEW according to SCHEMA.md, not a TABLE); [QRP-B-]
+- Phase 15 (2 tasks archived to TASKS-ARCHIVE.md)
+## Phase 16
+- [x] H16.1: ~~Superseded by Phase 17~~ — addressed as part of the broader multi-direction dictionary + translation swap feature [QR--B-]
+
+## Phase 17
+- [ ] T17.1: Add `startPairDownload` helper to `apps/mobile/lib/dictionaryDownload.ts` — downloads both `{native}-{studied}` and `{studied}-{native}` sequentially, fires a unified progress callback with combined progress, and returns both `DictionaryDownloadResult`s; expose a matching cancel function that cancels whichever download is active
+- [ ] T17.2: Update `apps/mobile/app/onboarding.tsx` to use `startPairDownload` — replace the single-dict download with the pair download helper; call `addDictionary` twice on success (once per direction); show a single combined progress bar across both downloads
+- [ ] T17.3: Update `apps/mobile/components/AddLanguagePairModal.tsx` to use `startPairDownload` — same changes as T17.2; update the installed-pair check so a pair is only hidden from the "add" list when both directions are already installed
+- [ ] T17.4: Update `apps/mobile/store/activePairSlice.ts` — change `activePair` shape from `{ sourceLang, targetLang }` to `{ nativeLang: string, studiedLang: string }`; add `lookupDirection: 'studied-to-native' | 'native-to-studied'` field with a `setLookupDirection` action; update `setActivePair` to persist the new shape to Settings
+- [ ] T17.5: Update `apps/mobile/store/index.ts` hydration — restore `lookupDirection` from settings on startup; update `lastActivePair` validation to use the new `{ nativeLang, studiedLang }` shape and verify both dictionary files are present
+- [ ] T17.6: Update `apps/mobile/hooks/useLookup.ts` — derive the dictionary file to open from `activePair` + `lookupDirection` (direction `studied-to-native` → `{studied}-{native}.sqlite3`, direction `native-to-studied` → `{native}-{studied}.sqlite3`); close and reopen the DB connection when direction changes
+- [ ] T17.7: Update `apps/mobile/app/(tabs)/index.tsx` — add a swap button (⇄) that calls `setLookupDirection` toggling between the two values; add a persistent "Studying: {Language}" label; fix the word-save handler so that when `lookupDirection === 'native-to-studied'` the tapped **translation** (studied-language word) is saved as `source` with `sourceLang = studiedLang, targetLang = nativeLang` instead of the native word the user typed
+- [ ] T17.8: Update `apps/mobile/components/LanguagePairSelector.tsx` — always display the studied language prominently (e.g. bold label or "Studying: X" badge); keep the pair-switching dropdown behaviour unchanged for multi-pair installs

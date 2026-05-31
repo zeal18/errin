@@ -1,1 +1,1 @@
-modify last tasks: no need to create dynamic sqlite tables check, all schemas are known and stable
+See SPEC.md — all feature updates are documented there.

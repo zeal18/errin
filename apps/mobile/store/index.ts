@@ -5,7 +5,9 @@ import {
   type DictionariesSlice,
 } from './dictionariesSlice';
 import { createSettingsSlice, type SettingsSlice } from './settingsSlice';
-import type { LanguagePair } from '@errin/core';
+import type { ActivePair, LanguagePair, LookupDirection } from '@errin/core';
+import { getDictionaryFilePath } from '../lib/dictionaryDownload';
+import { getInfoAsync } from 'expo-file-system/legacy';
 import { devLog } from '../lib/devLog';
 
 export type AppStore = DictionariesSlice & ActivePairSlice & SettingsSlice;
@@ -16,6 +18,26 @@ export const useAppStore = create<AppStore>()((...a) => ({
   ...createActivePairSlice(...a),
 }));
 
+async function bothDictionariesExist(nativeLang: string, studiedLang: string): Promise<boolean> {
+  try {
+    const path1 = getDictionaryFilePath(nativeLang, studiedLang);
+    const path2 = getDictionaryFilePath(studiedLang, nativeLang);
+    const [info1, info2] = await Promise.all([
+      getInfoAsync(path1),
+      getInfoAsync(path2),
+    ]);
+    return info1.exists && info2.exists;
+  } catch {
+    return false;
+  }
+}
+
+function pairToActivePair(pair: LanguagePair, lookupDirection: LookupDirection): ActivePair {
+  return lookupDirection === 'native_to_studied'
+    ? { nativeLang: pair.sourceLang, studiedLang: pair.targetLang, lookupDirection }
+    : { nativeLang: pair.targetLang, studiedLang: pair.sourceLang, lookupDirection };
+}
+
 export async function hydrateAppStore(): Promise<void> {
   try {
     devLog('Store hydration started');
@@ -23,36 +45,49 @@ export async function hydrateAppStore(): Promise<void> {
     await Promise.all([hydrateDictionaries(), hydrateSettings()]);
     devLog('Dictionaries and settings hydrated');
     const { settings, dictionaries } = useAppStore.getState();
-    
-    // Validate settings.lastActivePair against installed dictionaries
-    let activePair: LanguagePair | null = null;
-    
+
+    let activePair: ActivePair | null = null;
+
     if (settings.lastActivePair && dictionaries.length > 0) {
-      // Check if the last active pair still exists in dictionaries
       const pairExists = dictionaries.some(
         (d) => d.sourceLang === settings.lastActivePair!.sourceLang && 
                d.targetLang === settings.lastActivePair!.targetLang
       );
       if (pairExists) {
-        activePair = settings.lastActivePair;
+        const bothExist = await bothDictionariesExist(
+          settings.lastActivePair.sourceLang,
+          settings.lastActivePair.targetLang
+        );
+        if (bothExist) {
+          activePair = pairToActivePair(settings.lastActivePair, settings.lookupDirection);
+        } else {
+          if (dictionaries.length > 0) {
+            activePair = pairToActivePair(
+              { sourceLang: dictionaries[0].sourceLang, targetLang: dictionaries[0].targetLang },
+              settings.lookupDirection
+            );
+          }
+        }
       } else {
-        // Fall back to the first dictionary's pair
-        activePair = {
-          sourceLang: dictionaries[0].sourceLang,
-          targetLang: dictionaries[0].targetLang,
-        };
+        if (dictionaries.length > 0) {
+          activePair = pairToActivePair(
+            { sourceLang: dictionaries[0].sourceLang, targetLang: dictionaries[0].targetLang },
+            settings.lookupDirection
+          );
+        }
       }
     } else if (dictionaries.length > 0) {
-      // No lastActivePair but dictionaries exist, use first one
-      activePair = {
-        sourceLang: dictionaries[0].sourceLang,
-        targetLang: dictionaries[0].targetLang,
-      };
+      activePair = pairToActivePair(
+        { sourceLang: dictionaries[0].sourceLang, targetLang: dictionaries[0].targetLang },
+        settings.lookupDirection
+      );
     }
-    // If no dictionaries, activePair remains null
-    
-    devLog(`Computed activePair: ${activePair ? `${activePair.sourceLang}-${activePair.targetLang}` : 'null'}`);
-    await useAppStore.getState().setActivePair(activePair);
+
+    devLog(`Computed activePair: ${activePair ? `${activePair.nativeLang}-${activePair.studiedLang}` : 'null'}`);
+    await useAppStore.getState().setActivePair(
+      activePair ? { sourceLang: activePair.nativeLang, targetLang: activePair.studiedLang } : null,
+      activePair?.lookupDirection
+    );
     devLog('Store hydration complete');
   } catch (error) {
     devLog(`Store hydration failed: ${error}`);
@@ -60,7 +95,7 @@ export async function hydrateAppStore(): Promise<void> {
   }
 }
 
-export type { InstalledDictionary, LanguagePair, Settings } from '@errin/core';
+export type { InstalledDictionary, Settings } from '@errin/core';
 export type { DictionariesSlice } from './dictionariesSlice';
 export type { ActivePairSlice } from './activePairSlice';
 export type { SettingsSlice } from './settingsSlice';

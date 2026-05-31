@@ -2,9 +2,9 @@ import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Modal, Pressable, Text, View } from 'react-native';
 import { SUPPORTED_LANGUAGES, getLanguageName } from '@errin/core';
 import {
-  startDictionaryDownload,
-  type DownloadHandle,
-  type DownloadProgress,
+  startPairDownload,
+  type PairDownloadHandle,
+  type PairDownloadProgress,
 } from '../lib/dictionaryDownload';
 import { useAppStore } from '../store';
 
@@ -13,7 +13,7 @@ type Step = 'select' | 'download';
 interface DownloadItem {
   sourceLang: string;
   targetLang: string;
-  progress: DownloadProgress;
+  progress: PairDownloadProgress;
   status: 'pending' | 'downloading' | 'success' | 'error';
   errorMessage?: string;
 }
@@ -29,38 +29,38 @@ export function AddLanguagePairModal({
   const addDictionary = useAppStore((s) => s.addDictionary);
 
   const [step, setStep] = useState<Step>('select');
-  const [sourceLang, setSourceLang] = useState<string | null>(null);
-  const [targetLang, setTargetLang] = useState<string | null>(null);
+  const [nativeLang, setNativeLang] = useState<string | null>(null);
+  const [studiedLang, setStudiedLang] = useState<string | null>(null);
   const [downloadItems, setDownloadItems] = useState<DownloadItem[]>([]);
-  const downloadHandlesRef = useRef<Map<string, DownloadHandle>>(new Map());
+  const downloadHandlesRef = useRef<Map<string, PairDownloadHandle>>(new Map());
 
-  // Compute installed pair keys as Set of "sourceLang-targetLang"
   const installedPairKeys = new Set(
     dictionaries.map((d) => `${d.sourceLang}-${d.targetLang}`)
   );
 
   const canAdd =
-    sourceLang !== null &&
-    targetLang !== null &&
-    sourceLang !== targetLang &&
-    !installedPairKeys.has(`${sourceLang}-${targetLang}`);
+    nativeLang !== null &&
+    studiedLang !== null &&
+    nativeLang !== studiedLang &&
+    !installedPairKeys.has(`${nativeLang}-${studiedLang}`) &&
+    !installedPairKeys.has(`${studiedLang}-${nativeLang}`);
 
   const onAdd = async () => {
     if (!canAdd) return;
 
-    const pairKey = `${sourceLang}-${targetLang}`;
     setStep('download');
     setDownloadItems([{
-      sourceLang: sourceLang!,
-      targetLang: targetLang!,
-      progress: { totalBytesWritten: 0, totalBytesExpectedToWrite: 0, fraction: 0 },
-      status: 'pending',
+      sourceLang: nativeLang!,
+      targetLang: studiedLang!,
+      progress: { fraction: 0, totalBytesWritten: 0, totalBytesExpectedToWrite: 0 },
+      status: 'downloading',
     }]);
 
-    const handle = startDictionaryDownload(sourceLang!, targetLang!, (progress) => {
+    const pairKey = `${nativeLang}-${studiedLang}`;
+    const handle = startPairDownload(nativeLang!, studiedLang!, (progress) => {
       setDownloadItems((prev) =>
         prev.map((item) =>
-          item.sourceLang === sourceLang && item.targetLang === targetLang
+          item.sourceLang === nativeLang && item.targetLang === studiedLang
             ? { ...item, progress, status: 'downloading' }
             : item
         )
@@ -72,14 +72,20 @@ export function AddLanguagePairModal({
     handle.promise
       .then(async (result) => {
         await addDictionary({
-          sourceLang: sourceLang!,
-          targetLang: targetLang!,
-          filePath: result.filePath,
-          downloadedAt: result.downloadedAt,
+          sourceLang: nativeLang!,
+          targetLang: studiedLang!,
+          filePath: result.first.filePath,
+          downloadedAt: result.first.downloadedAt,
+        });
+        await addDictionary({
+          sourceLang: studiedLang!,
+          targetLang: nativeLang!,
+          filePath: result.second.filePath,
+          downloadedAt: result.second.downloadedAt,
         });
         setDownloadItems((prev) =>
           prev.map((item) =>
-            item.sourceLang === sourceLang && item.targetLang === targetLang
+            item.sourceLang === nativeLang && item.targetLang === studiedLang
               ? { ...item, status: 'success' }
               : item
           )
@@ -93,7 +99,7 @@ export function AddLanguagePairModal({
           err instanceof Error ? err.message : 'Download failed. Please try again.';
         setDownloadItems((prev) =>
           prev.map((item) =>
-            item.sourceLang === sourceLang && item.targetLang === targetLang
+            item.sourceLang === nativeLang && item.targetLang === studiedLang
               ? { ...item, status: 'error', errorMessage: message }
               : item
           )
@@ -105,12 +111,12 @@ export function AddLanguagePairModal({
   };
 
   const onRetry = async () => {
-    if (!sourceLang || !targetLang) return;
+    if (!nativeLang || !studiedLang) return;
 
-    const pairKey = `${sourceLang}-${targetLang}`;
+    const pairKey = `${nativeLang}-${studiedLang}`;
     setDownloadItems((prev) =>
       prev.map((item) =>
-        item.sourceLang === sourceLang && item.targetLang === targetLang
+        item.sourceLang === nativeLang && item.targetLang === studiedLang
           ? { ...item, status: 'downloading' }
           : item
       )
@@ -118,10 +124,10 @@ export function AddLanguagePairModal({
     const existingHandle = downloadHandlesRef.current.get(pairKey);
     await existingHandle?.cancel().catch(() => {});
 
-    const handle = startDictionaryDownload(sourceLang, targetLang, (progress) => {
+    const handle = startPairDownload(nativeLang, studiedLang, (progress) => {
       setDownloadItems((prev) =>
         prev.map((item) =>
-          item.sourceLang === sourceLang && item.targetLang === targetLang
+          item.sourceLang === nativeLang && item.targetLang === studiedLang
             ? { ...item, progress, status: 'downloading' }
             : item
         )
@@ -133,14 +139,20 @@ export function AddLanguagePairModal({
     handle.promise
       .then(async (result) => {
         await addDictionary({
-          sourceLang: sourceLang,
-          targetLang: targetLang,
-          filePath: result.filePath,
-          downloadedAt: result.downloadedAt,
+          sourceLang: nativeLang,
+          targetLang: studiedLang,
+          filePath: result.first.filePath,
+          downloadedAt: result.first.downloadedAt,
+        });
+        await addDictionary({
+          sourceLang: studiedLang,
+          targetLang: nativeLang,
+          filePath: result.second.filePath,
+          downloadedAt: result.second.downloadedAt,
         });
         setDownloadItems((prev) =>
           prev.map((item) =>
-            item.sourceLang === sourceLang && item.targetLang === targetLang
+            item.sourceLang === nativeLang && item.targetLang === studiedLang
               ? { ...item, status: 'success' }
               : item
           )
@@ -154,7 +166,7 @@ export function AddLanguagePairModal({
           err instanceof Error ? err.message : 'Download failed. Please try again.';
         setDownloadItems((prev) =>
           prev.map((item) =>
-            item.sourceLang === sourceLang && item.targetLang === targetLang
+            item.sourceLang === nativeLang && item.targetLang === studiedLang
               ? { ...item, status: 'error', errorMessage: message }
               : item
           )
@@ -165,18 +177,16 @@ export function AddLanguagePairModal({
       });
   };
 
-  // Reset state when modal becomes visible
   useEffect(() => {
     if (visible) {
       setStep('select');
-      setSourceLang(null);
-      setTargetLang(null);
+      setNativeLang(null);
+      setStudiedLang(null);
       setDownloadItems([]);
       downloadHandlesRef.current.clear();
     }
   }, [visible]);
 
-  // Clean up download handles on unmount
   useEffect(() => {
     return () => {
       const cancelPromises = Array.from(downloadHandlesRef.current.values()).map(
@@ -189,15 +199,14 @@ export function AddLanguagePairModal({
   }, []);
 
   const closeAndReset = async () => {
-    // Cancel all in-progress downloads
     await Promise.all(
       Array.from(downloadHandlesRef.current.values()).map((handle) =>
         handle.cancel().catch(() => {})
       )
     );
     downloadHandlesRef.current.clear();
-    setSourceLang(null);
-    setTargetLang(null);
+    setNativeLang(null);
+    setStudiedLang(null);
     setStep('select');
     setDownloadItems([]);
     onClose();
@@ -238,22 +247,22 @@ export function AddLanguagePairModal({
             </View>
             <View className="p-4">
               <Text className="text-sm text-neutral-600 mb-4">
-                Pick source and target languages to download a dictionary pair.
+                Pick native and studied languages to download both dictionary directions.
               </Text>
               <View className="mb-4">
                 <Text className="text-sm font-medium text-neutral-900 mb-2">
-                  Source Language
+                  Native Language
                 </Text>
                 <View className="flex-row flex-wrap -m-1">
                   {SUPPORTED_LANGUAGES.map((lang) => {
-                    const isSelected = sourceLang === lang.code;
+                    const isSelected = nativeLang === lang.code;
                     return (
                       <Pressable
                         key={lang.code}
                         accessibilityRole="button"
                         accessibilityLabel={lang.name}
                         accessibilityState={{ selected: isSelected }}
-                        onPress={() => setSourceLang(lang.code)}
+                        onPress={() => setNativeLang(lang.code)}
                         className={`m-1 px-4 py-3 rounded-lg border ${
                           isSelected
                             ? 'bg-blue-600 border-blue-600'
@@ -276,13 +285,13 @@ export function AddLanguagePairModal({
               </View>
               <View className="mb-6">
                 <Text className="text-sm font-medium text-neutral-900 mb-2">
-                  Target Language
+                  Studied Language
                 </Text>
                 <View className="flex-row flex-wrap -m-1">
                   {SUPPORTED_LANGUAGES.map((lang) => {
-                    const isSelected = targetLang === lang.code;
-                    const isSource = sourceLang === lang.code;
-                    const isDisabled = isSource || (sourceLang !== null && installedPairKeys.has(`${sourceLang}-${lang.code}`));
+                    const isSelected = studiedLang === lang.code;
+                    const isNative = nativeLang === lang.code;
+                    const isDisabled = isNative || (nativeLang !== null && installedPairKeys.has(`${nativeLang}-${lang.code}`)) || (nativeLang !== null && installedPairKeys.has(`${lang.code}-${nativeLang}`));
                     return (
                       <Pressable
                         key={lang.code}
@@ -290,7 +299,7 @@ export function AddLanguagePairModal({
                         accessibilityLabel={lang.name}
                         accessibilityState={{ selected: isSelected, disabled: isDisabled }}
                         disabled={isDisabled}
-                        onPress={() => setTargetLang(lang.code)}
+                        onPress={() => setStudiedLang(lang.code)}
                         className={`m-1 px-4 py-3 rounded-lg border ${
                           isSelected
                             ? 'bg-blue-600 border-blue-600'
@@ -344,7 +353,6 @@ export function AddLanguagePairModal({
     );
   }
 
-  // Download step
   if (step === 'download') {
     return (
       <Modal
@@ -370,12 +378,12 @@ export function AddLanguagePairModal({
           >
             <View className="px-4 py-3 border-b border-neutral-200">
               <Text className="text-sm font-semibold text-neutral-500 uppercase tracking-wide">
-                Downloading Dictionary
+                Downloading Dictionaries
               </Text>
             </View>
             <View className="p-4">
               <Text className="text-sm text-neutral-600 mb-4">
-                Downloading dictionary for {getLanguageName(sourceLang ?? '') ?? sourceLang} -> {getLanguageName(targetLang ?? '') ?? targetLang}
+                Downloading both directions for {getLanguageName(nativeLang ?? '') ?? nativeLang} <-> {getLanguageName(studiedLang ?? '') ?? studiedLang}
               </Text>
               <View className="gap-3 mb-4">
                 {downloadItems.map((item) => {

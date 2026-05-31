@@ -15,12 +15,13 @@ An Android app for looking up words and phrases from locally stored dictionaries
 
 ## Language & Dictionary Model
 
-The app tracks two independent sets: **source languages** (what you type) and **target languages** (what you learn). Any combination of the two forms an active language pair, with a corresponding dictionary file downloaded to the device.
+A **language pair** is identified by `{ nativeLang, studiedLang }`. Adding a pair always downloads **both** bilingual directions: `{native}-{studied}` and `{studied}-{native}`. Both files are required before the pair is usable.
 
-- Onboarding selects the initial source + target and downloads one dictionary
-- Settings let you add more language pairs; each new pair triggers a download
-- The translator's active pair is remembered per session and defaults to the most recently used
-- Words store their `sourceLang` and `targetLang` at save time and are never retroactively changed
+- Onboarding selects the native + studied language and downloads both dictionaries for that pair
+- Settings let you add more language pairs; each addition downloads both directions
+- The active pair is remembered per session and defaults to the most recently used
+- Each active pair has a **lookup direction** — `studied→native` (default) or `native→studied` — that the user can toggle with a swap button in the Lookup screen
+- Words are **always** saved with `sourceLang = studiedLang, targetLang = nativeLang` regardless of the current lookup direction, so the learning list is consistent
 
 ## Supported Language Pairs
 
@@ -42,6 +43,8 @@ Four languages in any direction: English, German, Russian, Spanish.
 | `es-ru.sqlite3` | Spanish → Russian | 7 MB |
 
 Users download only the pairs they need. All twelve pairs total ~200 MB.
+
+Both directions of a pair are always downloaded together (e.g. adding "English ↔ German" downloads both `en-de.sqlite3` and `de-en.sqlite3`).
 
 ## Dictionary Source
 
@@ -138,7 +141,8 @@ interface LookupResult {
 // User preferences
 interface Settings {
   dailyReviewLimit: number   // default: 20
-  lastActivePair: { sourceLang: string; targetLang: string } | null
+  lastActivePair: { nativeLang: string; studiedLang: string } | null
+  lookupDirection: 'studied-to-native' | 'native-to-studied'  // default: 'studied-to-native'
 }
 ```
 
@@ -147,17 +151,20 @@ interface Settings {
 ### Onboarding (first launch only)
 Shown when no dictionary is installed. Two steps:
 1. **Language selection** — user picks their native language and the language they want to learn from the supported list
-2. **Download** — the corresponding dictionary is downloaded with a progress indicator; the user cannot proceed until the download completes
+2. **Download** — **both** dictionaries for the selected pair are downloaded sequentially with a combined progress indicator; the user cannot proceed until both downloads complete
 
 On completion the user is taken directly to the Lookup screen. Onboarding never appears again.
 
 ### Lookup
 The main working screen. User types a word and gets results from the locally installed dictionary.
 
-- If only one language pair is installed, the pair is displayed as a static label (e.g. "English → German")
-- If multiple pairs are installed, a selector lets the user switch the active pair
+- If only one language pair is installed, the pair is displayed as a static label; if multiple are installed, a selector lets the user switch the active pair
+- A persistent **"Studying: {Language}"** label is always visible so the user knows which language they are learning
+- A **swap button (⇄)** toggles the lookup direction between `studied→native` (default) and `native→studied`
+  - `studied→native`: user types in the studied language; the `{studied}-{native}` dictionary is queried; results show the studied word with native translations; tapping saves the studied word
+  - `native→studied`: user types in their native language; the `{native}-{studied}` dictionary is queried; results show the native word with studied-language translations; tapping a result saves the **studied-language translation** as the learning entry
+- In both directions, saved words always use `sourceLang = studiedLang` so the word list is consistent
 - Results show the source word, one or more translations, and a sense/definition for context
-- Tapping a result saves it to the word list and shows a brief confirmation
 
 ### Word List
 A scrollable list of all saved words.
@@ -185,7 +192,7 @@ A flashcard session for words that are currently due.
 The number of words included in a session is capped by the **daily review limit** set in Settings (default: 20).
 
 ### Settings
-- **Languages** — view installed dictionaries; add a new language pair (triggers download of the required dictionary)
+- **Languages** — view installed language pairs; add a new pair (triggers download of **both** bilingual directions; both must complete before the pair is usable)
 - **Daily review limit** — number of words per review session (default: 20)
 
 ## Getting Started

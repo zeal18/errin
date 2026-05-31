@@ -1,23 +1,31 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { lookupRich } from '@errin/core';
-import type { LookupResult } from '@errin/core';
+import type { LookupResult, LookupDirection, ActivePair } from '@errin/core';
 import { useAppStore } from '../store';
 import { openDictionaryDatabase, closeDictionaryDatabase } from '../lib/dictionaryDb';
 import { devLog } from '../lib/devLog';
-import { getLangPairFromPath } from '../lib/pathUtils';
+import { getDictionaryFilePath } from '../lib/dictionaryDownload';
 
 const DEBOUNCE_MS = 300;
 
+function getDictionaryPathForPair(activePair: ActivePair | null): string | null {
+  if (!activePair) return null;
+  
+  if (activePair.lookupDirection === 'studied_to_native') {
+    return getDictionaryFilePath(activePair.studiedLang, activePair.nativeLang);
+  } else {
+    return getDictionaryFilePath(activePair.nativeLang, activePair.studiedLang);
+  }
+}
+
 async function performLookup(activeFilePath: string, trimmed: string): Promise<LookupResult[]> {
-  const langPair = getLangPairFromPath(activeFilePath);
-  devLog(`Lookup query: "${trimmed}", pair: ${langPair}`);
   try {
     const db = await openDictionaryDatabase(activeFilePath);
     const rows = await lookupRich(db, trimmed);
-    devLog(`Lookup results: ${rows.length} for "${trimmed}", pair: ${langPair}`);
+    devLog(`Lookup results: ${rows.length} for "${trimmed}"`);
     return rows;
   } catch (error) {
-    devLog(`Lookup error for "${trimmed}", pair: ${langPair}`);
+    devLog(`Lookup error for "${trimmed}"`);
     throw error;
   }
 }
@@ -38,21 +46,10 @@ export function useLookup(): UseLookupResult {
   const [results, setResults] = useState<LookupResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  const effectivePair = activePair ?? (dictionaries.length > 0
-    ? { sourceLang: dictionaries[0].sourceLang, targetLang: dictionaries[0].targetLang }
-    : null);
-
-  const activeDict = effectivePair
-    ? dictionaries.find(
-        (d) => d.sourceLang === effectivePair.sourceLang && d.targetLang === effectivePair.targetLang
-      )
-    : undefined;
-
-  const activeFilePath = activeDict?.filePath;
+  const activeFilePath = getDictionaryPathForPair(activePair);
 
   const prevFilePathRef = useRef<string | null>(null);
 
-  // Cleanup old dictionary database connection when activeFilePath changes or on unmount
   useEffect(() => {
     const prevFilePath = prevFilePathRef.current;
     if (prevFilePath !== null && prevFilePath !== activeFilePath) {

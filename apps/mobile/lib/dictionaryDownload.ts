@@ -24,6 +24,17 @@ export interface DownloadProgress {
   fraction: number;
 }
 
+export interface PairDownloadProgress {
+  fraction: number;
+  totalBytesWritten: number;
+  totalBytesExpectedToWrite: number;
+}
+
+export interface PairDownloadHandle {
+  promise: Promise<{ first: DictionaryDownloadResult; second: DictionaryDownloadResult }>;
+  cancel: () => Promise<void>;
+}
+
 export function getDictionaryFileName(sourceLang: string, targetLang: string): string {
   return `${sourceLang}-${targetLang}.sqlite3`;
 }
@@ -49,6 +60,68 @@ async function ensureDictionaryDir(): Promise<void> {
   if (!info.exists) {
     await makeDirectoryAsync(dir, { intermediates: true });
   }
+}
+
+export function startPairDownload(
+  nativeLang: string,
+  studiedLang: string,
+  onProgress: (progress: PairDownloadProgress) => void
+): PairDownloadHandle {
+  const firstPair = `${nativeLang}-${studiedLang}`;
+  const secondPair = `${studiedLang}-${nativeLang}`;
+
+  devLog(`Pair download started: ${firstPair} + ${secondPair}`);
+
+  let firstHandle: DownloadHandle | null = null;
+  let secondHandle: DownloadHandle | null = null;
+  let completed = false;
+
+  const promise: Promise<{ first: DictionaryDownloadResult; second: DictionaryDownloadResult }> =
+    (async () => {
+      firstHandle = startDictionaryDownload(nativeLang, studiedLang, (progress) => {
+        onProgress({
+          fraction: progress.fraction * 0.5,
+          totalBytesWritten: progress.totalBytesWritten,
+          totalBytesExpectedToWrite: progress.totalBytesExpectedToWrite,
+        });
+      });
+
+      const firstResult = await firstHandle.promise;
+
+      secondHandle = startDictionaryDownload(studiedLang, nativeLang, (progress) => {
+        onProgress({
+          fraction: 0.5 + progress.fraction * 0.5,
+          totalBytesWritten: progress.totalBytesWritten,
+          totalBytesExpectedToWrite: progress.totalBytesExpectedToWrite,
+        });
+      });
+
+      const secondResult = await secondHandle.promise;
+      completed = true;
+      devLog(`Pair download completed: ${firstPair} + ${secondPair}`);
+      return { first: firstResult, second: secondResult };
+    })().catch((e) => {
+      completed = true;
+      devLog(`Pair download failed: ${firstPair} + ${secondPair}, error: ${e}`);
+      throw e;
+    });
+
+  const cancel = async () => {
+    await firstHandle?.cancel().catch(() => {});
+    await secondHandle?.cancel().catch(() => {});
+    if (!completed) {
+      try {
+        const firstPath = getDictionaryFilePath(nativeLang, studiedLang);
+        await deleteAsync(firstPath, { idempotent: true });
+      } catch {}
+      try {
+        const secondPath = getDictionaryFilePath(studiedLang, nativeLang);
+        await deleteAsync(secondPath, { idempotent: true });
+      } catch {}
+    }
+  };
+
+  return { promise, cancel };
 }
 
 export interface DownloadHandle {
@@ -83,7 +156,6 @@ export function startDictionaryDownload(
 
   const promise: Promise<DictionaryDownloadResult> = (async () => {
     await ensureDictionaryDir();
-    // Remove any partial file from a prior failed attempt to avoid append/rename issues.
     const existing = await getInfoAsync(destPath);
     if (existing.exists) {
       await deleteAsync(destPath, { idempotent: true });

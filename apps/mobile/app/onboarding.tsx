@@ -5,9 +5,9 @@ import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
 import { SUPPORTED_LANGUAGES, getLanguageName } from '@errin/core';
 import {
-  startDictionaryDownload,
-  type DownloadHandle,
-  type DownloadProgress,
+  startPairDownload,
+  type PairDownloadHandle,
+  type PairDownloadProgress,
 } from '../lib/dictionaryDownload';
 import { useAppStore } from '../store';
 import { formatBytes } from '../lib/formatUtils';
@@ -16,7 +16,7 @@ type Role = 'native' | 'target';
 type Step = 'select' | 'download';
 type DownloadState =
   | { kind: 'idle' }
-  | { kind: 'downloading'; progress: DownloadProgress }
+  | { kind: 'downloading'; progress: PairDownloadProgress }
   | { kind: 'error'; message: string }
   | { kind: 'success' };
 
@@ -27,41 +27,47 @@ export default function OnboardingScreen() {
 
   const [step, setStep] = useState<Step>('select');
   const [nativeLang, setNativeLang] = useState<string | null>(null);
-  const [targetLang, setTargetLang] = useState<string | null>(null);
+  const [studiedLang, setStudiedLang] = useState<string | null>(null);
   const [downloadState, setDownloadState] = useState<DownloadState>({ kind: 'idle' });
-  const handleRef = useRef<DownloadHandle | null>(null);
+  const handleRef = useRef<PairDownloadHandle | null>(null);
 
   const select = (role: Role, code: string) => {
     if (role === 'native') {
       setNativeLang(code);
-      if (targetLang === code) setTargetLang(null);
+      if (studiedLang === code) setStudiedLang(null);
     } else {
-      setTargetLang(code);
+      setStudiedLang(code);
       if (nativeLang === code) setNativeLang(null);
     }
   };
 
   const canContinue =
-    nativeLang !== null && targetLang !== null && nativeLang !== targetLang;
+    nativeLang !== null && studiedLang !== null && nativeLang !== studiedLang;
 
-  const startDownload = (sourceLang: string, targetLangCode: string) => {
+  const startDownload = (nativeLang: string, studiedLang: string) => {
     setDownloadState({
       kind: 'downloading',
-      progress: { totalBytesWritten: 0, totalBytesExpectedToWrite: 0, fraction: 0 },
+      progress: { fraction: 0, totalBytesWritten: 0, totalBytesExpectedToWrite: 0 },
     });
-    const handle = startDictionaryDownload(sourceLang, targetLangCode, (progress) => {
+    const handle = startPairDownload(nativeLang, studiedLang, (progress) => {
       setDownloadState({ kind: 'downloading', progress });
     });
     handleRef.current = handle;
     handle.promise
       .then(async (result) => {
         await addDictionary({
-          sourceLang,
-          targetLang: targetLangCode,
-          filePath: result.filePath,
-          downloadedAt: result.downloadedAt,
+          sourceLang: nativeLang,
+          targetLang: studiedLang,
+          filePath: result.first.filePath,
+          downloadedAt: result.first.downloadedAt,
         });
-        await setActivePair({ sourceLang, targetLang: targetLangCode });
+        await addDictionary({
+          sourceLang: studiedLang,
+          targetLang: nativeLang,
+          filePath: result.second.filePath,
+          downloadedAt: result.second.downloadedAt,
+        });
+        await setActivePair({ sourceLang: nativeLang, targetLang: studiedLang });
         setDownloadState({ kind: 'success' });
         router.replace('/(tabs)/');
       })
@@ -73,15 +79,15 @@ export default function OnboardingScreen() {
   };
 
   const onContinue = () => {
-    if (!canContinue || !nativeLang || !targetLang) return;
+    if (!canContinue || !nativeLang || !studiedLang) return;
     setStep('download');
-    startDownload(nativeLang, targetLang);
+    startDownload(nativeLang, studiedLang);
   };
 
   const onRetry = async () => {
-    if (!nativeLang || !targetLang) return;
+    if (!nativeLang || !studiedLang) return;
     const oldHandle = handleRef.current;
-    startDownload(nativeLang, targetLang);
+    startDownload(nativeLang, studiedLang);
     try {
       await oldHandle?.cancel();
     } catch {}
@@ -98,8 +104,8 @@ export default function OnboardingScreen() {
   if (step === 'download') {
     return (
       <DownloadStep
-        sourceLang={nativeLang}
-        targetLang={targetLang}
+        nativeLang={nativeLang}
+        studiedLang={studiedLang}
         state={downloadState}
         onRetry={onRetry}
       />
@@ -119,7 +125,7 @@ export default function OnboardingScreen() {
         title="I speak"
         role="native"
         selected={nativeLang}
-        disabledCode={targetLang}
+        disabledCode={studiedLang}
         onSelect={select}
       />
 
@@ -128,7 +134,7 @@ export default function OnboardingScreen() {
       <LanguageGroup
         title="I want to learn"
         role="target"
-        selected={targetLang}
+        selected={studiedLang}
         disabledCode={nativeLang}
         onSelect={select}
       />
@@ -205,22 +211,22 @@ function LanguageGroup({ title, role, selected, disabledCode, onSelect }: Langua
 }
 
 interface DownloadStepProps {
-  sourceLang: string | null;
-  targetLang: string | null;
+  nativeLang: string | null;
+  studiedLang: string | null;
   state: DownloadState;
   onRetry: () => void;
 }
 
-function DownloadStep({ sourceLang, targetLang, state, onRetry }: DownloadStepProps) {
+function DownloadStep({ nativeLang, studiedLang, state, onRetry }: DownloadStepProps) {
   const pairLabel =
-    sourceLang && targetLang
-      ? `${getLanguageName(sourceLang) ?? sourceLang} -> ${getLanguageName(targetLang) ?? targetLang}`
+    nativeLang && studiedLang
+      ? `${getLanguageName(nativeLang) ?? nativeLang} <-> ${getLanguageName(studiedLang) ?? studiedLang}`
       : '';
 
   return (
     <SafeAreaView className="flex-1 bg-white p-6" edges={['top']}>
       <View className="mt-12 mb-8">
-        <Text className="text-2xl font-bold mb-2">Downloading dictionary</Text>
+        <Text className="text-2xl font-bold mb-2">Downloading dictionaries</Text>
         <Text className="text-sm text-neutral-500">{pairLabel}</Text>
       </View>
 
@@ -261,7 +267,7 @@ function DownloadStep({ sourceLang, targetLang, state, onRetry }: DownloadStepPr
   );
 }
 
-function DownloadProgressView({ progress }: { progress: DownloadProgress }) {
+function DownloadProgressView({ progress }: { progress: PairDownloadProgress }) {
   const { totalBytesWritten, totalBytesExpectedToWrite, fraction } = progress;
   const knownTotal = totalBytesExpectedToWrite > 0;
   const percent = Math.round(fraction * 100);

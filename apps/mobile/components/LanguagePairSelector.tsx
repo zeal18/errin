@@ -1,12 +1,23 @@
 import { useState } from 'react';
 import { Modal, Pressable, Text, View } from 'react-native';
-import { getLanguageName, type LanguagePair } from '@errin/core';
+import { getLanguageName, type ActivePair, type LanguagePair } from '@errin/core';
 import { useAppStore } from '../store';
+
+function getPairKey(pair: LanguagePair): string {
+  return `${pair.sourceLang}-${pair.targetLang}`;
+}
 
 function pairLabel(pair: LanguagePair): string {
   const src = getLanguageName(pair.sourceLang) ?? pair.sourceLang;
   const tgt = getLanguageName(pair.targetLang) ?? pair.targetLang;
-  return `${src} → ${tgt}`;
+  return `${src} -> ${tgt}`;
+}
+
+function activePairToLanguagePair(activePair: ActivePair): LanguagePair {
+  return {
+    sourceLang: activePair.nativeLang,
+    targetLang: activePair.studiedLang,
+  };
 }
 
 export function LanguagePairSelector() {
@@ -17,16 +28,25 @@ export function LanguagePairSelector() {
 
   if (dictionaries.length === 0) return null;
 
-  const effectivePair: LanguagePair = activePair ?? {
-    sourceLang: dictionaries[0].sourceLang,
-    targetLang: dictionaries[0].targetLang,
-  };
+  const effectivePair: LanguagePair | null = activePair 
+    ? activePairToLanguagePair(activePair)
+    : dictionaries.length > 0
+      ? { sourceLang: dictionaries[0].sourceLang, targetLang: dictionaries[0].targetLang }
+      : null;
+
+  const effectiveActivePair: ActivePair | null = activePair ?? null;
+
+  const studiedLanguageName = effectiveActivePair 
+    ? getLanguageName(effectiveActivePair.studiedLang) ?? effectiveActivePair.studiedLang
+    : effectivePair 
+      ? getLanguageName(effectivePair.targetLang) ?? effectivePair.targetLang
+      : '';
 
   if (dictionaries.length === 1) {
     return (
-      <View className="items-center py-3" accessible={true} accessibilityRole="text" accessibilityLabel={pairLabel(effectivePair)}>
+      <View className="items-center py-3" accessible={true} accessibilityRole="text" accessibilityLabel={`Studying: ${studiedLanguageName}`}>
         <Text className="text-base font-medium text-neutral-700">
-          {pairLabel(effectivePair)}
+          Studying: <Text className="font-bold">{studiedLanguageName}</Text>
         </Text>
       </View>
     );
@@ -36,12 +56,13 @@ export function LanguagePairSelector() {
     <>
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel={`Active language pair: ${pairLabel(effectivePair)}. Tap to change.`}
+        accessibilityLabel={`Active language pair: ${effectivePair ? pairLabel(effectivePair) : 'none'}. Tap to change.`}
         className="items-center py-3"
         onPress={() => setOpen(true)}
       >
         <Text className="text-base font-medium text-blue-600">
-          {pairLabel(effectivePair)} ▾
+          Studying: <Text className="font-bold">{studiedLanguageName}</Text> 
+          ({effectivePair ? pairLabel(effectivePair) : 'none'}) {'<->'}
         </Text>
       </Pressable>
 
@@ -71,15 +92,19 @@ export function LanguagePairSelector() {
               </Text>
             </View>
             {dictionaries.map((dict) => {
+              const langPair: LanguagePair = { sourceLang: dict.sourceLang, targetLang: dict.targetLang };
               const isActive =
+                effectivePair && 
                 effectivePair.sourceLang === dict.sourceLang &&
                 effectivePair.targetLang === dict.targetLang;
+              const studiedLang = activePair?.studiedLang ?? dict.targetLang;
+              const studiedName = getLanguageName(studiedLang) ?? studiedLang;
               return (
                 <Pressable
-                  key={`${dict.sourceLang}-${dict.targetLang}`}
+                  key={getPairKey(langPair)}
                   accessibilityRole="button"
                   accessibilityState={{ selected: isActive }}
-                  accessibilityLabel={"Select " + pairLabel(dict)}
+                  accessibilityLabel={"Select " + pairLabel(langPair)}
                   className={`px-4 py-4 border-b border-neutral-100 ${isActive ? 'bg-blue-50' : 'bg-white'}`}
                   onPress={async () => {
                     await setActivePair({ sourceLang: dict.sourceLang, targetLang: dict.targetLang });
@@ -89,7 +114,7 @@ export function LanguagePairSelector() {
                   <Text
                     className={`text-base ${isActive ? 'font-semibold text-blue-600' : 'text-neutral-900'}`}
                   >
-                    {pairLabel(dict)}
+                    <Text className="font-bold">{studiedName}</Text> {pairLabel(langPair)}
                   </Text>
                 </Pressable>
               );

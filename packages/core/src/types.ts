@@ -26,6 +26,14 @@ export interface LanguagePair {
   targetLang: string;
 }
 
+export type LookupDirection = 'native_to_studied' | 'studied_to_native';
+
+export interface ActivePair {
+  nativeLang: string;
+  studiedLang: string;
+  lookupDirection: LookupDirection;
+}
+
 export interface LookupResult {
   writtenRep: string;
   transList: string[];

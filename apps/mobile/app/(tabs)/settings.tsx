@@ -3,10 +3,9 @@ import { Alert, FlatList, Pressable, Text, TextInput, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { getInfoAsync } from 'expo-file-system/legacy';
-import { getLanguageName, SUPPORTED_LANGUAGES } from '@errin/core';
+import { getLanguageName, SUPPORTED_LANGUAGES, type ActivePair, type InstalledDictionary, type LanguagePair } from '@errin/core';
 import { useAppStore } from '../../store';
 import { AddLanguagePairModal } from '../../components/AddLanguagePairModal';
-import type { InstalledDictionary } from '@errin/core';
 import { formatBytes } from '../../lib/formatUtils';
 
 function formatDate(timestamp: number): string {
@@ -16,6 +15,13 @@ function formatDate(timestamp: number): string {
     month: 'short',
     day: 'numeric',
   });
+}
+
+function activePairToLanguagePair(activePair: ActivePair): LanguagePair {
+  return {
+    sourceLang: activePair.nativeLang,
+    targetLang: activePair.studiedLang,
+  };
 }
 
 export default function SettingsScreen() {
@@ -109,12 +115,15 @@ export default function SettingsScreen() {
           text: 'Remove',
           style: 'destructive',
           onPress: async () => {
-            const isActive = dict.sourceLang === activePair?.sourceLang && dict.targetLang === activePair?.targetLang;
+            const activePairAsLP = activePair ? activePairToLanguagePair(activePair) : null;
+            const isActive = activePairAsLP && dict.sourceLang === activePairAsLP.sourceLang && dict.targetLang === activePairAsLP.targetLang;
             const remainingDictionaries = dictionaries.filter(
               (d) => !(d.sourceLang === dict.sourceLang && d.targetLang === dict.targetLang)
             );
             if (isActive) {
-              const newActivePair = remainingDictionaries.length > 0 ? { sourceLang: remainingDictionaries[0].sourceLang, targetLang: remainingDictionaries[0].targetLang } : null;
+              const newActivePair = remainingDictionaries.length > 0 
+                ? { sourceLang: remainingDictionaries[0].sourceLang, targetLang: remainingDictionaries[0].targetLang }
+                : null;
               await setActivePair(newActivePair);
             }
             await removeDictionary(dict.sourceLang, dict.targetLang);
