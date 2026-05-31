@@ -1,4 +1,4 @@
-import type { LookupResult } from './types';
+import type { LookupResult, TranslationVariant } from './types';
 import { devLog } from './devLog';
 
 export interface DictionaryDatabase {
@@ -95,7 +95,7 @@ async function resolveTableName(
 export function parseTransList(value: string | null | undefined): string[] {
   if (!value) return [];
   return value
-    .split(',')
+    .split(' | ')
     .map((s) => s.trim())
     .filter((s) => s.length > 0);
 }
@@ -133,10 +133,14 @@ export async function lookupExact(
     if (rows.length === 0) return null;
 
     const row = rows[0];
+    const variant: TranslationVariant = {
+      transList: parseTransList(row.trans_list),
+      sense: '',
+      importance: 0,
+    };
     return {
       writtenRep: row.written_rep ?? term,
-      transList: parseTransList(row.trans_list),
-      senseList: [],
+      variants: [variant],
       score: row.max_score ?? 0,
     };
   } catch (error: any) {
@@ -174,12 +178,33 @@ export async function lookupRich(
 
     devLog('lookupRich: success, results=', rows.length, 'table=', tableName);
 
-    return rows.map((row) => ({
-      writtenRep: row.written_rep ?? term,
-      transList: parseTransList(row.trans_list),
-      senseList: parseSenseList(row.sense_list),
-      score: row.score ?? 0,
-    }));
+    // Group rows by writtenRep; each row becomes one TranslationVariant.
+    // Row order is preserved, so variants within each word stay importance-sorted.
+    const grouped = new Map<string, LookupResult>();
+    for (const row of rows) {
+      const writtenRep = row.written_rep ?? term;
+      const key = writtenRep.toLowerCase();
+      const variant: TranslationVariant = {
+        transList: parseTransList(row.trans_list),
+        sense: parseSenseList(row.sense_list)[0] ?? '',
+        importance: row.importance ?? 0,
+      };
+      const existing = grouped.get(key);
+      if (!existing) {
+        grouped.set(key, {
+          writtenRep,
+          variants: [variant],
+          score: row.score ?? 0,
+        });
+      } else {
+        existing.variants.push(variant);
+        if ((row.score ?? 0) > existing.score) {
+          existing.score = row.score ?? 0;
+        }
+      }
+    }
+
+    return Array.from(grouped.values());
   } catch (error: any) {
     devLog('lookupRich: error, message=', error.message);
     throw error;

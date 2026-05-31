@@ -17,32 +17,32 @@ describe('parseTransList', () => {
     expect(parseTransList('hello')).toEqual(['hello']);
   });
 
-  test('multiple comma-separated values returns trimmed array', () => {
-    expect(parseTransList('hello,world,foo')).toEqual(['hello', 'world', 'foo']);
+  test('multiple pipe-separated values returns trimmed array', () => {
+    expect(parseTransList('hello | world | foo')).toEqual(['hello', 'world', 'foo']);
   });
 
-  test('extra whitespace around commas is handled', () => {
-    expect(parseTransList('hello, world , foo')).toEqual(['hello', 'world', 'foo']);
+  test('extra whitespace around separators is handled', () => {
+    expect(parseTransList('hello |  world  | foo')).toEqual(['hello', 'world', 'foo']);
   });
 
   test('empty strings in list are filtered out', () => {
-    expect(parseTransList('hello,,world')).toEqual(['hello', 'world']);
+    expect(parseTransList('hello |  | world')).toEqual(['hello', 'world']);
   });
 
   test('only whitespace entries are filtered out', () => {
-    expect(parseTransList('hello,  , world')).toEqual(['hello', 'world']);
+    expect(parseTransList('hello |   | world')).toEqual(['hello', 'world']);
   });
 
-  test('trailing comma is handled', () => {
-    expect(parseTransList('hello,world,')).toEqual(['hello', 'world']);
+  test('trailing separator is handled', () => {
+    expect(parseTransList('hello | world | ')).toEqual(['hello', 'world']);
   });
 
-  test('leading comma is handled', () => {
-    expect(parseTransList(',hello,world')).toEqual(['hello', 'world']);
+  test('leading separator is handled', () => {
+    expect(parseTransList(' | hello | world')).toEqual(['hello', 'world']);
   });
 
-  test('consecutive commas are handled', () => {
-    expect(parseTransList('hello,,,world')).toEqual(['hello', 'world']);
+  test('real WikDict format', () => {
+    expect(parseTransList('dog | hound | scoundrel')).toEqual(['dog', 'hound', 'scoundrel']);
   });
 });
 
