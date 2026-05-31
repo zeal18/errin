@@ -13,7 +13,7 @@ export interface SettingsSlice {
 
 const DEFAULT_SETTINGS = {
   dailyReviewLimit: 20,
-  lastActivePair: null,
+  lastActivePair: null as LanguagePair | null,
   lookupDirection: 'studied_to_native' as LookupDirection,
 };
 
