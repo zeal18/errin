@@ -17,6 +17,7 @@ interface ResultCardProps {
   selectedVariantIndex: number;
   selectedSynonymIndex: number;
   existingWord: Word | undefined;
+  lookupDirection: LookupDirection;
   onVariantSelect: (writtenRep: string, index: number) => void;
   onSynonymSelect: (writtenRep: string, index: number) => void;
   onSave: (result: LookupResult, variant: TranslationVariant, synonym: string) => void;
@@ -29,6 +30,7 @@ function ResultCard({
   selectedVariantIndex,
   selectedSynonymIndex,
   existingWord,
+  lookupDirection,
   onVariantSelect,
   onSynonymSelect,
   onSave,
@@ -40,7 +42,11 @@ function ResultCard({
 
   const status = existingWord ? computeStatus(existingWord) : null;
 
-  const isSameWord = existingWord && existingWord.target === selectedSynonym;
+  // newNativeTranslation: the native-language word that will become the new target
+  const newNativeTranslation =
+    lookupDirection === 'native_to_studied' ? result.writtenRep : selectedSynonym;
+
+  const isSameWord = existingWord && existingWord.target === newNativeTranslation;
 
   type ButtonKind = 'save' | 'save-disabled' | 'replace' | 'reset';
   let buttonKind: ButtonKind = 'save';
@@ -59,17 +65,17 @@ function ResultCard({
     if (!existingWord || !selectedVariant) return;
     Alert.alert(
       'Replace word?',
-      `You are currently studying "${existingWord.target}". Replace it with "${selectedSynonym}" and reset progress?`,
+      `You are currently studying "${existingWord.target}". Replace it with "${newNativeTranslation}" and reset progress?`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
           text: 'Replace',
           style: 'destructive',
-          onPress: () => onReplace(existingWord.id, selectedSynonym, selectedVariant.sense),
+          onPress: () => onReplace(existingWord.id, newNativeTranslation, selectedVariant.sense),
         },
       ]
     );
-  }, [existingWord, selectedVariant, selectedSynonym, onReplace]);
+  }, [existingWord, selectedVariant, newNativeTranslation, onReplace]);
 
   const handleReset = useCallback(() => {
     if (!existingWord) return;
@@ -260,6 +266,7 @@ export function ResultsList({ results, onPress, onReplace, onReset }: ResultsLis
           selectedVariantIndex={variantIdx}
           selectedSynonymIndex={synonymIdx}
           existingWord={existingWord}
+          lookupDirection={lookupDirection}
           onVariantSelect={handleVariantSelect}
           onSynonymSelect={handleSynonymSelect}
           onSave={handleSave}

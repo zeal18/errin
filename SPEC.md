@@ -188,7 +188,7 @@ The main working screen. User types a word and gets results from the locally ins
 |---|---|
 | Studied word not in the learning list | **Learn** (enabled) |
 | In list, status `in_progress` or `not_started`, **same** synonym selected | **Learn** (disabled) |
-| In list, status `in_progress` or `not_started`, **different** synonym selected | **Replace** — confirmation dialog shows the synonym currently in progress; confirming replaces it and resets SM-2 progress to zero |
+| In list, status `in_progress` or `not_started`, **different** synonym selected | **Replace** — confirmation dialog: "You are currently studying `{existingWord.target}`. Replace it with `{newNativeTranslation}`?" where `newNativeTranslation` is the selected synonym in `studied→native` mode or the typed word (`writtenRep`) in `native→studied` mode; confirming replaces the entry and resets SM-2 progress to zero |
 | In list, status `learned` | **Reset** — resets SM-2 progress to unstarted |
 
 **Deduplication examples:**
