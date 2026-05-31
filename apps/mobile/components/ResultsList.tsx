@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { Alert, FlatList, Pressable, Text, View } from 'react-native';
-import { computeStatus, type Word } from '@errin/core';
+import { computeStatus, type LookupDirection, type Word } from '@errin/core';
 import type { LookupResult, TranslationVariant } from '@errin/core';
 import { getWordsBySource } from '../db/words';
 import { useAppStore } from '../store';
@@ -146,8 +146,25 @@ function ResultCard({
   );
 }
 
+function collectStudiedSources(results: LookupResult[], direction: LookupDirection): string[] {
+  if (direction === 'studied_to_native') {
+    return results.map((r) => r.writtenRep);
+  }
+  // native_to_studied: the studied words are the translation synonyms
+  const seen = new Set<string>();
+  for (const result of results) {
+    for (const variant of result.variants) {
+      for (const synonym of variant.transList) {
+        seen.add(synonym);
+      }
+    }
+  }
+  return Array.from(seen);
+}
+
 export function ResultsList({ results, onPress, onReplace, onReset }: ResultsListProps) {
   const studiedLang = useAppStore((s) => s.activePair?.studiedLang ?? '');
+  const lookupDirection = useAppStore((s) => s.activePair?.lookupDirection ?? 'studied_to_native');
 
   const [selectedVariants, setSelectedVariants] = useState<Map<string, number>>(new Map());
   const [selectedSynonyms, setSelectedSynonyms] = useState<Map<string, number>>(new Map());
@@ -165,12 +182,12 @@ export function ResultsList({ results, onPress, onReplace, onReset }: ResultsLis
     setSelectedSynonyms(initSynonyms);
 
     if (results.length > 0 && studiedLang) {
-      const sources = results.map((r) => r.writtenRep);
+      const sources = collectStudiedSources(results, lookupDirection);
       getWordsBySource(sources, studiedLang).then(setExistingWords).catch(() => {});
     } else {
       setExistingWords(new Map());
     }
-  }, [results, studiedLang]);
+  }, [results, studiedLang, lookupDirection]);
 
   const handleVariantSelect = useCallback((writtenRep: string, index: number) => {
     setSelectedVariants((prev) => new Map(prev).set(writtenRep, index));
@@ -185,10 +202,10 @@ export function ResultsList({ results, onPress, onReplace, onReset }: ResultsLis
   // Refresh word status after any mutation (save/replace/reset)
   const refreshWords = useCallback(() => {
     if (results.length > 0 && studiedLang) {
-      const sources = results.map((r) => r.writtenRep);
+      const sources = collectStudiedSources(results, lookupDirection);
       getWordsBySource(sources, studiedLang).then(setExistingWords).catch(() => {});
     }
-  }, [results, studiedLang]);
+  }, [results, studiedLang, lookupDirection]);
 
   const handleSave = useCallback(
     (result: LookupResult, variant: TranslationVariant, synonym: string) => {
@@ -229,19 +246,28 @@ export function ResultsList({ results, onPress, onReplace, onReset }: ResultsLis
       data={results}
       keyExtractor={(item, index) => item.writtenRep + index}
       extraData={extraData}
-      renderItem={({ item }) => (
+      renderItem={({ item }) => {
+        const variantIdx = selectedVariants.get(item.writtenRep) ?? 0;
+        const synonymIdx = selectedSynonyms.get(item.writtenRep) ?? 0;
+        const selectedSynonym = item.variants[variantIdx]?.transList[synonymIdx] ?? '';
+        const existingWord =
+          lookupDirection === 'native_to_studied'
+            ? existingWords.get(selectedSynonym)
+            : existingWords.get(item.writtenRep);
+        return (
         <ResultCard
           result={item}
-          selectedVariantIndex={selectedVariants.get(item.writtenRep) ?? 0}
-          selectedSynonymIndex={selectedSynonyms.get(item.writtenRep) ?? 0}
-          existingWord={existingWords.get(item.writtenRep)}
+          selectedVariantIndex={variantIdx}
+          selectedSynonymIndex={synonymIdx}
+          existingWord={existingWord}
           onVariantSelect={handleVariantSelect}
           onSynonymSelect={handleSynonymSelect}
           onSave={handleSave}
           onReplace={handleReplace}
           onReset={handleReset}
         />
-      )}
+        );
+      }}
     />
   );
 }

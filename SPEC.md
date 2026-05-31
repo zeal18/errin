@@ -181,7 +181,8 @@ The main working screen. User types a word and gets results from the locally ins
   - Each variant shows its synonyms as selectable chips (individual items from `transList`) and a meaning description in the native language below them
   - Tapping a variant selects it; within the selected variant, tapping a synonym chip selects that synonym — the first is pre-selected
   - Only the selected synonym of the selected variant is used when saving
-  - A **Save button** on each result card changes state based on whether the studied word already exists in the learning list:
+  - A **Learn button** on each result card changes state based on whether the studied word already exists in the learning list
+  - The **studied word** used for deduplication is always the studied-language word — `writtenRep` in `studied→native` mode, or the selected synonym in `native→studied` mode — regardless of which direction was active when the word was originally saved
 
 | Condition | Button |
 |---|---|
