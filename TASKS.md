@@ -68,11 +68,9 @@ No new tasks discovered.
 - Discovery Round 62 (4 tasks archived to TASKS-ARCHIVE.md)
 - Discovery Round 64 (2 tasks archived to TASKS-ARCHIVE.md)
 - Phase 15 (2 tasks archived to TASKS-ARCHIVE.md)
-## Phase 16
-- [x] H16.1: ~~Superseded by Phase 17~~ — addressed as part of the broader multi-direction dictionary + translation swap feature [QR--B-]
-
+- Phase 16 (1 tasks archived to TASKS-ARCHIVE.md)
 ## Phase 17
-- [ ] T17.1: Add `startPairDownload` helper to `apps/mobile/lib/dictionaryDownload.ts` — downloads both `{native}-{studied}` and `{studied}-{native}` sequentially, fires a unified progress callback with combined progress, and returns both `DictionaryDownloadResult`s; expose a matching cancel function that cancels whichever download is active [--P-B-!]
+- [ ] T17.1: Add `startPairDownload` helper to `apps/mobile/lib/dictionaryDownload.ts` — downloads both `{native}-{studied}` and `{studied}-{native}` sequentially, fires a unified progress callback with combined progress, and returns both `DictionaryDownloadResult`s; expose a matching cancel function that cancels whichever download is active [QRP--!]
 - [ ] T17.2: Update `apps/mobile/app/onboarding.tsx` to use `startPairDownload` — replace the single-dict download with the pair download helper; call `addDictionary` twice on success (once per direction); show a single combined progress bar across both downloads
 - [ ] T17.3: Update `apps/mobile/components/AddLanguagePairModal.tsx` to use `startPairDownload` — same changes as T17.2; update the installed-pair check so a pair is only hidden from the "add" list when both directions are already installed
 - [ ] T17.4: Update `apps/mobile/store/activePairSlice.ts` — change `activePair` shape from `{ sourceLang, targetLang }` to `{ nativeLang: string, studiedLang: string }`; add `lookupDirection: 'studied-to-native' | 'native-to-studied'` field with a `setLookupDirection` action; update `setActivePair` to persist the new shape to Settings

@@ -293,3 +293,7 @@
 
 - [x] T15.1: Add debug logging to core dictionary lookup functions — Add devLog calls to packages/core/src/dictionary.ts in lookupExact and lookupRich functions to log query input, results count, and errors; create a devLog utility in packages/core/src/devLog.ts that mirrors the mobile implementation, ensuring no personal data or file paths are logged; import and use this logger for all lookup operations to help debug words lookup errors [QRP-B-]
 - [x] H15.2: Fix missing translation_grouped table error in dictionary lookup — Inspect the local SCHEMA.md file to identify the correct table names; update packages/core/src/dictionary.ts lookupRich function to use the actual table name (translation_grouped is a VIEW according to SCHEMA.md, not a TABLE); [QRP-B-]
+
+## Phase 16
+
+- [x] H16.1: ~~Superseded by Phase 17~~ — addressed as part of the broader multi-direction dictionary + translation swap feature [QR--B-]
