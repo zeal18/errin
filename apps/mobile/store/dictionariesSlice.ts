@@ -3,6 +3,8 @@ import { getDatabase, type InstalledDictionaryRow } from '../db';
 import { closeDictionaryDatabase } from '../lib/dictionaryDb';
 import { deleteAsync } from 'expo-file-system/legacy';
 import type { InstalledDictionary } from '@errin/core';
+import type { ActivePairSlice } from './activePairSlice';
+import type { SettingsSlice } from './settingsSlice';
 
 export interface DictionariesSlice {
   dictionaries: InstalledDictionary[];
@@ -10,6 +12,7 @@ export interface DictionariesSlice {
   hydrateDictionaries: () => Promise<void>;
   addDictionary: (dict: InstalledDictionary) => Promise<void>;
   removeDictionary: (sourceLang: string, targetLang: string) => Promise<void>;
+  removePair: (nativeLang: string, studiedLang: string) => Promise<void>;
 }
 
 function rowToDictionary(row: InstalledDictionaryRow): InstalledDictionary {
@@ -22,7 +25,7 @@ function rowToDictionary(row: InstalledDictionaryRow): InstalledDictionary {
 }
 
 export const createDictionariesSlice: StateCreator<
-  DictionariesSlice,
+  DictionariesSlice & ActivePairSlice & SettingsSlice,
   [],
   [],
   DictionariesSlice
@@ -76,5 +79,30 @@ export const createDictionariesSlice: StateCreator<
         (d) => !(d.sourceLang === sourceLang && d.targetLang === targetLang)
       ),
     }));
+  },
+
+  removePair: async (nativeLang, studiedLang) => {
+    const { dictionaries, activePair, setActivePair, removeDictionary } = get();
+
+    const isActivePair =
+      activePair &&
+      activePair.nativeLang === nativeLang &&
+      activePair.studiedLang === studiedLang;
+
+    await removeDictionary(nativeLang, studiedLang);
+    await removeDictionary(studiedLang, nativeLang);
+
+    if (isActivePair) {
+      const remaining = dictionaries.filter(
+        (d) =>
+          !(d.sourceLang === nativeLang && d.targetLang === studiedLang) &&
+          !(d.sourceLang === studiedLang && d.targetLang === nativeLang)
+      );
+      const nextPair =
+        remaining.length > 0
+          ? { sourceLang: remaining[0].sourceLang, targetLang: remaining[0].targetLang }
+          : null;
+      await setActivePair(nextPair);
+    }
   },
 });
