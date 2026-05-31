@@ -9,7 +9,7 @@ import { useLookup } from '../../hooks/useLookup';
 import { useAppStore } from '../../store';
 import { saveWord } from '../../db/words';
 import { INITIAL_EASE } from '@errin/core';
-import type { LookupResult } from '@errin/core';
+import type { LookupResult, TranslationVariant } from '@errin/core';
 
 export default function LookupScreen() {
   const { query, setQuery, results, isLoading, submit } = useLookup();
@@ -19,15 +19,16 @@ export default function LookupScreen() {
 
   useEffect(() => () => { if (savedTimer.current) clearTimeout(savedTimer.current); }, []);
 
-  const handlePress = useCallback(async (result: LookupResult) => {
+  const handlePress = useCallback(async (result: LookupResult, variant: TranslationVariant) => {
     if (!activePair) return;
     const now = Date.now();
     if (activePair.lookupDirection === 'native_to_studied') {
+      // User typed native word; save first studied-language translation as source
       await saveWord({
-        id: `${activePair.studiedLang}-${activePair.nativeLang}-${result.transList[0]}-${now}`,
-        source: result.transList[0] ?? '',
+        id: `${activePair.studiedLang}-${activePair.nativeLang}-${variant.transList[0]}-${now}`,
+        source: variant.transList[0] ?? '',
         target: result.writtenRep,
-        sense: result.senseList[0] ?? '',
+        sense: variant.sense,
         sourceLang: activePair.studiedLang,
         targetLang: activePair.nativeLang,
         createdAt: now,
@@ -37,11 +38,12 @@ export default function LookupScreen() {
         reviews: 0,
       });
     } else {
+      // User typed studied word; save it as source with selected native translation
       await saveWord({
         id: `${activePair.studiedLang}-${activePair.nativeLang}-${result.writtenRep}-${now}`,
         source: result.writtenRep,
-        target: result.transList[0] ?? '',
-        sense: result.senseList[0] ?? '',
+        target: variant.transList[0] ?? '',
+        sense: variant.sense,
         sourceLang: activePair.studiedLang,
         targetLang: activePair.nativeLang,
         createdAt: now,
