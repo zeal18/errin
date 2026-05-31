@@ -77,8 +77,8 @@ function ResultCard({
   }, [existingWord, onReset]);
 
   const buttonConfig = {
-    save: { label: 'Save', onPress: handleSave, style: 'bg-blue-600', disabled: false },
-    'save-disabled': { label: 'Save', onPress: undefined, style: 'bg-neutral-300', disabled: true },
+    save: { label: 'Learn', onPress: handleSave, style: 'bg-blue-600', disabled: false },
+    'save-disabled': { label: 'Learn', onPress: undefined, style: 'bg-neutral-300', disabled: true },
     replace: { label: 'Replace', onPress: handleReplace, style: 'bg-amber-500', disabled: false },
     reset: { label: 'Reset', onPress: handleReset, style: 'bg-neutral-500', disabled: false },
   }[buttonKind];
