@@ -34,10 +34,15 @@ export interface ActivePair {
   lookupDirection: LookupDirection;
 }
 
+export interface TranslationVariant {
+  transList: string[];
+  sense: string;
+  importance: number;
+}
+
 export interface LookupResult {
   writtenRep: string;
-  transList: string[];
-  senseList: string[];
+  variants: TranslationVariant[];
   score: number;
 }
 
