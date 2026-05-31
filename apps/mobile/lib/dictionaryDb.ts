@@ -27,7 +27,10 @@ export function openDictionaryDatabase(filePath: string): Promise<DictionaryData
   devLog(`Opening database: ${langPair}`);
 
   const path = uriToPath(filePath);
-  const rawDb = SQLite.openDatabaseAsync(path);
+  const lastSlash = path.lastIndexOf('/');
+  const dir = path.substring(0, lastSlash);
+  const name = path.substring(lastSlash + 1);
+  const rawDb = SQLite.openDatabaseAsync(name, undefined, dir);
   const dictDb = rawDb.then(toDictionaryDatabase);
   openCache.set(filePath, { rawDb, dictDb });
 
