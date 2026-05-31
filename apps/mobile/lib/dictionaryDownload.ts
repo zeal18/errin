@@ -75,10 +75,12 @@ export function startPairDownload(
   let firstHandle: DownloadHandle | null = null;
   let secondHandle: DownloadHandle | null = null;
   let completed = false;
+  let firstTotalExpected = 0;
 
   const promise: Promise<{ first: DictionaryDownloadResult; second: DictionaryDownloadResult }> =
     (async () => {
       firstHandle = startDictionaryDownload(nativeLang, studiedLang, (progress) => {
+        firstTotalExpected = progress.totalBytesExpectedToWrite;
         onProgress({
           fraction: progress.fraction * 0.5,
           totalBytesWritten: progress.totalBytesWritten,
@@ -91,8 +93,8 @@ export function startPairDownload(
       secondHandle = startDictionaryDownload(studiedLang, nativeLang, (progress) => {
         onProgress({
           fraction: 0.5 + progress.fraction * 0.5,
-          totalBytesWritten: progress.totalBytesWritten,
-          totalBytesExpectedToWrite: progress.totalBytesExpectedToWrite,
+          totalBytesWritten: firstTotalExpected + progress.totalBytesWritten,
+          totalBytesExpectedToWrite: firstTotalExpected + progress.totalBytesExpectedToWrite,
         });
       });
 
