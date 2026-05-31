@@ -29,6 +29,7 @@ interface TranslationGroupedRow {
   sense_list: string | null;
   trans_list: string | null;
   score: number | null;
+  importance: number | null;
 }
 
 const SIMPLE_TRANSLATION_TABLES = [
@@ -162,8 +163,13 @@ export async function lookupRich(
       'translation_grouped'
     );
     const rows = await db.getAllAsync<TranslationGroupedRow>(
-      `SELECT written_rep, sense_list, trans_list, score FROM ${tableName} WHERE written_rep = ? ORDER BY score DESC LIMIT ?`,
-      [term, limit]
+      `SELECT written_rep, sense_list, trans_list, score, importance,
+        CASE WHEN LOWER(written_rep) = LOWER(?) THEN 0 ELSE 1 END AS exact_match
+       FROM ${tableName}
+       WHERE LOWER(written_rep) LIKE LOWER(?) || '%'
+       ORDER BY exact_match ASC, importance DESC
+       LIMIT ?`,
+      [term, term, limit]
     );
 
     devLog('lookupRich: success, results=', rows.length, 'table=', tableName);
