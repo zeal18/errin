@@ -86,8 +86,8 @@ export const createDictionariesSlice: StateCreator<
 
     const isActivePair =
       activePair &&
-      activePair.nativeLang === nativeLang &&
-      activePair.studiedLang === studiedLang;
+      ((activePair.nativeLang === nativeLang && activePair.studiedLang === studiedLang) ||
+        (activePair.nativeLang === studiedLang && activePair.studiedLang === nativeLang));
 
     await removeDictionary(nativeLang, studiedLang);
     await removeDictionary(studiedLang, nativeLang);

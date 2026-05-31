@@ -1,12 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useMemo, useState } from 'react';
 import { Alert, FlatList, Pressable, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
-import { getInfoAsync } from 'expo-file-system/legacy';
-import { getLanguageName, SUPPORTED_LANGUAGES, type ActivePair, type InstalledDictionary, type LanguagePair } from '@errin/core';
+import { getLanguageName, SUPPORTED_LANGUAGES } from '@errin/core';
 import { useAppStore } from '../../store';
 import { AddLanguagePairModal } from '../../components/AddLanguagePairModal';
-import { formatBytes } from '../../lib/formatUtils';
 
 function formatDate(timestamp: number): string {
   const date = new Date(timestamp);
@@ -17,51 +15,50 @@ function formatDate(timestamp: number): string {
   });
 }
 
-function activePairToLanguagePair(activePair: ActivePair): LanguagePair {
-  return {
-    sourceLang: activePair.nativeLang,
-    targetLang: activePair.studiedLang,
-  };
+interface InstalledPair {
+  nativeLang: string;
+  studiedLang: string;
+  downloadedAt: number;
 }
 
 export default function SettingsScreen() {
   const dictionaries = useAppStore((s) => s.dictionaries);
   const settings = useAppStore((s) => s.settings);
   const setDailyReviewLimit = useAppStore((s) => s.setDailyReviewLimit);
-  const activePair = useAppStore((s) => s.activePair);
-  const setActivePair = useAppStore((s) => s.setActivePair);
-  const removeDictionary = useAppStore((s) => s.removeDictionary);
+  const removePair = useAppStore((s) => s.removePair);
   const [showAddPairModal, setShowAddPairModal] = useState(false);
   const [limitInput, setLimitInput] = useState(String(settings.dailyReviewLimit));
   const [limitError, setLimitError] = useState('');
-  const [fileSizes, setFileSizes] = useState<Map<string, number>>(new Map());
   const MAX_DAILY_REVIEW_LIMIT = 200;
 
-  useEffect(() => {
-    const loadFileSizes = async () => {
-      const sizesMap = new Map<string, number>();
-      for (const dict of dictionaries) {
-        try {
-          const info = await getInfoAsync(dict.filePath);
-          if (info.exists) {
-            sizesMap.set(`${dict.sourceLang}-${dict.targetLang}`, info.size);
-          }
-        } catch {
-          // ignore error
-        }
+  const uniquePairs = useMemo<InstalledPair[]>(() => {
+    const seen = new Set<string>();
+    const pairs: InstalledPair[] = [];
+    for (const dict of dictionaries) {
+      const key = [dict.sourceLang, dict.targetLang].sort().join('-');
+      if (!seen.has(key)) {
+        seen.add(key);
+        pairs.push({
+          nativeLang: dict.sourceLang,
+          studiedLang: dict.targetLang,
+          downloadedAt: dict.downloadedAt,
+        });
       }
-      setFileSizes(sizesMap);
-    };
-    loadFileSizes();
+    }
+    return pairs;
   }, [dictionaries]);
 
-  const installedPairKeys = new Set(dictionaries.map((d) => `${d.sourceLang}-${d.targetLang}`));
+  const installedPairKeys = useMemo(
+    () => new Set(dictionaries.map((d) => `${d.sourceLang}-${d.targetLang}`)),
+    [dictionaries]
+  );
 
-  const canAddPair = SUPPORTED_LANGUAGES.some((sourceLang) =>
+  const canAddPair = SUPPORTED_LANGUAGES.some((a) =>
     SUPPORTED_LANGUAGES.some(
-      (targetLang) =>
-        sourceLang.code !== targetLang.code &&
-        !installedPairKeys.has(`${sourceLang.code}-${targetLang.code}`)
+      (b) =>
+        a.code !== b.code &&
+        !installedPairKeys.has(`${a.code}-${b.code}`) &&
+        !installedPairKeys.has(`${b.code}-${a.code}`)
     )
   );
 
@@ -72,11 +69,7 @@ export default function SettingsScreen() {
         setLimitError('');
       } else {
         const num = parseInt(text, 10);
-        if (num > MAX_DAILY_REVIEW_LIMIT) {
-          setLimitError('Maximum 200');
-        } else {
-          setLimitError('');
-        }
+        setLimitError(num > MAX_DAILY_REVIEW_LIMIT ? 'Maximum 200' : '');
       }
     }
   };
@@ -88,7 +81,6 @@ export default function SettingsScreen() {
     }
     const num = parseInt(limitInput, 10);
     if (num > MAX_DAILY_REVIEW_LIMIT) {
-      setLimitError('Maximum 200');
       Alert.alert('Invalid Value', 'Daily review limit cannot exceed 200');
       setLimitInput(String(settings.dailyReviewLimit));
       setLimitError('');
@@ -96,38 +88,24 @@ export default function SettingsScreen() {
       setDailyReviewLimit(num);
       setLimitError('');
     } else {
-      setLimitError('Must be a positive number');
       Alert.alert('Invalid Value', 'Daily review limit must be greater than 0');
       setLimitInput(String(settings.dailyReviewLimit));
       setLimitError('');
     }
   };
 
-  const handleDeleteDictionary = (dict: InstalledDictionary) => {
-    const sourceName = getLanguageName(dict.sourceLang) ?? dict.sourceLang;
-    const targetName = getLanguageName(dict.targetLang) ?? dict.targetLang;
+  const handleDeletePair = (pair: InstalledPair) => {
+    const nativeName = getLanguageName(pair.nativeLang) ?? pair.nativeLang;
+    const studiedName = getLanguageName(pair.studiedLang) ?? pair.studiedLang;
     Alert.alert(
-      'Remove Dictionary',
-      `Are you sure you want to remove ${sourceName} -> ${targetName}? This will delete the dictionary file from your device.`,
+      'Remove Language Pair',
+      `Remove ${nativeName} ↔ ${studiedName}? Both dictionary files will be deleted from your device.`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
           text: 'Remove',
           style: 'destructive',
-          onPress: async () => {
-            const activePairAsLP = activePair ? activePairToLanguagePair(activePair) : null;
-            const isActive = activePairAsLP && dict.sourceLang === activePairAsLP.sourceLang && dict.targetLang === activePairAsLP.targetLang;
-            const remainingDictionaries = dictionaries.filter(
-              (d) => !(d.sourceLang === dict.sourceLang && d.targetLang === dict.targetLang)
-            );
-            if (isActive) {
-              const newActivePair = remainingDictionaries.length > 0 
-                ? { sourceLang: remainingDictionaries[0].sourceLang, targetLang: remainingDictionaries[0].targetLang }
-                : null;
-              await setActivePair(newActivePair);
-            }
-            await removeDictionary(dict.sourceLang, dict.targetLang);
-          },
+          onPress: () => removePair(pair.nativeLang, pair.studiedLang),
         },
       ]
     );
@@ -153,32 +131,36 @@ export default function SettingsScreen() {
       )}
 
       <FlatList
-        data={dictionaries}
-        keyExtractor={(dict) => `${dict.sourceLang}-${dict.targetLang}`}
+        data={uniquePairs}
+        keyExtractor={(pair) => `${pair.nativeLang}-${pair.studiedLang}`}
         ListEmptyComponent={
           <View className="flex-1 items-center justify-center py-20">
-            <Text className="text-lg text-neutral-600">No dictionaries installed</Text>
+            <Text className="text-lg text-neutral-600">No language pairs installed</Text>
           </View>
         }
-        renderItem={({ item: dict }) => {
-          const sourceName = getLanguageName(dict.sourceLang) ?? dict.sourceLang;
-          const targetName = getLanguageName(dict.targetLang) ?? dict.targetLang;
-          const size = fileSizes.get(`${dict.sourceLang}-${dict.targetLang}`) || 0;
+        renderItem={({ item: pair }) => {
+          const nativeName = getLanguageName(pair.nativeLang) ?? pair.nativeLang;
+          const studiedName = getLanguageName(pair.studiedLang) ?? pair.studiedLang;
           return (
             <View className="px-4 py-3 border-b border-neutral-200 flex-row items-center">
-              <View className="flex-1" accessible={true} accessibilityRole="text" accessibilityLabel={`${sourceName} to ${targetName}, ${formatBytes(size)}, downloaded ${formatDate(dict.downloadedAt)}`}>
+              <View
+                className="flex-1"
+                accessible={true}
+                accessibilityRole="text"
+                accessibilityLabel={`${nativeName} and ${studiedName}, downloaded ${formatDate(pair.downloadedAt)}`}
+              >
                 <Text className="text-lg font-medium">
-                  {sourceName}{' → '}{targetName} • {formatBytes(size)}
+                  {nativeName}{' ↔ '}{studiedName}
                 </Text>
                 <Text className="text-sm text-neutral-500">
-                  Downloaded: {formatDate(dict.downloadedAt)}
+                  Downloaded: {formatDate(pair.downloadedAt)}
                 </Text>
               </View>
               <Pressable
                 className="ml-4"
                 accessibilityRole="button"
-                accessibilityLabel={`Delete ${sourceName} to ${targetName} dictionary`}
-                onPress={() => handleDeleteDictionary(dict)}
+                accessibilityLabel={`Delete ${nativeName} and ${studiedName} language pair`}
+                onPress={() => handleDeletePair(pair)}
               >
                 <Text className="text-red-600 font-semibold text-base">Delete</Text>
               </Pressable>
