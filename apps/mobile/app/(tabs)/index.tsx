@@ -26,7 +26,7 @@ export default function LookupScreen() {
     if (!effectivePair) return;
     const now = Date.now();
     await saveWord({
-      id: crypto.randomUUID(),
+      id: `${effectivePair.sourceLang}-${effectivePair.targetLang}-${result.writtenRep}`,
       source: result.writtenRep,
       target: result.transList[0] ?? '',
       sense: result.senseList[0] ?? '',
