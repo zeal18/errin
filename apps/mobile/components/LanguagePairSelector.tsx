@@ -94,7 +94,7 @@ export function LanguagePairSelector() {
             {dictionaries.map((dict) => {
               const langPair: LanguagePair = { sourceLang: dict.sourceLang, targetLang: dict.targetLang };
               const isActive =
-                effectivePair && 
+                !!effectivePair &&
                 effectivePair.sourceLang === dict.sourceLang &&
                 effectivePair.targetLang === dict.targetLang;
               const studiedLang = activePair?.studiedLang ?? dict.targetLang;
