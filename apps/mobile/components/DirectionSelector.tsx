@@ -45,11 +45,15 @@ export function DirectionSelector({ onDirectionChange }: { onDirectionChange?: (
       : activePair.studiedLang;
 
   const handleSelect = async (newInputLang: string, newOutputLang: string) => {
-    // Always use studied_to_native so inputLang = studiedLang
-    await setActivePair(
-      { sourceLang: newOutputLang, targetLang: newInputLang },
-      'studied_to_native'
+    // group.langA = nativeLang (native→studied dict is always added first)
+    const group = groups.find(
+      (g) =>
+        (g.langA === newInputLang || g.langB === newInputLang) &&
+        (g.langA === newOutputLang || g.langB === newOutputLang)
     );
+    if (!group) return;
+    const direction = newInputLang === group.langA ? 'native_to_studied' : 'studied_to_native';
+    await setActivePair({ sourceLang: group.langA, targetLang: group.langB }, direction);
     setOpen(false);
     onDirectionChange?.();
   };
@@ -97,8 +101,8 @@ export function DirectionSelector({ onDirectionChange }: { onDirectionChange?: (
               const nameA = getLanguageName(group.langA) ?? group.langA;
               const nameB = getLanguageName(group.langB) ?? group.langB;
               const directions: Array<{ from: string; to: string }> = [
-                { from: group.langA, to: group.langB },
-                { from: group.langB, to: group.langA },
+                { from: group.langB, to: group.langA },  // studied→native (default)
+                { from: group.langA, to: group.langB },  // native→studied
               ];
               return (
                 <View key={`${group.langA}-${group.langB}`}>

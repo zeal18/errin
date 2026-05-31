@@ -191,6 +191,16 @@ The main working screen. User types a word and gets results from the locally ins
 | In list, status `in_progress` or `not_started`, **different** synonym selected | **Replace** — confirmation dialog shows the synonym currently in progress; confirming replaces it and resets SM-2 progress to zero |
 | In list, status `learned` | **Reset** — resets SM-2 progress to unstarted |
 
+**Deduplication examples:**
+
+- User studies German (native: English). They search "tief" (German→English) and learn it → "tief → deep" in the list.
+- They switch to English→German and search "deep". The "tief" translation variant shows **Learn disabled** — "tief" is already in the list.
+- Selecting a different synonym (e.g. "profound") → **Learn enabled**. Tapping it replaces "tief → deep" with "tief → profound" (same studied word, updated translation, progress reset).
+- Later, the user adds Russian↔German (native: Russian, studied: German). They search "tief" (German→Russian) and see "глубокий". Because "tief" is already in the list (from the English pair), the button shows **Replace**.
+- Confirming replaces "tief → profound" with "tief → глубокий". Progress resets.
+
+The one-entry-per-studied-word rule applies globally across all installed language pairs and all search directions.
+
 ### Word List
 A scrollable list of all saved words.
 
