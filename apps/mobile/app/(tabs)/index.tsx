@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { AccessibilityInfo, Pressable, Text, View } from 'react-native';
+import { AccessibilityInfo, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
-import { LanguagePairSelector } from '../../components/LanguagePairSelector';
+import { DirectionSelector } from '../../components/DirectionSelector';
 import { LookupInput } from '../../components/LookupInput';
 import { ResultsList } from '../../components/ResultsList';
 import { useLookup } from '../../hooks/useLookup';
@@ -10,13 +10,10 @@ import { useAppStore } from '../../store';
 import { saveWord } from '../../db/words';
 import { INITIAL_EASE } from '@errin/core';
 import type { LookupResult } from '@errin/core';
-import { getLanguageName } from '@errin/core';
 
 export default function LookupScreen() {
   const { query, setQuery, results, isLoading, submit } = useLookup();
   const activePair = useAppStore((s) => s.activePair);
-  const swapLookupDirection = useAppStore((s) => s.swapLookupDirection);
-  const dictionaries = useAppStore((s) => s.dictionaries);
   const [showSaved, setShowSaved] = useState(false);
   const savedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -60,30 +57,9 @@ export default function LookupScreen() {
     savedTimer.current = setTimeout(() => setShowSaved(false), 1500);
   }, [activePair]);
 
-  const effectivePair = activePair ?? (dictionaries.length > 0
-    ? { nativeLang: dictionaries[0].sourceLang, studiedLang: dictionaries[0].targetLang, lookupDirection: 'studied_to_native' }
-    : null);
-
-  const studiedLanguageName = effectivePair ? getLanguageName(effectivePair.studiedLang) ?? effectivePair.studiedLang : '';
-
   return (
     <SafeAreaView className="flex-1 bg-white" edges={['top']}>
-      <LanguagePairSelector />
-      {effectivePair && (
-        <View className="flex-row items-center justify-between px-4 py-2">
-          <Text className="text-sm text-neutral-600">
-            Studying: <Text className="font-semibold text-blue-600">{studiedLanguageName}</Text>
-          </Text>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Swap lookup direction"
-            className="p-2 rounded-lg bg-neutral-100"
-            onPress={async () => await swapLookupDirection()}
-          >
-            <Text className="text-xl">{'<->'}</Text>
-          </Pressable>
-        </View>
-      )}
+      <DirectionSelector onDirectionChange={() => setQuery('')} />
       <LookupInput value={query} onChangeText={setQuery} isLoading={isLoading} onSubmit={submit} />
       <ResultsList results={results} onPress={handlePress} />
       {showSaved && (
