@@ -53,7 +53,7 @@ Dictionaries come from [WikDict](https://wikdict.com), downloaded as SQLite file
 For development purposes there are downloaded dictionaries and extracted data schemas in the ../wikdict/ directory.
 
 - **`simple_translation`** — fast exact-match lookup keyed on `written_rep`
-- **`translation_grouped`** — richer results with pipe-separated sense definitions and comma-separated translations, sorted by score
+- **`translation_grouped`** — richer results with pipe-separated sense definitions and comma-separated translations; columns include `score` (translation quality) and `importance` (WikDict word-frequency/popularity signal used for result ranking)
 
 Monolingual WikDict files (which provide POS, gender, and IPA) are not used — they are 256 MB–1.1 GB each and impractical for mobile.
 
@@ -130,12 +130,18 @@ interface InstalledDictionary {
   downloadedAt: number  // unix timestamp
 }
 
-// A dictionary lookup result from WikDict
+// One translation option for a looked-up word (one row from translation_grouped)
+interface TranslationVariant {
+  transList: string[]   // native-language translation words for this variant
+  sense: string         // meaning description in the native language (empty string if unavailable)
+  importance: number    // WikDict frequency signal; variants are sorted by this descending
+}
+
+// A dictionary lookup result from WikDict — one entry per unique looked-up word
 interface LookupResult {
-  writtenRep: string    // source word
-  transList: string[]   // parsed from comma-separated trans_list
-  senseList: string[]   // parsed from pipe-separated sense_list
-  score: number         // max_score from simple_translation
+  writtenRep: string              // the looked-up word
+  variants: TranslationVariant[]  // translation variants, sorted by importance desc; always non-empty
+  score: number                   // max score across variants
 }
 
 // User preferences
@@ -158,13 +164,23 @@ On completion the user is taken directly to the Lookup screen. Onboarding never 
 ### Lookup
 The main working screen. User types a word and gets results from the locally installed dictionary.
 
-- If only one language pair is installed, the pair is displayed as a static label; if multiple are installed, a selector lets the user switch the active pair
-- A persistent **"Studying: {Language}"** label is always visible so the user knows which language they are learning
-- A **swap button (⇄)** toggles the lookup direction between `studied→native` (default) and `native→studied`
-  - `studied→native`: user types in the studied language; the `{studied}-{native}` dictionary is queried; results show the studied word with native translations; tapping saves the studied word
-  - `native→studied`: user types in their native language; the `{native}-{studied}` dictionary is queried; results show the native word with studied-language translations; tapping a result saves the **studied-language translation** as the learning entry
+- At the top of the screen a **direction button** shows the active translation direction as `{InputLang} → {OutputLang}` (e.g. "German → English"). It is always tappable.
+- Tapping the direction button opens a **direction picker dialog**. Options are grouped by installed `{ nativeLang, studiedLang }` pair. Each group lists both directions:
+  - `{studiedLang} → {nativeLang}` — user types in the studied language; default direction
+  - `{nativeLang} → {studiedLang}` — user types in the native language
+- The currently active direction is highlighted. Selecting a direction closes the dialog, updates the active pair and lookup direction, and clears the current query.
+- Direction semantics:
+  - `studied→native`: the `{studied}-{native}` dictionary is queried; tapping a result saves the studied word
+  - `native→studied`: the `{native}-{studied}` dictionary is queried; tapping a result saves the **studied-language translation** (not the native word typed)
 - In both directions, saved words always use `sourceLang = studiedLang` so the word list is consistent
-- Results show the source word, one or more translations, and a sense/definition for context
+- **Search behavior**: lookup is case-insensitive and returns all words whose `written_rep` starts with the query (prefix search). Results are ordered as follows:
+  1. Exact matches (case-insensitive full match) appear first
+  2. All remaining prefix matches are sorted by `importance` descending — more common words rank higher
+- Each result card shows the **looked-up word** with its **translation variants** listed below it:
+  - Variants are sorted by `importance` descending; the first is **pre-selected**
+  - Each variant shows its native-language translations and a meaning description in the native language
+  - Tapping a variant selects it (highlighted); the previously selected variant is deselected
+  - Only the **selected variant** is saved to the learning list when the user taps the save button for that result
 
 ### Word List
 A scrollable list of all saved words.
@@ -192,8 +208,16 @@ A flashcard session for words that are currently due.
 The number of words included in a session is capped by the **daily review limit** set in Settings (default: 20).
 
 ### Settings
-- **Languages** — view installed language pairs; add a new pair (triggers download of **both** bilingual directions; both must complete before the pair is usable)
-- **Daily review limit** — number of words per review session (default: 20)
+
+**Languages**
+
+Displays installed language pairs grouped by `{ nativeLang, studiedLang }` — one row per pair (e.g. "English ↔ German"), not one row per dictionary file. Each row shows the two language names and the date the pair was downloaded.
+
+Deleting a pair removes **all** associated dictionary files (both bilingual directions) atomically. There is no way to delete a single direction in isolation — the pair is the minimum unit of deletion.
+
+The **Add Language Pair** button is shown only when at least one installable pair remains (i.e. not all combinations of the supported languages are already installed).
+
+**Daily review limit** — number of words per review session (default: 20)
 
 ## Getting Started
 
