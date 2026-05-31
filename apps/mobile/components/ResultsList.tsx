@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { FlatList, Pressable, Text, View } from 'react-native';
 import type { LookupResult, TranslationVariant } from '@errin/core';
 
@@ -9,20 +9,16 @@ interface ResultsListProps {
 
 interface ResultCardProps {
   result: LookupResult;
-  onPress: (result: LookupResult, variant: TranslationVariant) => void;
+  selectedIndex: number;
+  onVariantSelect: (writtenRep: string, index: number) => void;
+  onSave: (result: LookupResult, variant: TranslationVariant) => void;
 }
 
-function ResultCard({ result, onPress }: ResultCardProps) {
-  const [selectedIndex, setSelectedIndex] = useState(0);
-
-  const handleVariantPress = useCallback((index: number) => {
-    setSelectedIndex(index);
-  }, []);
-
+function ResultCard({ result, selectedIndex, onVariantSelect, onSave }: ResultCardProps) {
   const handleSave = useCallback(() => {
     const variant = result.variants[selectedIndex];
-    if (variant) onPress(result, variant);
-  }, [result, selectedIndex, onPress]);
+    if (variant) onSave(result, variant);
+  }, [result, selectedIndex, onSave]);
 
   return (
     <View className="px-4 py-3 border-b border-neutral-100">
@@ -47,7 +43,7 @@ function ResultCard({ result, onPress }: ResultCardProps) {
             accessibilityState={{ selected: isSelected }}
             accessibilityLabel={`${variant.transList.join(', ')}${variant.sense ? ': ' + variant.sense : ''}${isSelected ? ', selected' : ''}`}
             className={`mt-1 px-3 py-2 rounded-lg border ${isSelected ? 'border-blue-400 bg-blue-50' : 'border-neutral-200 bg-white'}`}
-            onPress={() => handleVariantPress(index)}
+            onPress={() => onVariantSelect(result.writtenRep, index)}
           >
             <Text className={`text-sm font-medium ${isSelected ? 'text-blue-700' : 'text-neutral-800'}`}>
               {variant.transList.join(', ')}
@@ -63,6 +59,25 @@ function ResultCard({ result, onPress }: ResultCardProps) {
 }
 
 export function ResultsList({ results, onPress }: ResultsListProps) {
+  const [selectedVariants, setSelectedVariants] = useState<Map<string, number>>(new Map());
+
+  // Reset selection whenever the result set changes
+  useEffect(() => {
+    const initial = new Map<string, number>();
+    for (const result of results) {
+      initial.set(result.writtenRep, 0);
+    }
+    setSelectedVariants(initial);
+  }, [results]);
+
+  const handleVariantSelect = useCallback((writtenRep: string, index: number) => {
+    setSelectedVariants((prev) => {
+      const next = new Map(prev);
+      next.set(writtenRep, index);
+      return next;
+    });
+  }, []);
+
   if (results.length === 0) {
     return (
       <View className="flex-1 items-center justify-center">
@@ -75,8 +90,14 @@ export function ResultsList({ results, onPress }: ResultsListProps) {
     <FlatList
       data={results}
       keyExtractor={(item, index) => item.writtenRep + index}
+      extraData={selectedVariants}
       renderItem={({ item }) => (
-        <ResultCard result={item} onPress={onPress} />
+        <ResultCard
+          result={item}
+          selectedIndex={selectedVariants.get(item.writtenRep) ?? 0}
+          onVariantSelect={handleVariantSelect}
+          onSave={onPress}
+        />
       )}
     />
   );
