@@ -7,7 +7,7 @@ import { LookupInput } from '../../components/LookupInput';
 import { ResultsList } from '../../components/ResultsList';
 import { useLookup } from '../../hooks/useLookup';
 import { useAppStore } from '../../store';
-import { saveWord } from '../../db/words';
+import { saveWord, replaceWord, resetWordProgress } from '../../db/words';
 import { INITIAL_EASE } from '@errin/core';
 import type { LookupResult, TranslationVariant } from '@errin/core';
 
@@ -19,14 +19,20 @@ export default function LookupScreen() {
 
   useEffect(() => () => { if (savedTimer.current) clearTimeout(savedTimer.current); }, []);
 
-  const handlePress = useCallback(async (result: LookupResult, variant: TranslationVariant) => {
+  const showSavedToast = useCallback(() => {
+    setShowSaved(true);
+    AccessibilityInfo.announceForAccessibility("Saved");
+    if (savedTimer.current) clearTimeout(savedTimer.current);
+    savedTimer.current = setTimeout(() => setShowSaved(false), 1500);
+  }, []);
+
+  const handlePress = useCallback(async (result: LookupResult, variant: TranslationVariant, synonym: string) => {
     if (!activePair) return;
     const now = Date.now();
     if (activePair.lookupDirection === 'native_to_studied') {
-      // User typed native word; save first studied-language translation as source
       await saveWord({
-        id: `${activePair.studiedLang}-${activePair.nativeLang}-${variant.transList[0]}-${now}`,
-        source: variant.transList[0] ?? '',
+        id: `${activePair.studiedLang}-${activePair.nativeLang}-${synonym}-${now}`,
+        source: synonym,
         target: result.writtenRep,
         sense: variant.sense,
         sourceLang: activePair.studiedLang,
@@ -38,11 +44,10 @@ export default function LookupScreen() {
         reviews: 0,
       });
     } else {
-      // User typed studied word; save it as source with selected native translation
       await saveWord({
         id: `${activePair.studiedLang}-${activePair.nativeLang}-${result.writtenRep}-${now}`,
         source: result.writtenRep,
-        target: variant.transList[0] ?? '',
+        target: synonym,
         sense: variant.sense,
         sourceLang: activePair.studiedLang,
         targetLang: activePair.nativeLang,
@@ -53,17 +58,29 @@ export default function LookupScreen() {
         reviews: 0,
       });
     }
-    setShowSaved(true);
-    AccessibilityInfo.announceForAccessibility("Saved");
-    if (savedTimer.current) clearTimeout(savedTimer.current);
-    savedTimer.current = setTimeout(() => setShowSaved(false), 1500);
-  }, [activePair]);
+    showSavedToast();
+  }, [activePair, showSavedToast]);
+
+  const handleReplace = useCallback(async (id: string, newTarget: string, newSense: string) => {
+    await replaceWord(id, newTarget, newSense);
+    showSavedToast();
+  }, [showSavedToast]);
+
+  const handleReset = useCallback(async (id: string) => {
+    await resetWordProgress(id);
+    showSavedToast();
+  }, [showSavedToast]);
 
   return (
     <SafeAreaView className="flex-1 bg-white" edges={['top']}>
       <DirectionSelector onDirectionChange={() => setQuery('')} />
       <LookupInput value={query} onChangeText={setQuery} isLoading={isLoading} onSubmit={submit} />
-      <ResultsList results={results} onPress={handlePress} />
+      <ResultsList
+        results={results}
+        onPress={handlePress}
+        onReplace={handleReplace}
+        onReset={handleReset}
+      />
       {showSaved && (
         <View className="absolute bottom-6 left-0 right-0 items-center pointer-events-none">
           <View className="bg-neutral-800 px-4 py-2 rounded-full">

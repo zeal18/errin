@@ -1,24 +1,87 @@
 import { useState, useCallback, useEffect } from 'react';
-import { FlatList, Pressable, Text, View } from 'react-native';
+import { Alert, FlatList, Pressable, Text, View } from 'react-native';
+import { computeStatus, type Word } from '@errin/core';
 import type { LookupResult, TranslationVariant } from '@errin/core';
+import { getWordsBySource } from '../db/words';
+import { useAppStore } from '../store';
 
 interface ResultsListProps {
   results: LookupResult[];
-  onPress: (result: LookupResult, variant: TranslationVariant) => void;
+  onPress: (result: LookupResult, variant: TranslationVariant, synonym: string) => void;
+  onReplace: (id: string, newTarget: string, newSense: string) => void;
+  onReset: (id: string) => void;
 }
 
 interface ResultCardProps {
   result: LookupResult;
-  selectedIndex: number;
+  selectedVariantIndex: number;
+  selectedSynonymIndex: number;
+  existingWord: Word | undefined;
   onVariantSelect: (writtenRep: string, index: number) => void;
-  onSave: (result: LookupResult, variant: TranslationVariant) => void;
+  onSynonymSelect: (writtenRep: string, index: number) => void;
+  onSave: (result: LookupResult, variant: TranslationVariant, synonym: string) => void;
+  onReplace: (id: string, newTarget: string, newSense: string) => void;
+  onReset: (id: string) => void;
 }
 
-function ResultCard({ result, selectedIndex, onVariantSelect, onSave }: ResultCardProps) {
+function ResultCard({
+  result,
+  selectedVariantIndex,
+  selectedSynonymIndex,
+  existingWord,
+  onVariantSelect,
+  onSynonymSelect,
+  onSave,
+  onReplace,
+  onReset,
+}: ResultCardProps) {
+  const selectedVariant = result.variants[selectedVariantIndex];
+  const selectedSynonym = selectedVariant?.transList[selectedSynonymIndex] ?? selectedVariant?.transList[0] ?? '';
+
+  const status = existingWord ? computeStatus(existingWord) : null;
+
+  const isSameWord = existingWord && existingWord.target === selectedSynonym;
+
+  type ButtonKind = 'save' | 'save-disabled' | 'replace' | 'reset';
+  let buttonKind: ButtonKind = 'save';
+  if (status === 'learned') {
+    buttonKind = 'reset';
+  } else if (status === 'in_progress' || status === 'not_started') {
+    buttonKind = isSameWord ? 'save-disabled' : 'replace';
+  }
+
   const handleSave = useCallback(() => {
-    const variant = result.variants[selectedIndex];
-    if (variant) onSave(result, variant);
-  }, [result, selectedIndex, onSave]);
+    if (!selectedVariant) return;
+    onSave(result, selectedVariant, selectedSynonym);
+  }, [result, selectedVariant, selectedSynonym, onSave]);
+
+  const handleReplace = useCallback(() => {
+    if (!existingWord || !selectedVariant) return;
+    Alert.alert(
+      'Replace word?',
+      `You are currently studying "${existingWord.target}". Replace it with "${selectedSynonym}" and reset progress?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Replace',
+          style: 'destructive',
+          onPress: () => onReplace(existingWord.id, selectedSynonym, selectedVariant.sense),
+        },
+      ]
+    );
+  }, [existingWord, selectedVariant, selectedSynonym, onReplace]);
+
+  const handleReset = useCallback(() => {
+    if (!existingWord) return;
+    onReset(existingWord.id);
+  }, [existingWord, onReset]);
+
+  const buttonConfig = {
+    save: { label: 'Save', onPress: handleSave, style: 'bg-blue-600', disabled: false },
+    'save-disabled': { label: 'Save', onPress: undefined, style: 'bg-neutral-300', disabled: true },
+    replace: { label: 'Replace', onPress: handleReplace, style: 'bg-amber-500', disabled: false },
+    reset: { label: 'Reset', onPress: handleReset, style: 'bg-neutral-500', disabled: false },
+  }[buttonKind];
 
   return (
     <View className="px-4 py-3 border-b border-neutral-100">
@@ -26,28 +89,53 @@ function ResultCard({ result, selectedIndex, onVariantSelect, onSave }: ResultCa
         <Text className="text-base font-bold text-neutral-900">{result.writtenRep}</Text>
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={`Save ${result.writtenRep}`}
-          className="px-3 py-1 rounded-full bg-blue-600"
-          onPress={handleSave}
+          accessibilityLabel={`${buttonConfig.label} ${result.writtenRep}`}
+          accessibilityState={{ disabled: buttonConfig.disabled }}
+          disabled={buttonConfig.disabled}
+          className={`px-3 py-1 rounded-full ${buttonConfig.style}`}
+          onPress={buttonConfig.onPress}
         >
-          <Text className="text-xs font-semibold text-white">Save</Text>
+          <Text className="text-xs font-semibold text-white">{buttonConfig.label}</Text>
         </Pressable>
       </View>
 
-      {result.variants.map((variant, index) => {
-        const isSelected = index === selectedIndex;
+      {result.variants.map((variant, vIndex) => {
+        const isVariantSelected = vIndex === selectedVariantIndex;
         return (
           <Pressable
-            key={index}
+            key={vIndex}
             accessibilityRole="button"
-            accessibilityState={{ selected: isSelected }}
-            accessibilityLabel={`${variant.transList.join(', ')}${variant.sense ? ': ' + variant.sense : ''}${isSelected ? ', selected' : ''}`}
-            className={`mt-1 px-3 py-2 rounded-lg border ${isSelected ? 'border-blue-400 bg-blue-50' : 'border-neutral-200 bg-white'}`}
-            onPress={() => onVariantSelect(result.writtenRep, index)}
+            accessibilityState={{ selected: isVariantSelected }}
+            accessibilityLabel={`${variant.transList.join(', ')}${variant.sense ? ': ' + variant.sense : ''}${isVariantSelected ? ', selected' : ''}`}
+            className={`mt-1 px-3 py-2 rounded-lg border ${isVariantSelected ? 'border-blue-400 bg-blue-50' : 'border-neutral-200 bg-white'}`}
+            onPress={() => onVariantSelect(result.writtenRep, vIndex)}
           >
-            <Text className={`text-sm font-medium ${isSelected ? 'text-blue-700' : 'text-neutral-800'}`}>
-              {variant.transList.join(', ')}
-            </Text>
+            {/* Synonym chips — only shown for the selected variant */}
+            {isVariantSelected ? (
+              <View className="flex-row flex-wrap gap-1 mb-1">
+                {variant.transList.map((synonym, sIndex) => {
+                  const isSynonymSelected = sIndex === selectedSynonymIndex;
+                  return (
+                    <Pressable
+                      key={sIndex}
+                      accessibilityRole="button"
+                      accessibilityState={{ selected: isSynonymSelected }}
+                      accessibilityLabel={`${synonym}${isSynonymSelected ? ', selected' : ''}`}
+                      className={`px-2 py-0.5 rounded-full border ${isSynonymSelected ? 'border-blue-500 bg-blue-100' : 'border-neutral-300 bg-white'}`}
+                      onPress={() => onSynonymSelect(result.writtenRep, sIndex)}
+                    >
+                      <Text className={`text-sm ${isSynonymSelected ? 'font-semibold text-blue-700' : 'text-neutral-700'}`}>
+                        {synonym}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            ) : (
+              <Text className="text-sm font-medium text-neutral-500">
+                {variant.transList.join(', ')}
+              </Text>
+            )}
             {variant.sense ? (
               <Text className="text-xs text-neutral-500 mt-0.5">{variant.sense}</Text>
             ) : null}
@@ -58,25 +146,75 @@ function ResultCard({ result, selectedIndex, onVariantSelect, onSave }: ResultCa
   );
 }
 
-export function ResultsList({ results, onPress }: ResultsListProps) {
-  const [selectedVariants, setSelectedVariants] = useState<Map<string, number>>(new Map());
+export function ResultsList({ results, onPress, onReplace, onReset }: ResultsListProps) {
+  const studiedLang = useAppStore((s) => s.activePair?.studiedLang ?? '');
 
-  // Reset selection whenever the result set changes
+  const [selectedVariants, setSelectedVariants] = useState<Map<string, number>>(new Map());
+  const [selectedSynonyms, setSelectedSynonyms] = useState<Map<string, number>>(new Map());
+  const [existingWords, setExistingWords] = useState<Map<string, Word>>(new Map());
+
+  // Reset all selection state and reload word status when results change
   useEffect(() => {
-    const initial = new Map<string, number>();
+    const initVariants = new Map<string, number>();
+    const initSynonyms = new Map<string, number>();
     for (const result of results) {
-      initial.set(result.writtenRep, 0);
+      initVariants.set(result.writtenRep, 0);
+      initSynonyms.set(result.writtenRep, 0);
     }
-    setSelectedVariants(initial);
-  }, [results]);
+    setSelectedVariants(initVariants);
+    setSelectedSynonyms(initSynonyms);
+
+    if (results.length > 0 && studiedLang) {
+      const sources = results.map((r) => r.writtenRep);
+      getWordsBySource(sources, studiedLang).then(setExistingWords).catch(() => {});
+    } else {
+      setExistingWords(new Map());
+    }
+  }, [results, studiedLang]);
 
   const handleVariantSelect = useCallback((writtenRep: string, index: number) => {
-    setSelectedVariants((prev) => {
-      const next = new Map(prev);
-      next.set(writtenRep, index);
-      return next;
-    });
+    setSelectedVariants((prev) => new Map(prev).set(writtenRep, index));
+    // Reset synonym to first when variant changes
+    setSelectedSynonyms((prev) => new Map(prev).set(writtenRep, 0));
   }, []);
+
+  const handleSynonymSelect = useCallback((writtenRep: string, index: number) => {
+    setSelectedSynonyms((prev) => new Map(prev).set(writtenRep, index));
+  }, []);
+
+  // Refresh word status after any mutation (save/replace/reset)
+  const refreshWords = useCallback(() => {
+    if (results.length > 0 && studiedLang) {
+      const sources = results.map((r) => r.writtenRep);
+      getWordsBySource(sources, studiedLang).then(setExistingWords).catch(() => {});
+    }
+  }, [results, studiedLang]);
+
+  const handleSave = useCallback(
+    (result: LookupResult, variant: TranslationVariant, synonym: string) => {
+      onPress(result, variant, synonym);
+      setTimeout(refreshWords, 100);
+    },
+    [onPress, refreshWords]
+  );
+
+  const handleReplace = useCallback(
+    (id: string, newTarget: string, newSense: string) => {
+      onReplace(id, newTarget, newSense);
+      setTimeout(refreshWords, 100);
+    },
+    [onReplace, refreshWords]
+  );
+
+  const handleReset = useCallback(
+    (id: string) => {
+      onReset(id);
+      setTimeout(refreshWords, 100);
+    },
+    [onReset, refreshWords]
+  );
+
+  const extraData = { selectedVariants, selectedSynonyms, existingWords };
 
   if (results.length === 0) {
     return (
@@ -90,13 +228,18 @@ export function ResultsList({ results, onPress }: ResultsListProps) {
     <FlatList
       data={results}
       keyExtractor={(item, index) => item.writtenRep + index}
-      extraData={selectedVariants}
+      extraData={extraData}
       renderItem={({ item }) => (
         <ResultCard
           result={item}
-          selectedIndex={selectedVariants.get(item.writtenRep) ?? 0}
+          selectedVariantIndex={selectedVariants.get(item.writtenRep) ?? 0}
+          selectedSynonymIndex={selectedSynonyms.get(item.writtenRep) ?? 0}
+          existingWord={existingWords.get(item.writtenRep)}
           onVariantSelect={handleVariantSelect}
-          onSave={onPress}
+          onSynonymSelect={handleSynonymSelect}
+          onSave={handleSave}
+          onReplace={handleReplace}
+          onReset={handleReset}
         />
       )}
     />
