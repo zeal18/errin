@@ -18,16 +18,12 @@ const RATING_BUTTONS: { label: string; rating: Rating }[] = [
   { label: 'Easy', rating: 'easy' },
 ];
 
-function getRatingColor(rating: Rating, pressed: boolean): string {
-  const colors = {
-    again: '#ef4444',
-    hard: '#f97316',
-    good: '#22c55e',
-    easy: '#3b82f6',
-  };
-  const base = colors[rating];
-  return pressed ? base : base;
-}
+const RATING_COLORS: Record<Rating, string> = {
+  again: '#ef4444',
+  hard: '#f97316',
+  good: '#22c55e',
+  easy: '#3b82f6',
+};
 
 export default function ReviewScreen() {
   const router = useRouter();
@@ -153,13 +149,7 @@ export default function ReviewScreen() {
                       <Pressable
                         key={rating}
                         className="px-4 py-2 rounded-xl m-1 flex-1"
-                        style={({ pressed }) => [
-                          {
-                            backgroundColor: pressed
-                              ? getRatingColor(rating, true)
-                              : getRatingColor(rating, false),
-                          },
-                        ]}
+                        style={{ backgroundColor: RATING_COLORS[rating] }}
                         onPress={() => handleRate(rating)}
                         accessibilityRole="button"
                         accessibilityLabel={label}
