@@ -4,3 +4,5 @@ packages:
 allowBuilds:
   msgpackr-extract: true
   unrs-resolver: true
+overrides:
+  expo-font: "55.0.8"
