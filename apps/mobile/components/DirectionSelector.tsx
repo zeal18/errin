@@ -1,9 +1,8 @@
 import { useMemo, useState } from 'react';
 import { Modal, Pressable, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
-import { getLanguageName, getPairDownloadSize } from '@errin/core';
+import { getLanguageName } from '@errin/core';
 import { useAppStore } from '../store';
-import { DownloadConfirmationDialog } from './DownloadConfirmationDialog';
 
 interface PairGroup {
   langA: string;
@@ -21,12 +20,8 @@ export function DirectionSelector({ onDirectionChange }: { onDirectionChange?: (
   const activePair = useAppStore((s) => s.activePair);
   const setActivePair = useAppStore((s) => s.setActivePair);
   const isPairBehindCurrentVersion = useAppStore((s) => s.isPairBehindCurrentVersion);
-  const updatePair = useAppStore((s) => s.updatePair);
   const router = useRouter();
   const [open, setOpen] = useState(false);
-  const [updateTargetNativeLang, setUpdateTargetNativeLang] = useState<string | null>(null);
-  const [updateTargetStudiedLang, setUpdateTargetStudiedLang] = useState<string | null>(null);
-  const [showUpdateConfirmDialog, setShowUpdateConfirmDialog] = useState(false);
 
   const groups = useMemo<PairGroup[]>(() => {
     const seen = new Set<string>();
@@ -142,10 +137,9 @@ export function DirectionSelector({ onDirectionChange }: { onDirectionChange?: (
                       accessibilityLabel={`Update ${nameA} and ${nameB} dictionaries`}
                       className="px-4 py-2 mx-4 my-2 rounded-lg bg-blue-600 items-center"
                       onPress={() => {
-                        setUpdateTargetNativeLang(group.langA);
-                        setUpdateTargetStudiedLang(group.langB);
                         setOpen(false);
-                        setShowUpdateConfirmDialog(true);
+                        const pairKey = [group.langA, group.langB].sort().join('-');
+                        router.push(`/(tabs)/settings?updatePair=${pairKey}`);
                       }}
                     >
                       <Text className="text-white font-semibold text-sm">Update</Text>
@@ -157,25 +151,6 @@ export function DirectionSelector({ onDirectionChange }: { onDirectionChange?: (
           </Pressable>
         </Pressable>
       </Modal>
-      <DownloadConfirmationDialog
-        visible={showUpdateConfirmDialog}
-        sizeBytes={updateTargetNativeLang && updateTargetStudiedLang ? getPairDownloadSize(updateTargetNativeLang, updateTargetStudiedLang) : 0}
-        onAccept={() => {
-          if (updateTargetNativeLang && updateTargetStudiedLang) {
-            updatePair(updateTargetNativeLang, updateTargetStudiedLang, () => {}).finally(() => {
-              setShowUpdateConfirmDialog(false);
-              setUpdateTargetNativeLang(null);
-              setUpdateTargetStudiedLang(null);
-              router.push('/(tabs)/settings');
-            });
-          }
-        }}
-        onCancel={() => {
-          setShowUpdateConfirmDialog(false);
-          setUpdateTargetNativeLang(null);
-          setUpdateTargetStudiedLang(null);
-        }}
-      />
     </>
   );
 }
