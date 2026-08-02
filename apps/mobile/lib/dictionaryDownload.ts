@@ -7,10 +7,9 @@ import {
   type DownloadProgressData,
 } from 'expo-file-system/legacy';
 import { devLog } from './devLog';
+import { CURRENT_DICTIONARY_VERSION } from '@errin/core';
 
-export const WIKDICT_VERSION = '2_2025-11';
-
-const WIKDICT_BASE_URL = `https://download.wikdict.com/dictionaries/sqlite/${WIKDICT_VERSION}/`;
+const WIKDICT_BASE_URL = 'https://download.wikdict.com/dictionaries/sqlite/';
 const DICT_SUBDIR = 'dictionaries';
 
 export interface DictionaryDownloadResult {
@@ -35,12 +34,25 @@ export interface PairDownloadHandle {
   cancel: () => Promise<void>;
 }
 
-export function getDictionaryFileName(sourceLang: string, targetLang: string): string {
+export function getDictionaryFileName(
+  sourceLang: string,
+  targetLang: string,
+  version: string = CURRENT_DICTIONARY_VERSION.id
+): string {
+  return `${sourceLang}-${targetLang}-${version}.sqlite3`;
+}
+
+// WikDict's remote files are not version-suffixed — the version is the directory segment.
+function getRemoteDictionaryFileName(sourceLang: string, targetLang: string): string {
   return `${sourceLang}-${targetLang}.sqlite3`;
 }
 
-export function getDictionaryUrl(sourceLang: string, targetLang: string): string {
-  return `${WIKDICT_BASE_URL}${getDictionaryFileName(sourceLang, targetLang)}`;
+export function getDictionaryUrl(
+  sourceLang: string,
+  targetLang: string,
+  version: string = CURRENT_DICTIONARY_VERSION.id
+): string {
+  return `${WIKDICT_BASE_URL}${version}/${getRemoteDictionaryFileName(sourceLang, targetLang)}`;
 }
 
 function getDictionaryDir(): string {
@@ -50,8 +62,12 @@ function getDictionaryDir(): string {
   return `${documentDirectory}${DICT_SUBDIR}/`;
 }
 
-export function getDictionaryFilePath(sourceLang: string, targetLang: string): string {
-  return `${getDictionaryDir()}${getDictionaryFileName(sourceLang, targetLang)}`;
+export function getDictionaryFilePath(
+  sourceLang: string,
+  targetLang: string,
+  version: string = CURRENT_DICTIONARY_VERSION.id
+): string {
+  return `${getDictionaryDir()}${getDictionaryFileName(sourceLang, targetLang, version)}`;
 }
 
 async function ensureDictionaryDir(): Promise<void> {
