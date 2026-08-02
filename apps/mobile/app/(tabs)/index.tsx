@@ -14,6 +14,7 @@ import type { LookupResult, TranslationVariant } from '@errin/core';
 export default function LookupScreen() {
   const { query, setQuery, results, isLoading, submit } = useLookup();
   const activePair = useAppStore((s) => s.activePair);
+  const isPairBehindCurrentVersion = useAppStore((s) => s.isPairBehindCurrentVersion);
   const [showSaved, setShowSaved] = useState(false);
   const savedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -74,6 +75,11 @@ export default function LookupScreen() {
   return (
     <SafeAreaView className="flex-1 bg-white" edges={['top']}>
       <DirectionSelector onDirectionChange={() => setQuery('')} />
+      {activePair && isPairBehindCurrentVersion(activePair.nativeLang, activePair.studiedLang) && (
+        <View className="items-center pb-1">
+          <Text className="text-xs text-blue-600">Update available</Text>
+        </View>
+      )}
       <LookupInput value={query} onChangeText={setQuery} isLoading={isLoading} onSubmit={submit} />
       <ResultsList
         results={results}
