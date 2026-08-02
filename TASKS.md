@@ -69,18 +69,7 @@ No new tasks discovered.
 - Discovery Round 64 (2 tasks archived to TASKS-ARCHIVE.md)
 - Phase 15 (2 tasks archived to TASKS-ARCHIVE.md)
 - Phase 16 (1 tasks archived to TASKS-ARCHIVE.md)
-## Phase 17 (2 archived, 6 retained)
-- [x] T17.1: Add `startPairDownload` helper to `apps/mobile/lib/dictionaryDownload.ts` — downloads both `{native}-{studied}` and `{studied}-{native}` sequentially, fires a unified progress callback with combined progress, and returns both `DictionaryDownloadResult`s; expose a matching cancel function that cancels whichever download is active [QRP-B-]
-- [x] T17.2: Update `apps/mobile/app/onboarding.tsx` to use `startPairDownload` — replace the single-dict download with the pair download helper; call `addDictionary` twice on success (once per direction); show a single combined progress bar across both downloads [--P-B-!]
-- [x] T17.3: Update `apps/mobile/components/AddLanguagePairModal.tsx` to use `startPairDownload` — same changes as T17.2; update the installed-pair check so a pair is only hidden from the "add" list when both directions are already installed
-  ... (2 tasks archived to TASKS-ARCHIVE.md)
-- [x] T17.6: Update `apps/mobile/hooks/useLookup.ts` — derive the dictionary file to open from `activePair` + `lookupDirection` (direction `studied-to-native` → `{studied}-{native}.sqlite3`, direction `native-to-studied` → `{native}-{studied}.sqlite3`); close and reopen the DB connection when direction changes
-- [x] T17.7: Update `apps/mobile/app/(tabs)/index.tsx` — add a swap button (⇄) that calls `setLookupDirection` toggling between the two values; add a persistent "Studying: {Language}" label; fix the word-save handler so that when `lookupDirection === 'native-to-studied'` the tapped **translation** (studied-language word) is saved as `source` with `sourceLang = studiedLang, targetLang = nativeLang` instead of the native word the user typed
-- [x] T17.8: Update `apps/mobile/components/LanguagePairSelector.tsx` — always display the studied language prominently (e.g. bold label or "Studying: X" badge); keep the pair-switching dropdown behaviour unchanged for multi-pair installs
-
-- Phase 18 (5 tasks archived to TASKS-ARCHIVE.md)
-- Phase 19 (4 tasks archived to TASKS-ARCHIVE.md)
-- Phase 20 (4 tasks archived to TASKS-ARCHIVE.md)
+- Phase 17 (2 archived, 6 retained) (6 tasks archived to TASKS-ARCHIVE.md)
 ## Phase 21: Dictionary Version Registry & Schema
 - [ ] T21.1: Add `packages/core/src/dictionaryVersions.ts` — export `DictionaryVersion` type (`{ id: string }`), `SUPPORTED_DICTIONARY_VERSIONS: DictionaryVersion[]` (currently just `{ id: '2_2025-11' }`), `CURRENT_DICTIONARY_VERSION` (last entry in the list), and `DICTIONARY_FILE_SIZES: Record<string, number>` keyed by `{sourceLang}-{targetLang}` giving the byte size of each direction file for the current version (values from the "Supported Language Pairs" table in `SPEC.md`); add `getPairDownloadSize(nativeLang, studiedLang): number` summing both direction sizes for use by the download confirmation dialog [QRP--!]
 - [ ] T21.2: Add `version: string` to `InstalledDictionary` in `packages/core/src/types.ts`
