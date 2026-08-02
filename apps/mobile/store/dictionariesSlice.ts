@@ -169,12 +169,12 @@ export const createDictionariesSlice: StateCreator<
 
     // Download both new-version direction files
     const { promise } = startPairDownload(nativeLang, studiedLang, onProgress);
-    await promise;
+    const result = await promise;
 
     // Insert two new installed_dictionaries rows at the new version
     const { addDictionary } = get();
-    await addDictionary({ sourceLang: nativeLang, targetLang: studiedLang, filePath: newForwardPath, downloadedAt: Date.now(), version: newVersion });
-    await addDictionary({ sourceLang: studiedLang, targetLang: nativeLang, filePath: newReversePath, downloadedAt: Date.now(), version: newVersion });
+    await addDictionary({ sourceLang: nativeLang, targetLang: studiedLang, filePath: result.first.filePath, downloadedAt: result.first.downloadedAt, version: newVersion });
+    await addDictionary({ sourceLang: studiedLang, targetLang: nativeLang, filePath: result.second.filePath, downloadedAt: result.second.downloadedAt, version: newVersion });
 
     // Get old dictionary entries
     const { dictionaries } = get();
