@@ -4,6 +4,7 @@ import {
   CURRENT_DICTIONARY_VERSION,
   SUPPORTED_LANGUAGES,
   getLanguageName,
+  getPairDownloadSize,
 } from '@errin/core';
 import {
   startPairDownload,
@@ -11,8 +12,9 @@ import {
   type PairDownloadProgress,
 } from '../lib/dictionaryDownload';
 import { useAppStore } from '../store';
+import { DownloadConfirmationDialog } from './DownloadConfirmationDialog';
 
-type Step = 'select' | 'download';
+type Step = 'select' | 'confirm' | 'download';
 
 interface DownloadItem {
   sourceLang: string;
@@ -36,6 +38,7 @@ export function AddLanguagePairModal({
   const [nativeLang, setNativeLang] = useState<string | null>(null);
   const [studiedLang, setStudiedLang] = useState<string | null>(null);
   const [downloadItems, setDownloadItems] = useState<DownloadItem[]>([]);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const downloadHandlesRef = useRef<Map<string, PairDownloadHandle>>(new Map());
 
   const installedPairKeys = new Set(
@@ -51,17 +54,22 @@ export function AddLanguagePairModal({
 
   const onAdd = async () => {
     if (!canAdd) return;
+    setShowConfirmDialog(true);
+  };
 
+  const onConfirmAccept = () => {
+    if (!nativeLang || !studiedLang) return;
+    setShowConfirmDialog(false);
     setStep('download');
     setDownloadItems([{
-      sourceLang: nativeLang!,
-      targetLang: studiedLang!,
+      sourceLang: nativeLang,
+      targetLang: studiedLang,
       progress: { fraction: 0, totalBytesWritten: 0, totalBytesExpectedToWrite: 0 },
       status: 'downloading',
     }]);
 
     const pairKey = `${nativeLang}-${studiedLang}`;
-    const handle = startPairDownload(nativeLang!, studiedLang!, (progress) => {
+    const handle = startPairDownload(nativeLang, studiedLang, (progress) => {
       setDownloadItems((prev) =>
         prev.map((item) =>
           item.sourceLang === nativeLang && item.targetLang === studiedLang
@@ -76,15 +84,15 @@ export function AddLanguagePairModal({
     handle.promise
       .then(async (result) => {
         await addDictionary({
-          sourceLang: nativeLang!,
-          targetLang: studiedLang!,
+          sourceLang: nativeLang,
+          targetLang: studiedLang,
           filePath: result.first.filePath,
           downloadedAt: result.first.downloadedAt,
           version: CURRENT_DICTIONARY_VERSION.id,
         });
         await addDictionary({
-          sourceLang: studiedLang!,
-          targetLang: nativeLang!,
+          sourceLang: studiedLang,
+          targetLang: nativeLang,
           filePath: result.second.filePath,
           downloadedAt: result.second.downloadedAt,
           version: CURRENT_DICTIONARY_VERSION.id,
@@ -114,6 +122,10 @@ export function AddLanguagePairModal({
           downloadHandlesRef.current.delete(pairKey);
         }
       });
+  };
+
+  const onConfirmCancel = () => {
+    setShowConfirmDialog(false);
   };
 
   const onRetry = async () => {
@@ -226,8 +238,15 @@ export function AddLanguagePairModal({
 
   const hasErrors = downloadItems.some((item) => item.status === 'error');
 
-  if (step === 'select') {
-    return (
+  return (
+    <>
+      <DownloadConfirmationDialog
+        visible={showConfirmDialog}
+        sizeBytes={nativeLang && studiedLang ? getPairDownloadSize(nativeLang, studiedLang) : 0}
+        onAccept={onConfirmAccept}
+        onCancel={onConfirmCancel}
+      />
+      {step === 'select' && (
       <Modal
         visible={visible}
         transparent
@@ -358,127 +377,125 @@ export function AddLanguagePairModal({
           </Pressable>
         </Pressable>
       </Modal>
-    );
-  }
-
-  if (step === 'download') {
-    return (
-      <Modal
-        visible={visible}
-        transparent
-        animationType="fade"
-        onRequestClose={allDownloadsComplete ? closeAndReset : undefined}
-        accessible={true}
-      >
-        <Pressable
-          className="flex-1 bg-black/40 justify-center items-center"
-          onPress={allDownloadsComplete ? closeAndReset : undefined}
-          accessibilityRole="button"
-          accessibilityLabel="Close add language pair modal"
-          accessibilityState={{ disabled: !allDownloadsComplete }}
+      )}
+      {step === 'download' && (
+        <Modal
+          visible={visible}
+          transparent
+          animationType="fade"
+          onRequestClose={allDownloadsComplete ? closeAndReset : undefined}
+          accessible={true}
         >
           <Pressable
-            className="bg-white rounded-xl w-80 overflow-hidden"
-            onPress={(e) => e.stopPropagation()}
+            className="flex-1 bg-black/40 justify-center items-center"
+            onPress={allDownloadsComplete ? closeAndReset : undefined}
             accessibilityRole="button"
-            accessibilityLabel="Add language pair modal content"
-            accessibilityViewIsModal={true}
+            accessibilityLabel="Close add language pair modal"
+            accessibilityState={{ disabled: !allDownloadsComplete }}
           >
-            <View className="px-4 py-3 border-b border-neutral-200">
-              <Text className="text-sm font-semibold text-neutral-500 uppercase tracking-wide">
-                Downloading Dictionaries
-              </Text>
-            </View>
-            <View className="p-4">
-              <Text className="text-sm text-neutral-600 mb-4">
-                Downloading both directions for {getLanguageName(nativeLang ?? '') ?? nativeLang}{' ↔ '}{getLanguageName(studiedLang ?? '') ?? studiedLang}
-              </Text>
-              <View className="gap-3 mb-4">
-                {downloadItems.map((item) => {
-                  const sourceName = getLanguageName(item.sourceLang) ?? item.sourceLang;
-                  const targetName = getLanguageName(item.targetLang) ?? item.targetLang;
-                  const progressPercent = Math.round(item.progress.fraction * 100);
-                  const knownTotal = item.progress.totalBytesExpectedToWrite > 0;
-
-                  return (
-                    <View
-                      key={`${item.sourceLang}-${item.targetLang}`}
-                      className="border border-neutral-200 rounded-lg p-3"
-                    >
-                      <Text className="text-sm font-medium text-neutral-900">
-                        {sourceName}{' → '}{targetName}
-                      </Text>
-                      {item.status === 'pending' && (
-                        <View className="mt-2">
-                          <Text className="text-xs text-neutral-500">Waiting...</Text>
-                        </View>
-                      )}
-                      {item.status === 'downloading' && (
-                        <>
-                          <View className="mt-2 h-2 rounded-full bg-neutral-200 overflow-hidden">
-                            {knownTotal ? (
-                              <View
-                                className="h-full bg-blue-600"
-                                style={{ width: `${Math.min(100, Math.max(0, progressPercent))}%` }}
-                              />
-                            ) : (
-                              <View className="h-full" />
-                            )}
-                          </View>
-                          <View className="mt-1 flex-row justify-between">
-                            <Text className="text-xs text-neutral-600">
-                              {knownTotal ? `${progressPercent}%` : 'Starting...'}
-                            </Text>
-                          </View>
-                        </>
-                      )}
-                      {item.status === 'success' && (
-                        <View className="mt-2 flex-row items-center gap-2">
-                          <View className="w-4 h-4 rounded-full bg-green-500" />
-                          <Text className="text-xs text-green-600">Complete</Text>
-                        </View>
-                      )}
-                      {item.status === 'error' && (
-                        <View className="mt-2">
-                          <Text className="text-xs text-red-600">{item.errorMessage}</Text>
-                          <Pressable
-                            className="mt-1"
-                            onPress={onRetry}
-                            accessibilityRole="button"
-                            accessibilityLabel={`Retry downloading ${item.sourceLang}-${item.targetLang}`}
-                          >
-                            <Text className="text-xs text-blue-600 font-medium">Retry</Text>
-                          </Pressable>
-                        </View>
-                      )}
-                    </View>
-                  );
-                })}
+            <Pressable
+              className="bg-white rounded-xl w-80 overflow-hidden"
+              onPress={(e) => e.stopPropagation()}
+              accessibilityRole="button"
+              accessibilityLabel="Add language pair modal content"
+              accessibilityViewIsModal={true}
+            >
+              <View className="px-4 py-3 border-b border-neutral-200">
+                <Text className="text-sm font-semibold text-neutral-500 uppercase tracking-wide">
+                  Downloading Dictionaries
+                </Text>
               </View>
-              {allDownloadsComplete && (
-                <View className="flex-row justify-end gap-3">
-                  <Pressable
-                    accessibilityRole="button"
-                    accessibilityLabel={hasErrors ? 'Close' : 'Done'}
-                    className="rounded-lg py-3 px-6 items-center bg-blue-600"
-                    onPress={closeAndReset}
-                  >
-                    <Text className="text-white font-semibold text-base">
-                      {hasErrors ? 'Close' : 'Done'}
-                    </Text>
-                  </Pressable>
+              <View className="p-4">
+                <Text className="text-sm text-neutral-600 mb-4">
+                  Downloading both directions for {getLanguageName(nativeLang ?? '') ?? nativeLang}{' ↔ '}{getLanguageName(studiedLang ?? '') ?? studiedLang}
+                </Text>
+                <View className="gap-3 mb-4">
+                  {downloadItems.map((item) => {
+                    const sourceName = getLanguageName(item.sourceLang) ?? item.sourceLang;
+                    const targetName = getLanguageName(item.targetLang) ?? item.targetLang;
+                    const progressPercent = Math.round(item.progress.fraction * 100);
+                    const knownTotal = item.progress.totalBytesExpectedToWrite > 0;
+
+                    return (
+                      <View
+                        key={`${item.sourceLang}-${item.targetLang}`}
+                        className="border border-neutral-200 rounded-lg p-3"
+                      >
+                        <Text className="text-sm font-medium text-neutral-900">
+                          {sourceName}{' → '}{targetName}
+                        </Text>
+                        {item.status === 'pending' && (
+                          <View className="mt-2">
+                            <Text className="text-xs text-neutral-500">Waiting...</Text>
+                          </View>
+                        )}
+                        {item.status === 'downloading' && (
+                          <>
+                            <View className="mt-2 h-2 rounded-full bg-neutral-200 overflow-hidden">
+                              {knownTotal ? (
+                                <View
+                                  className="h-full bg-blue-600"
+                                  style={{ width: `${Math.min(100, Math.max(0, progressPercent))}%` }}
+                                />
+                              ) : (
+                                <View className="h-full" />
+                              )}
+                            </View>
+                            <View className="mt-1 flex-row justify-between">
+                              <Text className="text-xs text-neutral-600">
+                                {knownTotal ? `${progressPercent}%` : 'Starting...'}
+                              </Text>
+                            </View>
+                          </>
+                        )}
+                        {item.status === 'success' && (
+                          <View className="mt-2 flex-row items-center gap-2">
+                            <View className="w-4 h-4 rounded-full bg-green-500" />
+                            <Text className="text-xs text-green-600">Complete</Text>
+                          </View>
+                        )}
+                        {item.status === 'error' && (
+                          <View className="mt-2">
+                            <Text className="text-xs text-red-600">{item.errorMessage}</Text>
+                            <Pressable
+                              className="mt-1"
+                              onPress={onRetry}
+                              accessibilityRole="button"
+                              accessibilityLabel={`Retry downloading ${item.sourceLang}-${item.targetLang}`}
+                            >
+                              <Text className="text-xs text-blue-600 font-medium">Retry</Text>
+                            </Pressable>
+                          </View>
+                        )}
+                      </View>
+                    );
+                  })}
                 </View>
-              )}
-              {!allDownloadsComplete && (
-                <View className="items-center py-2">
-                  <ActivityIndicator accessibilityLabel="Downloading" />
-                  <Text className="text-sm text-neutral-500 mt-2">Downloading...</Text>
-                </View>
-              )}
-            </View>
+                {allDownloadsComplete && (
+                  <View className="flex-row justify-end gap-3">
+                    <Pressable
+                      accessibilityRole="button"
+                      accessibilityLabel={hasErrors ? 'Close' : 'Done'}
+                      className="rounded-lg py-3 px-6 items-center bg-blue-600"
+                      onPress={closeAndReset}
+                    >
+                      <Text className="text-white font-semibold text-base">
+                        {hasErrors ? 'Close' : 'Done'}
+                      </Text>
+                    </Pressable>
+                  </View>
+                )}
+                {!allDownloadsComplete && (
+                  <View className="items-center py-2">
+                    <ActivityIndicator accessibilityLabel="Downloading" />
+                    <Text className="text-sm text-neutral-500 mt-2">Downloading...</Text>
+                  </View>
+                )}
+              </View>
+            </Pressable>
           </Pressable>
-        </Pressable>
-      </Modal>
-    );
-  }
+        </Modal>
+      )}
+    </>
+  );
 }
