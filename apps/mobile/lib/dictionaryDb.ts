@@ -20,19 +20,20 @@ function toDictionaryDatabase(db: SQLite.SQLiteDatabase): DictionaryDatabase {
 const openCache = new Map<string, { rawDb: Promise<SQLite.SQLiteDatabase>; dictDb: Promise<DictionaryDatabase> }>();
 
 export function openDictionaryDatabase(filePath: string): Promise<DictionaryDatabase> {
-  const langPair = getLangPairFromPath(filePath);
-  const cached = openCache.get(filePath);
+  const normalizedPath = uriToPath(filePath);
+  const langPair = getLangPairFromPath(normalizedPath);
+  const cached = openCache.get(normalizedPath);
   if (cached) return cached.dictDb;
 
   devLog(`Opening database: ${langPair}`);
 
-  const path = uriToPath(filePath);
+  const path = normalizedPath;
   const lastSlash = path.lastIndexOf('/');
   const dir = path.substring(0, lastSlash);
   const name = path.substring(lastSlash + 1);
   const rawDb = SQLite.openDatabaseAsync(name, undefined, dir);
   const dictDb = rawDb.then(toDictionaryDatabase);
-  openCache.set(filePath, { rawDb, dictDb });
+  openCache.set(normalizedPath, { rawDb, dictDb });
 
   dictDb.then(() => {
     devLog(`Database opened: ${langPair}`);
@@ -44,13 +45,14 @@ export function openDictionaryDatabase(filePath: string): Promise<DictionaryData
 }
 
 export async function closeDictionaryDatabase(filePath: string): Promise<void> {
-  const langPair = getLangPairFromPath(filePath);
-  const cached = openCache.get(filePath);
+  const normalizedPath = uriToPath(filePath);
+  const langPair = getLangPairFromPath(normalizedPath);
+  const cached = openCache.get(normalizedPath);
   if (cached === undefined) return;
 
   devLog(`Closing database: ${langPair}`);
 
-  openCache.delete(filePath);
+  openCache.delete(normalizedPath);
 
   try {
     const rawDb = await cached.rawDb;
