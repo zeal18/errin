@@ -5,6 +5,7 @@ import { Stack } from 'expo-router';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { hydrateAppStore } from '../store';
 import { closeAllDictionaryDatabases } from '../lib/dictionaryDb';
+import { runDictionaryMaintenance } from '../lib/dictionaryMaintenance';
 import * as SplashScreen from 'expo-splash-screen';
 
 // Prevent the splash screen from auto-hiding
@@ -15,14 +16,21 @@ export default function RootLayout() {
 
   useEffect(() => {
     let cancelled = false;
-    hydrateAppStore()
-      .catch(() => {
+    (async () => {
+      try {
+        await runDictionaryMaintenance();
+      } catch (error) {
+        // Maintenance errors are logged but non-blocking
+      }
+      try {
+        await hydrateAppStore();
+      } catch {
         // Hydration failure leaves store at defaults (no dictionaries),
         // which routes the user to onboarding — the correct fallback.
-      })
-      .finally(() => {
+      } finally {
         if (!cancelled) setHydrated(true);
-      });
+      }
+    })();
     return () => {
       cancelled = true;
     };
