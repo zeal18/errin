@@ -7,6 +7,7 @@ import {
   CURRENT_DICTIONARY_VERSION,
   SUPPORTED_LANGUAGES,
   getLanguageName,
+  getPairDownloadSize,
 } from '@errin/core';
 import {
   startPairDownload,
@@ -15,9 +16,10 @@ import {
 } from '../lib/dictionaryDownload';
 import { useAppStore } from '../store';
 import { formatBytes } from '../lib/formatUtils';
+import { DownloadConfirmationDialog } from '../components/DownloadConfirmationDialog';
 
 type Role = 'native' | 'target';
-type Step = 'select' | 'download';
+type Step = 'select' | 'confirm' | 'download';
 type DownloadState =
   | { kind: 'idle' }
   | { kind: 'downloading'; progress: PairDownloadProgress }
@@ -33,6 +35,7 @@ export default function OnboardingScreen() {
   const [nativeLang, setNativeLang] = useState<string | null>(null);
   const [studiedLang, setStudiedLang] = useState<string | null>(null);
   const [downloadState, setDownloadState] = useState<DownloadState>({ kind: 'idle' });
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const handleRef = useRef<PairDownloadHandle | null>(null);
 
   const select = (role: Role, code: string) => {
@@ -86,8 +89,18 @@ export default function OnboardingScreen() {
 
   const onContinue = () => {
     if (!canContinue || !nativeLang || !studiedLang) return;
+    setShowConfirmDialog(true);
+  };
+
+  const onConfirmAccept = () => {
+    if (!nativeLang || !studiedLang) return;
+    setShowConfirmDialog(false);
     setStep('download');
     startDownload(nativeLang, studiedLang);
+  };
+
+  const onConfirmCancel = () => {
+    setShowConfirmDialog(false);
   };
 
   const onRetry = async () => {
@@ -159,6 +172,13 @@ export default function OnboardingScreen() {
       >
         <Text className="text-white font-semibold text-base">Continue</Text>
       </Pressable>
+
+      <DownloadConfirmationDialog
+        visible={showConfirmDialog}
+        sizeBytes={nativeLang && studiedLang ? getPairDownloadSize(nativeLang, studiedLang) : 0}
+        onAccept={onConfirmAccept}
+        onCancel={onConfirmCancel}
+      />
 
       <StatusBar style="auto" />
     </SafeAreaView>
