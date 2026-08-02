@@ -29,26 +29,26 @@ Four languages in any direction: English, German, Russian, Spanish.
 
 | File | Direction | Size |
 |---|---|---|
-| `en-de.sqlite3` | English → German | 25 MB |
-| `de-en.sqlite3` | German → English | 30 MB |
-| `en-ru.sqlite3` | English → Russian | 26 MB |
-| `ru-en.sqlite3` | Russian → English | 19 MB |
-| `en-es.sqlite3` | English → Spanish | 21 MB |
-| `es-en.sqlite3` | Spanish → English | 13 MB |
-| `de-ru.sqlite3` | German → Russian | 17 MB |
-| `ru-de.sqlite3` | Russian → German | 11 MB |
-| `de-es.sqlite3` | German → Spanish | 15 MB |
-| `es-de.sqlite3` | Spanish → German | 8 MB |
-| `ru-es.sqlite3` | Russian → Spanish | 8 MB |
-| `es-ru.sqlite3` | Spanish → Russian | 7 MB |
+| `en-de.sqlite3` | English → German | 26.1 MB |
+| `de-en.sqlite3` | German → English | 30.5 MB |
+| `en-ru.sqlite3` | English → Russian | 26.4 MB |
+| `ru-en.sqlite3` | Russian → English | 19.5 MB |
+| `en-es.sqlite3` | English → Spanish | 21.6 MB |
+| `es-en.sqlite3` | Spanish → English | 13.1 MB |
+| `de-ru.sqlite3` | German → Russian | 17.0 MB |
+| `ru-de.sqlite3` | Russian → German | 10.8 MB |
+| `de-es.sqlite3` | German → Spanish | 15.1 MB |
+| `es-de.sqlite3` | Spanish → German | 8.2 MB |
+| `ru-es.sqlite3` | Russian → Spanish | 8.5 MB |
+| `es-ru.sqlite3` | Spanish → Russian | 7.4 MB |
 
-Users download only the pairs they need. All twelve pairs total ~200 MB.
+Sizes are for version `2_2025-11`, measured from the actual downloaded files — the source of truth for the download sizes shown in [Download Confirmation](#download-confirmation). Users download only the pairs they need. All twelve pairs total ≈204 MB.
 
 Both directions of a pair are always downloaded together (e.g. adding "English ↔ German" downloads both `en-de.sqlite3` and `de-en.sqlite3`).
 
 ## Dictionary Source
 
-Dictionaries come from [WikDict](https://wikdict.com), downloaded as SQLite files from `https://download.wikdict.com/dictionaries/sqlite/2_2025-11/`. Each bilingual file contains two tables used for lookup:
+Dictionaries come from [WikDict](https://wikdict.com), downloaded as SQLite files from `https://download.wikdict.com/dictionaries/sqlite/{version}/`, where `{version}` is the latest entry in Errin's hardcoded supported-versions list (see [Dictionary Versioning](#dictionary-versioning)) — currently `2_2025-11`. Each bilingual file contains two tables used for lookup:
 
 For development purposes there are downloaded dictionaries and extracted data schemas in the ../wikdict/ directory.
 
@@ -56,6 +56,56 @@ For development purposes there are downloaded dictionaries and extracted data sc
 - **`translation_grouped`** — richer results with pipe-separated sense definitions and comma-separated translations; columns include `score` (translation quality) and `importance` (WikDict word-frequency/popularity signal used for result ranking)
 
 Monolingual WikDict files (which provide POS, gender, and IPA) are not used — they are 256 MB–1.1 GB each and impractical for mobile.
+
+## Dictionary Versioning
+
+Dictionary content and schema evolve over time as WikDict publishes new releases. Errin can have multiple dictionary versions installed on one device at once, but only ever *downloads* the latest version the installed app build knows about.
+
+- **Supported versions are hardcoded per app release.** The app ships with a fixed, ordered list of known dictionary versions (e.g. `2_2025-11`). There is no runtime "check for updates" — a device only gains access to a newer dictionary version by updating the app itself.
+- **Downloads always target the latest known version.** Onboarding and "Add Language Pair" always fetch the last entry in the supported-versions list — users never choose a version.
+- **The version is recorded at download time.** Each row in `installed_dictionaries` stores the version of the file that was downloaded, so the app always knows exactly what's on disk, independent of which version is current for new downloads.
+- **Different pairs can be on different versions at once.** If German↔English was installed before an app update introduced a newer dictionary version, and Russian↔German is added after updating, the device ends up with `de-en`/`en-de` on the old version and `ru-de`/`de-ru` on the new one — simultaneously, indefinitely. Nothing forces the older pair to upgrade.
+- **Updating an already-installed pair to a newer version is optional and manual** — see [Dictionary Update Flow](#dictionary-update-flow) below.
+- **Dictionary files are named with their version** (`{sourceLang}-{targetLang}-{version}.sqlite3`), and `installed_dictionaries` is keyed by `(source_lang, target_lang, version)` rather than just the language pair. Normally there's exactly one row per direction; briefly, mid-update, there are two (old and new version) until cleanup finishes.
+- **Schema, not just data, can change between versions.** A version bump may change table/column names or the shape of the data itself. Version-specific differences in the WikDict per-file lookups are resolved inside the dictionary facade (below) — nothing outside it should assume a particular schema shape.
+
+### Download Confirmation
+
+Before any dictionary download begins — first-time Onboarding, adding a new pair, or updating an existing one — a confirmation dialog shows the combined size of the files about to download (read from the current entry in the version registry) and waits for the user to accept or cancel. If the device isn't currently connected via Wi-Fi (on cellular data, or with no connection at all), the dialog also shows a warning, so the user can decide whether to proceed before using mobile data. Accepting starts the normal download process; cancelling leaves everything as it was.
+
+### Dictionary Update Flow
+
+Updating an installed pair to the current version is always optional and user-initiated — the app never downloads an update automatically.
+
+**Surfacing that an update exists**
+
+- **Lookup screen**: a small, non-interactive indicator appears under the direction button whenever the active pair is behind the current version. Tapping it does nothing — it's informational only.
+- **Direction picker dialog**: each language-pair group shows an **Update** button when that pair is behind the current version. Tapping it closes the dialog, navigates to Settings, and immediately opens that pair's [Download Confirmation](#download-confirmation) dialog — it does not start a download by itself.
+- **Settings → Languages**: each pair row shows an **Update** button when that pair is behind the current version. Tapping it opens the [Download Confirmation](#download-confirmation) dialog directly.
+
+**The update itself**
+
+1. **Confirm.** The [Download Confirmation](#download-confirmation) dialog appears, showing the combined size of the pair's two updated direction files.
+2. **Download.** On accept, the normal pair-download process starts — the same one used when adding a new pair — fetching both direction files at the current version to their version-qualified paths. The pair's existing files are untouched throughout, so lookups keep working on the old version until the update finishes.
+3. **Commit.** Once both new files have downloaded successfully, a new `installed_dictionaries` row is added for each direction at the new version. Only after that succeeds are the old files deleted, then the old rows.
+
+**Recovering from an interrupted update**
+
+If the app is killed or crashes partway through, a validation/cleanup pass runs once on every app launch, before anything else touches the dictionaries directory:
+
+| State found at launch | Cleanup action |
+|---|---|
+| A dictionary file on disk with no matching `installed_dictionaries` row (crashed before the step 3 DB write) | Delete the orphaned file |
+| Two rows for the same direction, both files present (step 3's DB write succeeded, old-file deletion was interrupted) | Delete the older row's file, then delete the older row |
+| A row whose file no longer exists on disk (old-file deletion succeeded, old-row deletion was interrupted) | Delete the row |
+
+The same "delete any leftover file with no DB row" check also runs defensively right before a fresh update download starts, in case the user retries within the same app session — no restart needed to clear a previous failed attempt.
+
+### Dictionary Facade
+
+Per-file dictionary lookups (`lookupExact`, `lookupRich` in `packages/core/src/dictionary.ts`) already isolate query logic from callers behind a small `DictionaryDatabase` interface. This becomes the place where version-specific query differences are dispatched, keyed off the version recorded for the file being queried — business logic (screens, store slices, download orchestration) only calls facade functions and works with version-agnostic domain types (`LookupResult`, etc.); it never knows or cares which dictionary version is behind a given call.
+
+The `installed_dictionaries` bookkeeping table does **not** need a facade — it's the app's own table, not a third-party schema under version drift. Instead, its shape is checked and migrated at startup the same way `apps/mobile/db/index.ts` already handles the `settings` table (ad-hoc `ALTER TABLE ... ADD COLUMN` in a try/catch), extended to add the new `version` column.
 
 ## Tech Stack
 
@@ -68,6 +118,7 @@ Monolingual WikDict files (which provide POS, gender, and IPA) are not used — 
 | State | Zustand |
 | Local storage | expo-sqlite |
 | Dictionary files | WikDict SQLite (downloaded to device) |
+| Network state | expo-network (Wi-Fi/cellular detection for download warnings) |
 | Shared logic | `packages/core` |
 | Testing | Jest + React Native Testing Library |
 
@@ -90,9 +141,10 @@ Monolingual WikDict files (which provide POS, gender, and IPA) are not used — 
 │       └── app.json
 └── packages/
     └── core/                # Platform-agnostic TypeScript
-        ├── srs.ts           # SM-2 algorithm
-        ├── dictionary.ts    # WikDict lookup logic
-        └── types.ts         # Shared types
+        ├── srs.ts               # SM-2 algorithm
+        ├── dictionary.ts        # WikDict lookup logic
+        ├── dictionaryVersions.ts # Hardcoded supported dictionary versions
+        └── types.ts             # Shared types
 ```
 
 The `packages/core` layer contains no React Native or browser dependencies — it can be reused as-is if a web or desktop version is built later.
@@ -128,6 +180,7 @@ interface InstalledDictionary {
   targetLang: string    // e.g. "de"
   filePath: string      // absolute path to the .sqlite3 file on device
   downloadedAt: number  // unix timestamp
+  version: string       // dictionary version this file was downloaded at (see Dictionary Versioning)
 }
 
 // One translation option for a looked-up word (one row from translation_grouped)
@@ -157,17 +210,19 @@ interface Settings {
 ### Onboarding (first launch only)
 Shown when no dictionary is installed. Two steps:
 1. **Language selection** — user picks their native language and the language they want to learn from the supported list
-2. **Download** — **both** dictionaries for the selected pair are downloaded sequentially with a combined progress indicator; the user cannot proceed until both downloads complete
+2. **Confirm download** — the [Download Confirmation](#download-confirmation) dialog shows the combined size of both dictionaries and waits for the user to accept
+3. **Download** — **both** dictionaries for the selected pair are downloaded sequentially with a combined progress indicator; the user cannot proceed until both downloads complete
 
 On completion the user is taken directly to the Lookup screen. Onboarding never appears again.
 
 ### Lookup
 The main working screen. User types a word and gets results from the locally installed dictionary.
 
-- At the top of the screen a **direction button** shows the active translation direction as `{InputLang} → {OutputLang}` (e.g. "German → English"). It is always tappable.
+- At the top of the screen a **direction button** shows the active translation direction as `{InputLang} → {OutputLang}` (e.g. "German → English"). It is always tappable. If the active pair has a newer dictionary version available, a small non-interactive indicator appears beneath the button — tapping it does nothing.
 - Tapping the direction button opens a **direction picker dialog**. Options are grouped by installed `{ nativeLang, studiedLang }` pair. Each group lists both directions:
   - `{studiedLang} → {nativeLang}` — user types in the studied language; default direction
   - `{nativeLang} → {studiedLang}` — user types in the native language
+- Each pair group also shows an **Update** button when that pair is behind the current version; tapping it closes the dialog, opens Settings, and opens that pair's [Download Confirmation](#download-confirmation) dialog — it does not start a download by itself.
 - The currently active direction is highlighted. Selecting a direction closes the dialog, updates the active pair and lookup direction, and clears the current query.
 - Direction semantics:
   - `studied→native`: the `{studied}-{native}` dictionary is queried; tapping a result saves the studied word
@@ -230,11 +285,11 @@ The number of words included in a session is capped by the **daily review limit*
 
 **Languages**
 
-Displays installed language pairs grouped by `{ nativeLang, studiedLang }` — one row per pair (e.g. "English ↔ German"), not one row per dictionary file. Each row shows the two language names and the date the pair was downloaded.
+Displays installed language pairs grouped by `{ nativeLang, studiedLang }` — one row per pair (e.g. "English ↔ German"), not one row per dictionary file. Each row shows the two language names and the date the pair was downloaded. If a pair is behind the current dictionary version, its row also shows an **Update** button that opens the [Download Confirmation](#download-confirmation) dialog.
 
 Deleting a pair removes **all** associated dictionary files (both bilingual directions) atomically. There is no way to delete a single direction in isolation — the pair is the minimum unit of deletion.
 
-The **Add Language Pair** button is shown only when at least one installable pair remains (i.e. not all combinations of the supported languages are already installed).
+The **Add Language Pair** button is shown only when at least one installable pair remains (i.e. not all combinations of the supported languages are already installed). Selecting a language pair to add shows the same [Download Confirmation](#download-confirmation) dialog before downloading.
 
 **Daily review limit** — number of words per review session (default: 20)
 

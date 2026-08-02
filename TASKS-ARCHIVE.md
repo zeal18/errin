@@ -297,3 +297,30 @@
 ## Phase 16
 
 - [x] H16.1: ~~Superseded by Phase 17~~ — addressed as part of the broader multi-direction dictionary + translation swap feature [QR--B-]
+
+## Phase 17
+
+- [x] T17.4: Update `apps/mobile/store/activePairSlice.ts` — change `activePair` shape from `{ sourceLang, targetLang }` to `{ nativeLang: string, studiedLang: string }`; add `lookupDirection: 'studied-to-native' | 'native-to-studied'` field with a `setLookupDirection` action; update `setActivePair` to persist the new shape to Settings
+- [x] T17.5: Update `apps/mobile/store/index.ts` hydration — restore `lookupDirection` from settings on startup; update `lastActivePair` validation to use the new `{ nativeLang, studiedLang }` shape and verify both dictionary files are present
+
+## Phase 18
+
+- [x] T18.1: Add `removePair(nativeLang, studiedLang)` to `apps/mobile/store/dictionariesSlice.ts` — calls `removeDictionary` for both bilingual directions; if the active pair matches either direction, reset `activePair` to the next available pair or null
+- [x] T18.2: Redesign the Languages section in `apps/mobile/app/(tabs)/settings.tsx` — derive unique `{nativeLang, studiedLang}` pairs from the installed dictionaries list; render one row per pair showing language names and download date; the Delete button calls `removePair` and shows a confirmation alert naming the full pair; remove the individual per-file delete button
+- [x] T18.3: Replace `apps/mobile/components/LanguagePairSelector.tsx` with a `DirectionSelector` component — renders a tappable button showing the active direction as `{InputLang} → {OutputLang}`; tapping opens a modal grouping all installed pairs by `{nativeLang, studiedLang}`; each group shows both directions (`studied→native` and `native→studied`); active direction is highlighted; selecting calls `setActivePair(pair, direction)` and closes the modal
+- [x] T18.4: Update `apps/mobile/app/(tabs)/index.tsx` — replace `LanguagePairSelector` with `DirectionSelector`; remove the standalone swap button and "Studying:" label; call `setQuery('')` when the active direction changes to clear stale results
+- [x] T18.5: Update `lookupRich` in `packages/core/src/dictionary.ts` — change from exact match to case-insensitive prefix search using `WHERE LOWER(written_rep) LIKE LOWER(?) || '%'`; select `importance` from `translation_grouped`; order results by `CASE WHEN LOWER(written_rep) = LOWER(?) THEN 0 ELSE 1 END ASC, importance DESC`; pass the query term twice as SQL params; add `importance` to the internal `TranslationGroupedRow` interface (not exposed in `LookupResult`)
+
+## Phase 19
+
+- [x] T19.1: Add `TranslationVariant` interface to `packages/core/src/types.ts` and update `LookupResult` — replace `transList: string[]` and `senseList: string[]` with `variants: TranslationVariant[]`; `TranslationVariant` has `transList: string[]`, `sense: string`, and `importance: number`
+- [x] T19.2: Update `packages/core/src/dictionary.ts` — fix `parseTransList` to split on `' | '` instead of `','` (actual WikDict format); update `lookupRich` to group flat rows by `writtenRep` and collect each row as a `TranslationVariant`; add `sense_list` to `TranslationGroupedRow`; return one `LookupResult` per unique `writtenRep` with `variants` sorted by `importance` desc
+- [x] T19.3: Redesign `apps/mobile/components/ResultsList.tsx` — each `LookupResult` renders as a card with `writtenRep` at top and a list of selectable `TranslationVariant` rows; each variant row shows `transList` joined and `sense` below; first variant is pre-selected on render; tapping a variant selects it; `onPress` callback signature changes to `(result: LookupResult, variant: TranslationVariant) => void`
+- [x] T19.4: Update `apps/mobile/app/(tabs)/index.tsx` — update `handlePress` to accept `(result: LookupResult, variant: TranslationVariant)`; use `variant.transList[0]` and `variant.sense` when saving the word; save logic for `native_to_studied` vs `studied_to_native` directions remains unchanged
+
+## Phase 20
+
+- [x] T20.1: Extend `apps/mobile/db/words.ts` — add `getWordsBySource(sources: string[], sourceLang: string): Promise<Map<string, Word>>` (query `WHERE source IN (…) AND source_lang = ?`, return map keyed by `source`); add `replaceWord(id: string, newTarget: string, newSense: string): Promise<void>` (update `target`, `sense`, reset SM-2: `reviews=0, interval=0, ease=INITIAL_EASE, due_at=now`); add `resetWordProgress(id: string): Promise<void>` (reset SM-2 fields only)
+- [x] T20.2: Update `apps/mobile/components/ResultsList.tsx` — add `selectedSynonyms: Map<string, number>` state (synonym index per `writtenRep`, reset to 0 when results change or variant changes); add `existingWords: Map<string, Word>` state loaded via `getWordsBySource` on results/studiedLang change (read `studiedLang` from `useAppStore`); when `handleVariantSelect` fires also reset synonym index for that word to 0; extend `ResultsListProps` with `onReplace: (id, newTarget, newSense) => void` and `onReset: (id) => void`; pass `synonymIndex`, `existingWord`, `onVariantSelect`, `onSynonymSelect`, `onReplace`, `onReset` to `ResultCard`
+- [x] T20.3: Update `ResultCard` in `apps/mobile/components/ResultsList.tsx` — render `transList` items of the selected variant as individual selectable chips (tapping calls `onSynonymSelect`); derive button state using `computeStatus` from `@errin/core`: no existing word → enabled Save; same synonym in `not_started`/`in_progress` → disabled Save; different synonym in `not_started`/`in_progress` → Replace button with `Alert.alert` confirmation showing current in-progress synonym; `learned` → Reset button
+- [x] T20.4: Update `apps/mobile/app/(tabs)/index.tsx` — add `handleReplace(id, newTarget, newSense)` calling `replaceWord` and `handleReset(id)` calling `resetWordProgress`; pass both to `ResultsList` as `onReplace` and `onReset`; update `handlePress` (Save) to pass the selected synonym string instead of `variant.transList[0]`
