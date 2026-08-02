@@ -2,9 +2,10 @@ import { useMemo, useState } from 'react';
 import { Alert, FlatList, Pressable, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
-import { getLanguageName, SUPPORTED_LANGUAGES } from '@errin/core';
+import { getLanguageName, SUPPORTED_LANGUAGES, getPairDownloadSize } from '@errin/core';
 import { useAppStore } from '../../store';
 import { AddLanguagePairModal } from '../../components/AddLanguagePairModal';
+import { DownloadConfirmationDialog } from '../../components/DownloadConfirmationDialog';
 
 function formatDate(timestamp: number): string {
   const date = new Date(timestamp);
@@ -26,9 +27,12 @@ export default function SettingsScreen() {
   const settings = useAppStore((s) => s.settings);
   const setDailyReviewLimit = useAppStore((s) => s.setDailyReviewLimit);
   const removePair = useAppStore((s) => s.removePair);
+  const updatePair = useAppStore((s) => s.updatePair);
+  const isPairBehindCurrentVersion = useAppStore((s) => s.isPairBehindCurrentVersion);
   const [showAddPairModal, setShowAddPairModal] = useState(false);
   const [limitInput, setLimitInput] = useState(String(settings.dailyReviewLimit));
   const [limitError, setLimitError] = useState('');
+  const [updateTarget, setUpdateTarget] = useState<{nativeLang: string; studiedLang: string} | null>(null);
   const MAX_DAILY_REVIEW_LIMIT = 200;
 
   const uniquePairs = useMemo<InstalledPair[]>(() => {
@@ -111,6 +115,16 @@ export default function SettingsScreen() {
     );
   };
 
+  const handleUpdateAccept = () => {
+    if (updateTarget === null) return;
+    updatePair(updateTarget.nativeLang, updateTarget.studiedLang, () => {});
+    setUpdateTarget(null);
+  };
+
+  const handleUpdateCancel = () => {
+    setUpdateTarget(null);
+  };
+
   return (
     <SafeAreaView className="flex-1 bg-white" edges={['top']}>
       <View className="px-4 py-3 border-b border-neutral-200">
@@ -164,6 +178,16 @@ export default function SettingsScreen() {
               >
                 <Text className="text-red-600 font-semibold text-base">Delete</Text>
               </Pressable>
+              {isPairBehindCurrentVersion(pair.nativeLang, pair.studiedLang) && (
+                <Pressable
+                  className="ml-4 px-3 py-1 rounded-lg bg-blue-600 items-center"
+                  accessibilityRole="button"
+                  accessibilityLabel={`Update ${nativeName} and ${studiedName} dictionaries`}
+                  onPress={() => setUpdateTarget({nativeLang: pair.nativeLang, studiedLang: pair.studiedLang})}
+                >
+                  <Text className="text-white font-semibold text-sm">Update</Text>
+                </Pressable>
+              )}
             </View>
           );
         }}
@@ -192,6 +216,13 @@ export default function SettingsScreen() {
       <AddLanguagePairModal
         visible={showAddPairModal}
         onClose={() => setShowAddPairModal(false)}
+      />
+
+      <DownloadConfirmationDialog
+        visible={updateTarget !== null}
+        sizeBytes={updateTarget ? getPairDownloadSize(updateTarget.nativeLang, updateTarget.studiedLang) : 0}
+        onAccept={handleUpdateAccept}
+        onCancel={handleUpdateCancel}
       />
 
       <StatusBar style="auto" />
