@@ -160,7 +160,7 @@ export const createDictionariesSlice: StateCreator<
       const db = await getDatabase();
       const rows = await db.getAllAsync(
         'SELECT 1 FROM installed_dictionaries WHERE file_path = ?',
-        [path]
+        ['file://' + path]
       );
       if (rows.length === 0) {
         await deleteAsync(path, { idempotent: true });
