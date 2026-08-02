@@ -4,7 +4,7 @@ import { deleteAsync, getInfoAsync, readDirectoryAsync, documentDirectory } from
 import { devLog } from './devLog';
 
 // expo-sqlite needs a plain absolute path; expo-file-system returns file:// URIs
-function uriToPath(uri: string): string {
+export function uriToPath(uri: string): string {
   return uri.startsWith('file://') ? uri.slice('file://'.length) : uri;
 }
 
