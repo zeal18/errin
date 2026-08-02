@@ -24,9 +24,10 @@ CREATE INDEX IF NOT EXISTS idx_words_created_at ON words(created_at);
 CREATE TABLE IF NOT EXISTS installed_dictionaries (
   source_lang TEXT NOT NULL,
   target_lang TEXT NOT NULL,
+  version TEXT NOT NULL,
   file_path TEXT NOT NULL,
   downloaded_at INTEGER NOT NULL,
-  PRIMARY KEY (source_lang, target_lang)
+  PRIMARY KEY (source_lang, target_lang, version)
 );
 
 CREATE TABLE IF NOT EXISTS settings (
@@ -57,6 +58,7 @@ export interface WordRow {
 export interface InstalledDictionaryRow {
   source_lang: string;
   target_lang: string;
+  version: string;
   file_path: string;
   downloaded_at: number;
 }
