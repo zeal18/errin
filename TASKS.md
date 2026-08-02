@@ -75,7 +75,7 @@ No new tasks discovered.
 - [x] T22.1: Add the `expo-network` dependency to `apps/mobile/package.json`; add `apps/mobile/lib/networkStatus.ts` exporting `isOnWifi(): Promise<boolean>` wrapping `Network.getNetworkStateAsync()` (true only when `type === Network.NetworkStateType.WIFI`) [--P-B-]
 - [x] T22.2: Add `apps/mobile/components/DownloadConfirmationDialog.tsx` — props `{ visible: boolean; sizeBytes: number; onAccept: () => void; onCancel: () => void }`; shows the human-formatted size, calls `isOnWifi()` when it opens and shows a warning banner ("Not connected to Wi-Fi — this will use mobile data" or similar) when false; Accept/Cancel buttons [QRP-B-]
 - [x] T22.3: Update `apps/mobile/app/onboarding.tsx` — insert `DownloadConfirmationDialog` between language selection and download, sized via `getPairDownloadSize`; download only starts after Accept [----B-]
-- [ ] T22.4: Update `apps/mobile/components/AddLanguagePairModal.tsx` — same change as T22.3: insert `DownloadConfirmationDialog` between pair selection and download [QRP-B-!]
+- [x] T22.4: Update `apps/mobile/components/AddLanguagePairModal.tsx` — same change as T22.3: insert `DownloadConfirmationDialog` between pair selection and download [Q---B-]
 
 ## Phase 23: Dictionary Update Flow
 - [ ] T23.1: Add `isPairBehindCurrentVersion(nativeLang, studiedLang): boolean` (e.g. in `apps/mobile/store/dictionariesSlice.ts`) — true when either installed direction's `version` is not `CURRENT_DICTIONARY_VERSION.id`
