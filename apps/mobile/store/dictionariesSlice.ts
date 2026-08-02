@@ -4,6 +4,7 @@ import { closeDictionaryDatabase } from '../lib/dictionaryDb';
 import { deleteAsync } from 'expo-file-system/legacy';
 import type { InstalledDictionary } from '@errin/core';
 import { CURRENT_DICTIONARY_VERSION } from '@errin/core';
+import { getDictionaryFilePath, startPairDownload, type PairDownloadProgress } from '../lib/dictionaryDownload';
 import type { ActivePairSlice } from './activePairSlice';
 import type { SettingsSlice } from './settingsSlice';
 
@@ -16,6 +17,7 @@ export interface DictionariesSlice {
   removeDictionary: (sourceLang: string, targetLang: string, version?: string) => Promise<void>;
   removePair: (nativeLang: string, studiedLang: string) => Promise<void>;
   isPairBehindCurrentVersion: (nativeLang: string, studiedLang: string) => boolean;
+  updatePair: (nativeLang: string, studiedLang: string, onProgress: (progress: PairDownloadProgress) => void) => Promise<void>;
 }
 
 function rowToDictionary(row: InstalledDictionaryRow): InstalledDictionary {
@@ -146,5 +148,46 @@ export const createDictionariesSlice: StateCreator<
       forward.version !== CURRENT_DICTIONARY_VERSION.id ||
       reverse.version !== CURRENT_DICTIONARY_VERSION.id
     );
+  },
+
+  updatePair: async (nativeLang: string, studiedLang: string, onProgress: (progress: PairDownloadProgress) => void): Promise<void> => {
+    const newVersion = CURRENT_DICTIONARY_VERSION.id;
+    const newForwardPath = getDictionaryFilePath(nativeLang, studiedLang, newVersion);
+    const newReversePath = getDictionaryFilePath(studiedLang, nativeLang, newVersion);
+
+    // Defensive retry cleanup: delete any leftover file at new-version target paths with no matching DB row
+    for (const path of [newForwardPath, newReversePath]) {
+      const db = await getDatabase();
+      const rows = await db.getAllAsync(
+        'SELECT 1 FROM installed_dictionaries WHERE file_path = ?',
+        [path]
+      );
+      if (rows.length === 0) {
+        await deleteAsync(path, { idempotent: true });
+      }
+    }
+
+    // Download both new-version direction files
+    const { promise } = startPairDownload(nativeLang, studiedLang, onProgress);
+    await promise;
+
+    // Insert two new installed_dictionaries rows at the new version
+    const { addDictionary } = get();
+    await addDictionary({ sourceLang: nativeLang, targetLang: studiedLang, filePath: newForwardPath, downloadedAt: Date.now(), version: newVersion });
+    await addDictionary({ sourceLang: studiedLang, targetLang: nativeLang, filePath: newReversePath, downloadedAt: Date.now(), version: newVersion });
+
+    // Get old dictionary entries
+    const { dictionaries } = get();
+    const oldForward = dictionaries.find(d => d.sourceLang === nativeLang && d.targetLang === studiedLang && d.version !== newVersion);
+    const oldReverse = dictionaries.find(d => d.sourceLang === studiedLang && d.targetLang === nativeLang && d.version !== newVersion);
+
+    // Remove old entries (closes DB connection, deletes old files, removes old rows)
+    const { removeDictionary } = get();
+    if (oldForward) {
+      await removeDictionary(oldForward.sourceLang, oldForward.targetLang, oldForward.version);
+    }
+    if (oldReverse) {
+      await removeDictionary(oldReverse.sourceLang, oldReverse.targetLang, oldReverse.version);
+    }
   },
 });
