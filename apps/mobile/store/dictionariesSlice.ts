@@ -2,7 +2,7 @@ import type { StateCreator } from 'zustand';
 import { getDatabase, type InstalledDictionaryRow } from '../db';
 import { closeDictionaryDatabase } from '../lib/dictionaryDb';
 import { deleteAsync } from 'expo-file-system/legacy';
-import type { InstalledDictionary } from '@errin/core';
+import { CURRENT_DICTIONARY_VERSION, type InstalledDictionary } from '@errin/core';
 import type { ActivePairSlice } from './activePairSlice';
 import type { SettingsSlice } from './settingsSlice';
 
@@ -21,6 +21,9 @@ function rowToDictionary(row: InstalledDictionaryRow): InstalledDictionary {
     targetLang: row.target_lang,
     filePath: row.file_path,
     downloadedAt: row.downloaded_at,
+    // The installed_dictionaries table has no version column yet; every row on disk
+    // today was downloaded at the current version.
+    version: CURRENT_DICTIONARY_VERSION.id,
   };
 }
 

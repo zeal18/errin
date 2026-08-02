@@ -3,7 +3,11 @@ import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
-import { SUPPORTED_LANGUAGES, getLanguageName } from '@errin/core';
+import {
+  CURRENT_DICTIONARY_VERSION,
+  SUPPORTED_LANGUAGES,
+  getLanguageName,
+} from '@errin/core';
 import {
   startPairDownload,
   type PairDownloadHandle,
@@ -60,12 +64,14 @@ export default function OnboardingScreen() {
           targetLang: studiedLang,
           filePath: result.first.filePath,
           downloadedAt: result.first.downloadedAt,
+          version: CURRENT_DICTIONARY_VERSION.id,
         });
         await addDictionary({
           sourceLang: studiedLang,
           targetLang: nativeLang,
           filePath: result.second.filePath,
           downloadedAt: result.second.downloadedAt,
+          version: CURRENT_DICTIONARY_VERSION.id,
         });
         await setActivePair({ sourceLang: nativeLang, targetLang: studiedLang });
         setDownloadState({ kind: 'success' });

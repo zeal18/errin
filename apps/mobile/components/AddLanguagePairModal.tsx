@@ -1,6 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Modal, Pressable, Text, View } from 'react-native';
-import { SUPPORTED_LANGUAGES, getLanguageName } from '@errin/core';
+import {
+  CURRENT_DICTIONARY_VERSION,
+  SUPPORTED_LANGUAGES,
+  getLanguageName,
+} from '@errin/core';
 import {
   startPairDownload,
   type PairDownloadHandle,
@@ -76,12 +80,14 @@ export function AddLanguagePairModal({
           targetLang: studiedLang!,
           filePath: result.first.filePath,
           downloadedAt: result.first.downloadedAt,
+          version: CURRENT_DICTIONARY_VERSION.id,
         });
         await addDictionary({
           sourceLang: studiedLang!,
           targetLang: nativeLang!,
           filePath: result.second.filePath,
           downloadedAt: result.second.downloadedAt,
+          version: CURRENT_DICTIONARY_VERSION.id,
         });
         setDownloadItems((prev) =>
           prev.map((item) =>
@@ -143,12 +149,14 @@ export function AddLanguagePairModal({
           targetLang: studiedLang,
           filePath: result.first.filePath,
           downloadedAt: result.first.downloadedAt,
+          version: CURRENT_DICTIONARY_VERSION.id,
         });
         await addDictionary({
           sourceLang: studiedLang,
           targetLang: nativeLang,
           filePath: result.second.filePath,
           downloadedAt: result.second.downloadedAt,
+          version: CURRENT_DICTIONARY_VERSION.id,
         });
         setDownloadItems((prev) =>
           prev.map((item) =>

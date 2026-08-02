@@ -19,6 +19,8 @@ export interface InstalledDictionary {
   targetLang: string;
   filePath: string;
   downloadedAt: number;
+  /** Dictionary version this file was downloaded at, e.g. '2_2025-11'. */
+  version: string;
 }
 
 export interface LanguagePair {
