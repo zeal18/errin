@@ -1,3 +1,5 @@
+import { type SQLiteBindParams as SQLiteBindParamsType } from 'expo-sqlite';
+
 interface MockSQLiteDatabase {
   getAllAsync<T>(sql: string, params?: any[]): Promise<T[]>;
   runAsync(sql: string, params?: any[]): Promise<void>;
@@ -6,7 +8,13 @@ interface MockSQLiteDatabase {
   closeAsync(): Promise<void>;
 }
 
-const mockDatabase: MockSQLiteDatabase = {
+const mockDatabase: MockSQLiteDatabase & {
+  getAllAsync: jest.Mock & MockSQLiteDatabase['getAllAsync'];
+  runAsync: jest.Mock & MockSQLiteDatabase['runAsync'];
+  execAsync: jest.Mock & MockSQLiteDatabase['execAsync'];
+  withTransactionAsync: jest.Mock & MockSQLiteDatabase['withTransactionAsync'];
+  closeAsync: jest.Mock & MockSQLiteDatabase['closeAsync'];
+} = {
   getAllAsync: jest.fn().mockResolvedValue([]),
   runAsync: jest.fn().mockResolvedValue(undefined),
   execAsync: jest.fn().mockResolvedValue(undefined),
@@ -27,13 +35,16 @@ const resetMockDatabase = (): void => {
   openDatabaseAsync.mockClear();
 };
 
-// Mock type for TypeScript
-interface SQLiteBindParams extends Array<any> {}
-
 const SQLite = {
   openDatabaseAsync,
-  SQLiteBindParams,
+  SQLiteBindParams: Array as any,
+  getAllAsync: mockDatabase.getAllAsync,
+  runAsync: mockDatabase.runAsync,
+  execAsync: mockDatabase.execAsync,
+  withTransactionAsync: mockDatabase.withTransactionAsync,
+  closeAsync: mockDatabase.closeAsync,
 };
 
-export = SQLite;
-export { mockDatabase, resetMockDatabase, MockSQLiteDatabase, SQLiteBindParams };
+// Export both default (for import * as SQLite from 'expo-sqlite') and named exports
+export default SQLite;
+export { mockDatabase, resetMockDatabase, MockSQLiteDatabase };

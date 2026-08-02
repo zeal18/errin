@@ -7,6 +7,7 @@ module.exports = {
   moduleFileExtensions: ['ts', 'js', 'json', 'node'],
   moduleNameMapper: {
     '^expo-sqlite$': '<rootDir>/__mocks__/expo-sqlite.ts',
-    '^expo-file-system$': '<rootDir>/__mocks__/expo-file-system.ts'
+    '^expo-file-system$': '<rootDir>/__mocks__/expo-file-system.ts',
+    '^expo-file-system/legacy$': '<rootDir>/__mocks__/expo-file-system.ts'
   }
 };
