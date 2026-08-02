@@ -3,6 +3,7 @@ import { getDatabase, type InstalledDictionaryRow } from '../db';
 import { closeDictionaryDatabase } from '../lib/dictionaryDb';
 import { deleteAsync } from 'expo-file-system/legacy';
 import type { InstalledDictionary } from '@errin/core';
+import { CURRENT_DICTIONARY_VERSION } from '@errin/core';
 import type { ActivePairSlice } from './activePairSlice';
 import type { SettingsSlice } from './settingsSlice';
 
@@ -14,6 +15,7 @@ export interface DictionariesSlice {
   // version omitted = remove every installed version of this direction
   removeDictionary: (sourceLang: string, targetLang: string, version?: string) => Promise<void>;
   removePair: (nativeLang: string, studiedLang: string) => Promise<void>;
+  isPairBehindCurrentVersion: (nativeLang: string, studiedLang: string) => boolean;
 }
 
 function rowToDictionary(row: InstalledDictionaryRow): InstalledDictionary {
@@ -127,5 +129,22 @@ export const createDictionariesSlice: StateCreator<
           : null;
       await setActivePair(nextPair);
     }
+  },
+
+  isPairBehindCurrentVersion: (nativeLang: string, studiedLang: string): boolean => {
+    const { dictionaries } = get();
+    const forward = dictionaries.find(
+      (d) => d.sourceLang === nativeLang && d.targetLang === studiedLang
+    );
+    const reverse = dictionaries.find(
+      (d) => d.sourceLang === studiedLang && d.targetLang === nativeLang
+    );
+    if (!forward || !reverse) {
+      return false;
+    }
+    return (
+      forward.version !== CURRENT_DICTIONARY_VERSION.id ||
+      reverse.version !== CURRENT_DICTIONARY_VERSION.id
+    );
   },
 });
