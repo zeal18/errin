@@ -84,7 +84,7 @@ No new tasks discovered.
 - [x] T23.4: Wire `runDictionaryMaintenance()` into `apps/mobile/app/_layout.tsx` — run once as part of the existing startup sequence (alongside/inside `hydrateAppStore()`), before the splash screen hides and before any download can start [--P-B-]
 
 ## Phase 24: Update Flow UI Integration & Tests
-- [ ] T24.1: Update `apps/mobile/components/DirectionSelector.tsx` — show an **Update** button on each pair group when `isPairBehindCurrentVersion` is true; tapping closes the modal, navigates to the Settings tab, and opens `DownloadConfirmationDialog` for that pair, wired to call `updatePair` on accept
+- [ ] T24.1: Update `apps/mobile/components/DirectionSelector.tsx` — show an **Update** button on each pair group when `isPairBehindCurrentVersion` is true; tapping closes the modal, navigates to the Settings tab, and opens `DownloadConfirmationDialog` for that pair, wired to call `updatePair` on accept [--P-B-!]
 - [ ] T24.2: Add the non-interactive "update available" indicator beneath the direction button in `apps/mobile/app/(tabs)/index.tsx`, shown when the active pair is behind the current version; tapping it has no handler
 - [ ] T24.3: Update `apps/mobile/app/(tabs)/settings.tsx` — add an **Update** button to each pair row when `isPairBehindCurrentVersion` is true, opening `DownloadConfirmationDialog` directly and calling `updatePair` on accept
 - [ ] T24.4: Add tests for `dictionaryVersions.ts` (`getPairDownloadSize`), the `installed_dictionaries` schema migration (old two-column PK → new PK with backfilled `version`), and `runDictionaryMaintenance()`'s three cleanup cases
