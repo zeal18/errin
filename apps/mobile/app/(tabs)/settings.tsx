@@ -1,7 +1,8 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Alert, FlatList, Pressable, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
+import { useLocalSearchParams } from 'expo-router';
 import { getLanguageName, SUPPORTED_LANGUAGES, getPairDownloadSize } from '@errin/core';
 import { useAppStore } from '../../store';
 import { AddLanguagePairModal } from '../../components/AddLanguagePairModal';
@@ -33,7 +34,15 @@ export default function SettingsScreen() {
   const [limitInput, setLimitInput] = useState(String(settings.dailyReviewLimit));
   const [limitError, setLimitError] = useState('');
   const [updateTarget, setUpdateTarget] = useState<{nativeLang: string; studiedLang: string} | null>(null);
+  const params = useLocalSearchParams<{ updatePair?: string }>();
   const MAX_DAILY_REVIEW_LIMIT = 200;
+
+  useEffect(() => {
+    if (params.updatePair) {
+      const [nativeLang, studiedLang] = params.updatePair.split('-');
+      setUpdateTarget({ nativeLang, studiedLang });
+    }
+  }, [params.updatePair]);
 
   const uniquePairs = useMemo<InstalledPair[]>(() => {
     const seen = new Set<string>();
