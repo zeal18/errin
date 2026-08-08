@@ -9,8 +9,8 @@ const LABEL: Record<string, Record<Gender, string>> = {
 
 const STYLE: Record<Gender, { bg: string; text: string; border: string }> = {
   masculine: { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200' },
-  feminine: { bg: 'bg-pink-50', text: 'text-pink-700', border: 'border-pink-200' },
-  neuter: { bg: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-200' },
+  feminine: { bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-200' },
+  neuter: { bg: 'bg-green-50', text: 'text-green-700', border: 'border-green-200' },
 };
 
 interface GenderBadgeProps {
