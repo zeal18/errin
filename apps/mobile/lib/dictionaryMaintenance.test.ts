@@ -24,7 +24,12 @@ jest.mock('./devLog', () => ({
 
 import { runDictionaryMaintenance } from './dictionaryMaintenance';
 
+// dictDir is a file:// URI, matching the form stored in installed_dictionaries.file_path
+// and what dictionaryDownload.ts's getDictionaryFilePath() returns.
 const dictDir = documentDirectory + 'dictionaries/';
+// Plain filesystem path form — what uriToPath() strips file_path down to before
+// passing to getInfoAsync/deleteAsync in Case 1 and Case 2.
+const plainDictDir = dictDir.slice('file://'.length);
 
 describe('runDictionaryMaintenance', () => {
   beforeEach(() => {
@@ -35,8 +40,8 @@ describe('runDictionaryMaintenance', () => {
 
   test('Case 1: Delete installed_dictionaries rows whose file_path no longer exists on disk', async () => {
     const rows = [
-      { source_lang: 'en', target_lang: 'de', version: '2_2025-11', file_path: 'file://' + dictDir + 'en-de.sqlite3', downloaded_at: 1000 },
-      { source_lang: 'de', target_lang: 'en', version: '2_2025-11', file_path: 'file://' + dictDir + 'de-en.sqlite3', downloaded_at: 2000 },
+      { source_lang: 'en', target_lang: 'de', version: '2_2025-11', file_path: dictDir + 'en-de.sqlite3', downloaded_at: 1000 },
+      { source_lang: 'de', target_lang: 'en', version: '2_2025-11', file_path: dictDir + 'de-en.sqlite3', downloaded_at: 2000 },
     ];
 
     // Only en-de file exists on disk
@@ -44,7 +49,8 @@ describe('runDictionaryMaintenance', () => {
 
     (mockDatabase.getAllAsync as jest.Mock).mockResolvedValueOnce(rows);
     (getInfoAsync as jest.Mock).mockImplementation(async (path: string) => {
-      if (path === dictDir + 'en-de.sqlite3' || path === 'file://' + dictDir + 'en-de.sqlite3') {
+      // Case 1 strips file_path down to a plain path before calling getInfoAsync
+      if (path === plainDictDir + 'en-de.sqlite3') {
         return { exists: true };
       }
       return { exists: false };
@@ -64,8 +70,8 @@ describe('runDictionaryMaintenance', () => {
 
   test('Case 1 variant: All files exist - no deletions', async () => {
     const rows = [
-      { source_lang: 'en', target_lang: 'de', version: '2_2025-11', file_path: 'file://' + dictDir + 'en-de.sqlite3', downloaded_at: 1000 },
-      { source_lang: 'de', target_lang: 'en', version: '2_2025-11', file_path: 'file://' + dictDir + 'de-en.sqlite3', downloaded_at: 2000 },
+      { source_lang: 'en', target_lang: 'de', version: '2_2025-11', file_path: dictDir + 'en-de.sqlite3', downloaded_at: 1000 },
+      { source_lang: 'de', target_lang: 'en', version: '2_2025-11', file_path: dictDir + 'de-en.sqlite3', downloaded_at: 2000 },
     ];
 
     seedFile(dictDir + 'en-de.sqlite3');
@@ -81,8 +87,8 @@ describe('runDictionaryMaintenance', () => {
 
   test('Case 2: Delete older version when exactly 2 rows exist for same direction pair', async () => {
     const rows = [
-      { source_lang: 'en', target_lang: 'de', version: '2_2025-10', file_path: 'file://' + dictDir + 'en-de-v1.sqlite3', downloaded_at: 1000 },
-      { source_lang: 'en', target_lang: 'de', version: '2_2025-11', file_path: 'file://' + dictDir + 'en-de-v2.sqlite3', downloaded_at: 2000 },
+      { source_lang: 'en', target_lang: 'de', version: '2_2025-10', file_path: dictDir + 'en-de-v1.sqlite3', downloaded_at: 1000 },
+      { source_lang: 'en', target_lang: 'de', version: '2_2025-11', file_path: dictDir + 'en-de-v2.sqlite3', downloaded_at: 2000 },
     ];
 
     seedFile(dictDir + 'en-de-v1.sqlite3');
@@ -100,10 +106,10 @@ describe('runDictionaryMaintenance', () => {
     await runDictionaryMaintenance();
 
     // Expect: closeDictionaryDatabase called with older row's file_path
-    expect(closeDictionaryDatabase).toHaveBeenCalledWith('file://' + dictDir + 'en-de-v1.sqlite3');
+    expect(closeDictionaryDatabase).toHaveBeenCalledWith(dictDir + 'en-de-v1.sqlite3');
 
-    // Expect: deleteAsync called for older file_path with {idempotent: true}
-    expect(deleteAsync).toHaveBeenCalledWith(dictDir + 'en-de-v1.sqlite3', { idempotent: true });
+    // Expect: deleteAsync called for older file_path stripped down to a plain path
+    expect(deleteAsync).toHaveBeenCalledWith(plainDictDir + 'en-de-v1.sqlite3', { idempotent: true });
 
     // Expect: DELETE FROM installed_dictionaries for older row
     expect(mockDatabase.runAsync).toHaveBeenCalledWith(
@@ -114,7 +120,7 @@ describe('runDictionaryMaintenance', () => {
 
   test('Case 2 variant: Only one row per pair - no deletions', async () => {
     const rows = [
-      { source_lang: 'en', target_lang: 'de', version: '2_2025-11', file_path: 'file://' + dictDir + 'en-de.sqlite3', downloaded_at: 1000 },
+      { source_lang: 'en', target_lang: 'de', version: '2_2025-11', file_path: dictDir + 'en-de.sqlite3', downloaded_at: 1000 },
     ];
 
     seedFile(dictDir + 'en-de.sqlite3');
@@ -136,9 +142,9 @@ describe('runDictionaryMaintenance', () => {
 
   test('Case 2 variant: Three rows for same pair - no action', async () => {
     const rows = [
-      { source_lang: 'en', target_lang: 'de', version: '2_2025-10', file_path: 'file://' + dictDir + 'en-de-v1.sqlite3', downloaded_at: 1000 },
-      { source_lang: 'en', target_lang: 'de', version: '2_2025-11', file_path: 'file://' + dictDir + 'en-de-v2.sqlite3', downloaded_at: 2000 },
-      { source_lang: 'en', target_lang: 'de', version: '2_2025-12', file_path: 'file://' + dictDir + 'en-de-v3.sqlite3', downloaded_at: 3000 },
+      { source_lang: 'en', target_lang: 'de', version: '2_2025-10', file_path: dictDir + 'en-de-v1.sqlite3', downloaded_at: 1000 },
+      { source_lang: 'en', target_lang: 'de', version: '2_2025-11', file_path: dictDir + 'en-de-v2.sqlite3', downloaded_at: 2000 },
+      { source_lang: 'en', target_lang: 'de', version: '2_2025-12', file_path: dictDir + 'en-de-v3.sqlite3', downloaded_at: 3000 },
     ];
 
     seedFile(dictDir + 'en-de-v1.sqlite3');
@@ -187,7 +193,7 @@ describe('runDictionaryMaintenance', () => {
 
   test('Case 3 variant: All files have matching DB rows - no deletions', async () => {
     const rows = [
-      { source_lang: 'en', target_lang: 'de', version: '2_2025-11', file_path: 'file://' + dictDir + 'en-de.sqlite3', downloaded_at: 1000 },
+      { source_lang: 'en', target_lang: 'de', version: '2_2025-11', file_path: dictDir + 'en-de.sqlite3', downloaded_at: 1000 },
     ];
 
     seedFile(dictDir + 'en-de.sqlite3');
@@ -253,9 +259,9 @@ describe('runDictionaryMaintenance', () => {
 
   test('Integration - all three cases together', async () => {
     const dbRows = [
-      { source_lang: 'en', target_lang: 'de', version: '2_2025-10', file_path: 'file://' + dictDir + 'en-de-v1.sqlite3', downloaded_at: 1000 },
-      { source_lang: 'en', target_lang: 'de', version: '2_2025-11', file_path: 'file://' + dictDir + 'en-de-v2.sqlite3', downloaded_at: 2000 },
-      { source_lang: 'de', target_lang: 'en', version: '2_2025-11', file_path: 'file://' + dictDir + 'de-en-missing.sqlite3', downloaded_at: 3000 },
+      { source_lang: 'en', target_lang: 'de', version: '2_2025-10', file_path: dictDir + 'en-de-v1.sqlite3', downloaded_at: 1000 },
+      { source_lang: 'en', target_lang: 'de', version: '2_2025-11', file_path: dictDir + 'en-de-v2.sqlite3', downloaded_at: 2000 },
+      { source_lang: 'de', target_lang: 'en', version: '2_2025-11', file_path: dictDir + 'de-en-missing.sqlite3', downloaded_at: 3000 },
     ];
 
     seedFile(dictDir + 'en-de-v1.sqlite3');
@@ -269,8 +275,8 @@ describe('runDictionaryMaintenance', () => {
         }
         if (sql.includes('SELECT 1 FROM installed_dictionaries WHERE file_path = ?')) {
           const filePath = params?.[0];
-          if (filePath === 'file://' + dictDir + 'en-de-v1.sqlite3' ||
-              filePath === 'file://' + dictDir + 'en-de-v2.sqlite3') {
+          if (filePath === dictDir + 'en-de-v1.sqlite3' ||
+              filePath === dictDir + 'en-de-v2.sqlite3') {
             return Promise.resolve([{ count: 1 }]);
           }
           return Promise.resolve([]);
@@ -302,8 +308,8 @@ describe('runDictionaryMaintenance', () => {
     );
 
     // Case 2: older version en-de-v1 should be deleted (2 rows for en-de)
-    expect(closeDictionaryDatabase).toHaveBeenCalledWith('file://' + dictDir + 'en-de-v1.sqlite3');
-    expect(deleteAsync).toHaveBeenCalledWith(dictDir + 'en-de-v1.sqlite3', { idempotent: true });
+    expect(closeDictionaryDatabase).toHaveBeenCalledWith(dictDir + 'en-de-v1.sqlite3');
+    expect(deleteAsync).toHaveBeenCalledWith(plainDictDir + 'en-de-v1.sqlite3', { idempotent: true });
     expect(mockDatabase.runAsync).toHaveBeenCalledWith(
       'DELETE FROM installed_dictionaries WHERE source_lang = ? AND target_lang = ? AND version = ?',
       ['en', 'de', '2_2025-10']

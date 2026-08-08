@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Alert, FlatList, Pressable, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Alert, FlatList, Pressable, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useLocalSearchParams } from 'expo-router';
@@ -34,6 +34,7 @@ export default function SettingsScreen() {
   const [limitInput, setLimitInput] = useState(String(settings.dailyReviewLimit));
   const [limitError, setLimitError] = useState('');
   const [updateTarget, setUpdateTarget] = useState<{nativeLang: string; studiedLang: string} | null>(null);
+  const [updatingPairs, setUpdatingPairs] = useState<Set<string>>(new Set());
   const params = useLocalSearchParams<{ updatePair?: string }>();
   const MAX_DAILY_REVIEW_LIMIT = 200;
 
@@ -126,8 +127,26 @@ export default function SettingsScreen() {
 
   const handleUpdateAccept = () => {
     if (updateTarget === null) return;
-    updatePair(updateTarget.nativeLang, updateTarget.studiedLang, () => {});
+    const { nativeLang, studiedLang } = updateTarget;
+    const pairKey = `${nativeLang}-${studiedLang}`;
     setUpdateTarget(null);
+
+    // Guards against a double-tap kicking off two concurrent downloads to the same file.
+    if (updatingPairs.has(pairKey)) return;
+    setUpdatingPairs((prev) => new Set(prev).add(pairKey));
+
+    updatePair(nativeLang, studiedLang, () => {})
+      .catch((err: unknown) => {
+        const message = err instanceof Error ? err.message : 'Update failed. Please try again.';
+        Alert.alert('Update Failed', message);
+      })
+      .finally(() => {
+        setUpdatingPairs((prev) => {
+          const next = new Set(prev);
+          next.delete(pairKey);
+          return next;
+        });
+      });
   };
 
   const handleUpdateCancel = () => {
@@ -187,15 +206,21 @@ export default function SettingsScreen() {
               >
                 <Text className="text-red-600 font-semibold text-base">Delete</Text>
               </Pressable>
-              {isPairBehindCurrentVersion(pair.nativeLang, pair.studiedLang) && (
-                <Pressable
-                  className="ml-4 px-3 py-1 rounded-lg bg-blue-600 items-center"
-                  accessibilityRole="button"
-                  accessibilityLabel={`Update ${nativeName} and ${studiedName} dictionaries`}
-                  onPress={() => setUpdateTarget({nativeLang: pair.nativeLang, studiedLang: pair.studiedLang})}
-                >
-                  <Text className="text-white font-semibold text-sm">Update</Text>
-                </Pressable>
+              {updatingPairs.has(`${pair.nativeLang}-${pair.studiedLang}`) ? (
+                <View className="ml-4 px-3 py-1" accessibilityLabel={`Updating ${nativeName} and ${studiedName} dictionaries`}>
+                  <ActivityIndicator accessibilityLabel="Updating" />
+                </View>
+              ) : (
+                isPairBehindCurrentVersion(pair.nativeLang, pair.studiedLang) && (
+                  <Pressable
+                    className="ml-4 px-3 py-1 rounded-lg bg-blue-600 items-center"
+                    accessibilityRole="button"
+                    accessibilityLabel={`Update ${nativeName} and ${studiedName} dictionaries`}
+                    onPress={() => setUpdateTarget({nativeLang: pair.nativeLang, studiedLang: pair.studiedLang})}
+                  >
+                    <Text className="text-white font-semibold text-sm">Update</Text>
+                  </Pressable>
+                )
               )}
             </View>
           );

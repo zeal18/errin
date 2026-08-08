@@ -13,7 +13,10 @@ interface MockFSEntry {
 
 const mockFileSystem: Map<string, MockFSEntry> = new Map();
 
-export const documentDirectory: string = '/mock/documentDirectory/';
+// Real expo-file-system's documentDirectory is itself a file:// URI (e.g.
+// 'file:///data/user/0/<pkg>/files/') — mirror that here so URI-vs-plain-path bugs
+// in call sites surface in tests instead of being masked by a bare path.
+export const documentDirectory: string = 'file:///mock/documentDirectory/';
 
 function uriToPath(uri: string): string {
   return uri.startsWith('file://') ? uri.slice('file://'.length) : uri;
@@ -30,7 +33,7 @@ export const getInfoAsync = jest.fn().mockImplementation(async (path: string): P
 
 export const readDirectoryAsync = jest.fn().mockImplementation(async (path: string): Promise<string[]> => {
   const normalized = uriToPath(path);
-  if (normalized === documentDirectory + 'dictionaries/') {
+  if (normalized === uriToPath(documentDirectory) + 'dictionaries/') {
     return Array.from(mockFileSystem.keys())
       .filter((k) => !mockFileSystem.get(k)!.isDirectory)
       .map((k) => {
@@ -60,5 +63,5 @@ export const resetMockFileSystem = (): void => {
 };
 
 export const seedFile = (path: string, isDirectory: boolean = false): void => {
-  mockFileSystem.set(path, { exists: true, isDirectory, content: '' });
+  mockFileSystem.set(uriToPath(path), { exists: true, isDirectory, content: '' });
 };

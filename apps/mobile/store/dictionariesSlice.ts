@@ -156,12 +156,13 @@ export const createDictionariesSlice: StateCreator<
     const newForwardPath = getDictionaryFilePath(nativeLang, studiedLang, newVersion);
     const newReversePath = getDictionaryFilePath(studiedLang, nativeLang, newVersion);
 
-    // Defensive retry cleanup: delete any leftover file at new-version target paths with no matching DB row
+    // Defensive retry cleanup: delete any leftover file at new-version target paths with no matching DB row.
+    // getDictionaryFilePath() already returns a file:// URI in the same form stored in file_path.
     for (const path of [newForwardPath, newReversePath]) {
       const db = await getDatabase();
       const rows = await db.getAllAsync(
         'SELECT 1 FROM installed_dictionaries WHERE file_path = ?',
-        ['file://' + path]
+        [path]
       );
       if (rows.length === 0) {
         await deleteAsync(path, { idempotent: true });

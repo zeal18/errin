@@ -69,11 +69,12 @@ export async function runDictionaryMaintenance(): Promise<void> {
       const files = await readDirectoryAsync(dictDir);
       const sqliteFiles = files.filter(f => f.endsWith('.sqlite3'));
       for (const file of sqliteFiles) {
+        // dictDir already carries documentDirectory's own file:// scheme, so this is
+        // already the same URI form stored in installed_dictionaries.file_path.
         const absolutePath = dictDir + file;
-        const fileUri = 'file://' + absolutePath;
         const match = await db.getAllAsync<{ count: number }>(
           'SELECT 1 FROM installed_dictionaries WHERE file_path = ?',
-          [fileUri]
+          [absolutePath]
         );
         if (match.length === 0) {
           await deleteAsync(absolutePath, { idempotent: true });
