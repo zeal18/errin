@@ -4,6 +4,7 @@ import { computeStatus, type LookupDirection, type Word } from '@errin/core';
 import type { LookupResult, TranslationVariant } from '@errin/core';
 import { getWordsBySource } from '../db/words';
 import { useAppStore } from '../store';
+import { GenderBadge } from './GenderBadge';
 
 interface ResultsListProps {
   results: LookupResult[];
@@ -18,6 +19,7 @@ interface ResultCardProps {
   selectedSynonymIndex: number;
   existingWord: Word | undefined;
   lookupDirection: LookupDirection;
+  studiedLang: string;
   onVariantSelect: (writtenRep: string, index: number) => void;
   onSynonymSelect: (writtenRep: string, index: number) => void;
   onSave: (result: LookupResult, variant: TranslationVariant, synonym: string) => void;
@@ -31,6 +33,7 @@ function ResultCard({
   selectedSynonymIndex,
   existingWord,
   lookupDirection,
+  studiedLang,
   onVariantSelect,
   onSynonymSelect,
   onSave,
@@ -92,7 +95,12 @@ function ResultCard({
   return (
     <View className="px-4 py-3 border-b border-neutral-100">
       <View className="flex-row items-center justify-between mb-2">
-        <Text className="text-base font-bold text-neutral-900">{result.writtenRep}</Text>
+        <View className="flex-row items-center gap-1.5">
+          <Text className="text-base font-bold text-neutral-900">{result.writtenRep}</Text>
+          {lookupDirection === 'studied_to_native' && (
+            <GenderBadge lang={studiedLang} word={result.writtenRep} />
+          )}
+        </View>
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={`${buttonConfig.label} ${result.writtenRep}`}
@@ -130,9 +138,14 @@ function ResultCard({
                       className={`px-2 py-0.5 rounded-full border ${isSynonymSelected ? 'border-blue-500 bg-blue-100' : 'border-neutral-300 bg-white'}`}
                       onPress={() => onSynonymSelect(result.writtenRep, sIndex)}
                     >
-                      <Text className={`text-sm ${isSynonymSelected ? 'font-semibold text-blue-700' : 'text-neutral-700'}`}>
-                        {synonym}
-                      </Text>
+                      <View className="flex-row items-center gap-1">
+                        <Text className={`text-sm ${isSynonymSelected ? 'font-semibold text-blue-700' : 'text-neutral-700'}`}>
+                          {synonym}
+                        </Text>
+                        {lookupDirection === 'native_to_studied' && (
+                          <GenderBadge lang={studiedLang} word={synonym} />
+                        )}
+                      </View>
                     </Pressable>
                   );
                 })}
@@ -267,6 +280,7 @@ export function ResultsList({ results, onPress, onReplace, onReset }: ResultsLis
           selectedSynonymIndex={synonymIdx}
           existingWord={existingWord}
           lookupDirection={lookupDirection}
+          studiedLang={studiedLang}
           onVariantSelect={handleVariantSelect}
           onSynonymSelect={handleSynonymSelect}
           onSave={handleSave}

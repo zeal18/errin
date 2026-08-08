@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import type { Word, LearningStatus } from '@errin/core';
 import { computeStatus } from '@errin/core';
+import { GenderBadge } from './GenderBadge';
 
 const STATUS_LABEL: Record<LearningStatus, string> = {
   not_started: 'Not started',
@@ -98,9 +99,12 @@ export function WordListItem({ word, onDelete }: WordListItemProps) {
         onAccessibilityTap={handleDeletePress}
       >
         <View className="flex-1 mr-3">
-          <Text className="text-base font-bold text-neutral-900">
-            {word.source}
-          </Text>
+          <View className="flex-row items-center gap-1.5">
+            <Text className="text-base font-bold text-neutral-900">
+              {word.source}
+            </Text>
+            <GenderBadge lang={word.sourceLang} word={word.source} />
+          </View>
           <Text className="text-sm text-blue-600 mt-0.5">{word.target}</Text>
         </View>
         <View className={`px-2 py-0.5 rounded-full ${STATUS_STYLE[status]}`} accessible={true} accessibilityRole="text" accessibilityLabel={STATUS_LABEL[status]}>

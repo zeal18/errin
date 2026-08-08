@@ -7,6 +7,7 @@ import { getDueWords, updateWord } from '../../db/words';
 import { useAppStore } from '../../store';
 import { applyReview } from '@errin/core';
 import type { Word, ReviewRating } from '@errin/core';
+import { GenderBadge } from '../../components/GenderBadge';
 
 type CardSide = 'front' | 'back';
 type Rating = ReviewRating;
@@ -139,7 +140,10 @@ export default function ReviewScreen() {
                 accessibilityLabel="Tap to reveal answer"
                 accessibilityHint="Double tap to show the translation and sense"
               >
-                <Text className="text-3xl font-bold text-neutral-900">{currentWord.source}</Text>
+                <View className="flex-row items-center gap-2">
+                  <Text className="text-3xl font-bold text-neutral-900">{currentWord.source}</Text>
+                  <GenderBadge lang={currentWord.sourceLang} word={currentWord.source} />
+                </View>
                 <Text className="text-neutral-500 mt-2">Tap to reveal</Text>
               </Pressable>
             ) : (
@@ -149,7 +153,10 @@ export default function ReviewScreen() {
                 accessibilityRole="text"
                 accessibilityLabel={`Translation: ${currentWord.target}. Sense: ${currentWord.sense}`}
               >
-                <Text className="text-xl font-semibold text-neutral-900">{currentWord.source}</Text>
+                <View className="flex-row items-center gap-1.5">
+                  <Text className="text-xl font-semibold text-neutral-900">{currentWord.source}</Text>
+                  <GenderBadge lang={currentWord.sourceLang} word={currentWord.source} />
+                </View>
                 <Text className="text-blue-600 text-lg mt-2">{currentWord.target}</Text>
                 <Text className="text-neutral-600 text-base mt-4">{currentWord.sense}</Text>
                 {showRating && (
