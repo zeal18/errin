@@ -3,11 +3,6 @@ import { closeDictionaryDatabase } from './dictionaryDb';
 import { deleteAsync, getInfoAsync, readDirectoryAsync, documentDirectory } from 'expo-file-system/legacy';
 import { devLog } from './devLog';
 
-// expo-sqlite needs a plain absolute path; expo-file-system returns file:// URIs
-export function uriToPath(uri: string): string {
-  return uri.startsWith('file://') ? uri.slice('file://'.length) : uri;
-}
-
 export async function runDictionaryMaintenance(): Promise<void> {
   const db = await getDatabase();
   const dictDir = documentDirectory + 'dictionaries/';
@@ -18,8 +13,11 @@ export async function runDictionaryMaintenance(): Promise<void> {
       'SELECT source_lang, target_lang, version, file_path, downloaded_at FROM installed_dictionaries'
     );
     for (const row of rows) {
-      const plainPath = uriToPath(row.file_path);
-      const info = await getInfoAsync(plainPath);
+      // getInfoAsync is an expo-file-system call — it needs the file:// URI form
+      // already stored in file_path, not a stripped plain path (a schemeless path
+      // makes it fall into the content/asset/null-scheme branch, which always
+      // reports exists:false for a real on-disk file).
+      const info = await getInfoAsync(row.file_path);
       if (!info.exists) {
         await db.runAsync(
           'DELETE FROM installed_dictionaries WHERE source_lang = ? AND target_lang = ? AND version = ?',
@@ -49,8 +47,8 @@ export async function runDictionaryMaintenance(): Promise<void> {
         const olderRow = group[0];
         const newerRow = group[1];
         await closeDictionaryDatabase(olderRow.file_path);
-        const plainPath = uriToPath(olderRow.file_path);
-        await deleteAsync(plainPath, { idempotent: true });
+        // deleteAsync is an expo-file-system call — same URI requirement as getInfoAsync above.
+        await deleteAsync(olderRow.file_path, { idempotent: true });
         await db.runAsync(
           'DELETE FROM installed_dictionaries WHERE source_lang = ? AND target_lang = ? AND version = ?',
           [olderRow.source_lang, olderRow.target_lang, olderRow.version]

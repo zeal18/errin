@@ -27,9 +27,6 @@ import { runDictionaryMaintenance } from './dictionaryMaintenance';
 // dictDir is a file:// URI, matching the form stored in installed_dictionaries.file_path
 // and what dictionaryDownload.ts's getDictionaryFilePath() returns.
 const dictDir = documentDirectory + 'dictionaries/';
-// Plain filesystem path form — what uriToPath() strips file_path down to before
-// passing to getInfoAsync/deleteAsync in Case 1 and Case 2.
-const plainDictDir = dictDir.slice('file://'.length);
 
 describe('runDictionaryMaintenance', () => {
   beforeEach(() => {
@@ -49,8 +46,7 @@ describe('runDictionaryMaintenance', () => {
 
     (mockDatabase.getAllAsync as jest.Mock).mockResolvedValueOnce(rows);
     (getInfoAsync as jest.Mock).mockImplementation(async (path: string) => {
-      // Case 1 strips file_path down to a plain path before calling getInfoAsync
-      if (path === plainDictDir + 'en-de.sqlite3') {
+      if (path === dictDir + 'en-de.sqlite3') {
         return { exists: true };
       }
       return { exists: false };
@@ -85,6 +81,27 @@ describe('runDictionaryMaintenance', () => {
     expect(mockDatabase.runAsync).not.toHaveBeenCalled();
   });
 
+  test('Case 1 regression: getInfoAsync is called with the full file:// URI, not a stripped plain path', async () => {
+    // Deliberately does not override getInfoAsync's mock implementation — this
+    // exercises the mock's real scheme-checking logic (mirrors expo-file-system's
+    // native module, which reports exists:false for a schemeless path even when
+    // the real file is present). A regression that strips file_path down to a
+    // plain path before calling getInfoAsync would make this file appear
+    // missing and get its row deleted.
+    const rows = [
+      { source_lang: 'en', target_lang: 'de', version: '2_2025-11', file_path: dictDir + 'en-de.sqlite3', downloaded_at: 1000 },
+    ];
+    seedFile(dictDir + 'en-de.sqlite3');
+    (mockDatabase.getAllAsync as jest.Mock).mockResolvedValueOnce(rows);
+
+    await runDictionaryMaintenance();
+
+    expect(mockDatabase.runAsync).not.toHaveBeenCalledWith(
+      'DELETE FROM installed_dictionaries WHERE source_lang = ? AND target_lang = ? AND version = ?',
+      ['en', 'de', '2_2025-11']
+    );
+  });
+
   test('Case 2: Delete older version when exactly 2 rows exist for same direction pair', async () => {
     const rows = [
       { source_lang: 'en', target_lang: 'de', version: '2_2025-10', file_path: dictDir + 'en-de-v1.sqlite3', downloaded_at: 1000 },
@@ -108,8 +125,8 @@ describe('runDictionaryMaintenance', () => {
     // Expect: closeDictionaryDatabase called with older row's file_path
     expect(closeDictionaryDatabase).toHaveBeenCalledWith(dictDir + 'en-de-v1.sqlite3');
 
-    // Expect: deleteAsync called for older file_path stripped down to a plain path
-    expect(deleteAsync).toHaveBeenCalledWith(plainDictDir + 'en-de-v1.sqlite3', { idempotent: true });
+    // Expect: deleteAsync called with the full file:// URI, not a stripped plain path
+    expect(deleteAsync).toHaveBeenCalledWith(dictDir + 'en-de-v1.sqlite3', { idempotent: true });
 
     // Expect: DELETE FROM installed_dictionaries for older row
     expect(mockDatabase.runAsync).toHaveBeenCalledWith(
@@ -309,7 +326,7 @@ describe('runDictionaryMaintenance', () => {
 
     // Case 2: older version en-de-v1 should be deleted (2 rows for en-de)
     expect(closeDictionaryDatabase).toHaveBeenCalledWith(dictDir + 'en-de-v1.sqlite3');
-    expect(deleteAsync).toHaveBeenCalledWith(plainDictDir + 'en-de-v1.sqlite3', { idempotent: true });
+    expect(deleteAsync).toHaveBeenCalledWith(dictDir + 'en-de-v1.sqlite3', { idempotent: true });
     expect(mockDatabase.runAsync).toHaveBeenCalledWith(
       'DELETE FROM installed_dictionaries WHERE source_lang = ? AND target_lang = ? AND version = ?',
       ['en', 'de', '2_2025-10']

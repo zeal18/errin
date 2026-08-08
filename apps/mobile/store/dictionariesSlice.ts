@@ -7,7 +7,6 @@ import { CURRENT_DICTIONARY_VERSION } from '@errin/core';
 import { getDictionaryFilePath, startPairDownload, type PairDownloadProgress } from '../lib/dictionaryDownload';
 import type { ActivePairSlice } from './activePairSlice';
 import type { SettingsSlice } from './settingsSlice';
-import { uriToPath } from '../lib/dictionaryMaintenance';
 
 export interface DictionariesSlice {
   dictionaries: InstalledDictionary[];
@@ -89,7 +88,9 @@ export const createDictionariesSlice: StateCreator<
     for (const row of rows) {
       if (!row.file_path) continue;
       await closeDictionaryDatabase(row.file_path);
-      await deleteAsync(uriToPath(row.file_path), { idempotent: true });
+      // deleteAsync is an expo-file-system call — it needs the file:// URI form
+      // already stored in file_path, not a stripped plain path (see dictionaryMaintenance.ts).
+      await deleteAsync(row.file_path, { idempotent: true });
     }
 
     await db.runAsync(

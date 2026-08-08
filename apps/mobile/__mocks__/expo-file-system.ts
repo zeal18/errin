@@ -18,13 +18,20 @@ const mockFileSystem: Map<string, MockFSEntry> = new Map();
 // in call sites surface in tests instead of being masked by a bare path.
 export const documentDirectory: string = 'file:///mock/documentDirectory/';
 
-function uriToPath(uri: string): string {
-  return uri.startsWith('file://') ? uri.slice('file://'.length) : uri;
-}
+// Real expo-file-system's native module branches on URI scheme: a proper file://
+// URI is checked for on-disk existence, but a schemeless (stripped) plain path
+// falls into the content/asset/null-scheme branch instead — getInfoAsync silently
+// reports exists:false, and deleteAsync throws "Unsupported scheme". Mirror that
+// here (rather than normalizing both forms to the same lookup key) so a call site
+// that accidentally strips a file_path before calling one of these functions fails
+// its tests instead of appearing to work.
+const hasFileScheme = (path: string): boolean => path.startsWith('file://');
 
 export const getInfoAsync = jest.fn().mockImplementation(async (path: string): Promise<FileInfo> => {
-  const normalized = uriToPath(path);
-  const entry = mockFileSystem.get(normalized);
+  if (!hasFileScheme(path)) {
+    return { exists: false };
+  }
+  const entry = mockFileSystem.get(path);
   if (entry) {
     return { exists: true, isDirectory: entry.isDirectory };
   }
@@ -32,8 +39,7 @@ export const getInfoAsync = jest.fn().mockImplementation(async (path: string): P
 });
 
 export const readDirectoryAsync = jest.fn().mockImplementation(async (path: string): Promise<string[]> => {
-  const normalized = uriToPath(path);
-  if (normalized === uriToPath(documentDirectory) + 'dictionaries/') {
+  if (path === documentDirectory + 'dictionaries/') {
     return Array.from(mockFileSystem.keys())
       .filter((k) => !mockFileSystem.get(k)!.isDirectory)
       .map((k) => {
@@ -46,10 +52,12 @@ export const readDirectoryAsync = jest.fn().mockImplementation(async (path: stri
 });
 
 export const deleteAsync = jest.fn().mockImplementation(async (path: string, options?: { idempotent?: boolean }): Promise<void> => {
-  const normalized = uriToPath(path);
-  const entry = mockFileSystem.get(normalized);
+  if (!hasFileScheme(path)) {
+    throw new Error(`Unsupported scheme for location '${path}'.`);
+  }
+  const entry = mockFileSystem.get(path);
   if (entry && !entry.isDirectory) {
-    mockFileSystem.delete(normalized);
+    mockFileSystem.delete(path);
   } else if (!entry && !options?.idempotent) {
     throw new Error('File not found: ' + path);
   }
@@ -63,5 +71,5 @@ export const resetMockFileSystem = (): void => {
 };
 
 export const seedFile = (path: string, isDirectory: boolean = false): void => {
-  mockFileSystem.set(uriToPath(path), { exists: true, isDirectory, content: '' });
+  mockFileSystem.set(path, { exists: true, isDirectory, content: '' });
 };
