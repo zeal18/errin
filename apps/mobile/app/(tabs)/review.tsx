@@ -140,10 +140,7 @@ export default function ReviewScreen() {
                 accessibilityLabel="Tap to reveal answer"
                 accessibilityHint="Double tap to show the translation and sense"
               >
-                <View className="flex-row items-center gap-2">
-                  <Text className="text-3xl font-bold text-neutral-900">{currentWord.source}</Text>
-                  <GenderBadge lang={currentWord.sourceLang} word={currentWord.source} />
-                </View>
+                <Text className="text-3xl font-bold text-neutral-900">{currentWord.source}</Text>
                 <Text className="text-neutral-500 mt-2">Tap to reveal</Text>
               </Pressable>
             ) : (
