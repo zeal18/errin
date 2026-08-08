@@ -8,6 +8,7 @@ export const SUPPORTED_LANGUAGES: readonly SupportedLanguage[] = [
   { code: 'de', name: 'German' },
   { code: 'ru', name: 'Russian' },
   { code: 'es', name: 'Spanish' },
+  { code: 'fi', name: 'Finnish' },
 ] as const;
 
 export function getLanguageName(code: string): string | undefined {

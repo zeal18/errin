@@ -1,6 +1,6 @@
 # Errin — Specification
 
-An Android app for looking up words and phrases from locally stored dictionaries while building a personal vocabulary list with built-in spaced repetition review. Supports English, German, Russian, and Spanish in any direction. Built with Expo + React Native; business logic lives in a shared TypeScript package for future platform targets.
+An Android app for looking up words and phrases from locally stored dictionaries while building a personal vocabulary list with built-in spaced repetition review. Supports English, German, Russian, Spanish, and Finnish in any direction. Built with Expo + React Native; business logic lives in a shared TypeScript package for future platform targets.
 
 ## Features
 
@@ -25,7 +25,7 @@ A **language pair** is identified by `{ nativeLang, studiedLang }`. Adding a pai
 
 ## Supported Language Pairs
 
-Four languages in any direction: English, German, Russian, Spanish.
+Five languages in any direction: English, German, Russian, Spanish, Finnish.
 
 | File | Direction | Size |
 |---|---|---|
@@ -41,8 +41,16 @@ Four languages in any direction: English, German, Russian, Spanish.
 | `es-de.sqlite3` | Spanish → German | 8.2 MB |
 | `ru-es.sqlite3` | Russian → Spanish | 8.5 MB |
 | `es-ru.sqlite3` | Spanish → Russian | 7.4 MB |
+| `en-fi.sqlite3` | English → Finnish | 24.5 MB |
+| `fi-en.sqlite3` | Finnish → English | 15.8 MB |
+| `de-fi.sqlite3` | German → Finnish | 12.8 MB |
+| `fi-de.sqlite3` | Finnish → German | 7.6 MB |
+| `ru-fi.sqlite3` | Russian → Finnish | 8.0 MB |
+| `fi-ru.sqlite3` | Finnish → Russian | 7.1 MB |
+| `es-fi.sqlite3` | Spanish → Finnish | 5.1 MB |
+| `fi-es.sqlite3` | Finnish → Spanish | 6.3 MB |
 
-Sizes are for version `2_2025-11`, measured from the actual downloaded files — the source of truth for the download sizes shown in [Download Confirmation](#download-confirmation). Users download only the pairs they need. All twelve pairs total ≈204 MB.
+Sizes are for version `2_2025-11`, measured from the actual downloaded files — the source of truth for the download sizes shown in [Download Confirmation](#download-confirmation). Users download only the pairs they need. All twenty pairs total ≈291 MB.
 
 Both directions of a pair are always downloaded together (e.g. adding "English ↔ German" downloads both `en-de.sqlite3` and `de-en.sqlite3`).
 

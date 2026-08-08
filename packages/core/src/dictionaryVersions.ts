@@ -24,6 +24,14 @@ export const DICTIONARY_FILE_SIZES: Record<string, number> = {
   'es-de': 8598323,
   'ru-es': 8912896,
   'es-ru': 7759462,
+  'en-fi': 25690112,
+  'fi-en': 16567501,
+  'de-fi': 13421773,
+  'fi-de': 7969178,
+  'ru-fi': 8388608,
+  'fi-ru': 7444890,
+  'es-fi': 5347738,
+  'fi-es': 6606029,
 };
 
 export function getPairDownloadSize(nativeLang: string, studiedLang: string): number {

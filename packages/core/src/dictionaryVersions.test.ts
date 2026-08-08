@@ -38,7 +38,7 @@ describe('CURRENT_DICTIONARY_VERSION', () => {
 });
 
 describe('DICTIONARY_FILE_SIZES', () => {
-  test('has entries for all 12 supported language pairs from SPEC.md', () => {
+  test('has entries for all 20 supported language pairs from SPEC.md', () => {
     const expectedPairs = [
       'en-de', 'de-en',
       'en-ru', 'ru-en',
@@ -46,6 +46,10 @@ describe('DICTIONARY_FILE_SIZES', () => {
       'de-ru', 'ru-de',
       'de-es', 'es-de',
       'ru-es', 'es-ru',
+      'en-fi', 'fi-en',
+      'de-fi', 'fi-de',
+      'ru-fi', 'fi-ru',
+      'es-fi', 'fi-es',
     ];
     expect(Object.keys(DICTIONARY_FILE_SIZES).sort()).toEqual(expectedPairs.sort());
   });
@@ -86,6 +90,13 @@ describe('getPairDownloadSize', () => {
     expect(result).toBe(16672358);
   });
 
+  test('returns sum of forward and reverse dictionary sizes for en-fi pair', () => {
+    const result = getPairDownloadSize('en', 'fi');
+    expect(result).toBe(DICTIONARY_FILE_SIZES['en-fi'] + DICTIONARY_FILE_SIZES['fi-en']);
+    expect(result).toBe(25690112 + 16567501);
+    expect(result).toBe(42257613);
+  });
+
   test('returns 0 when forward direction is missing', () => {
     const result = getPairDownloadSize('xx', 'en');
     expect(result).toBe(0);
@@ -120,6 +131,10 @@ describe('getPairDownloadSize', () => {
       ['de', 'ru'],
       ['de', 'es'],
       ['ru', 'es'],
+      ['en', 'fi'],
+      ['de', 'fi'],
+      ['ru', 'fi'],
+      ['es', 'fi'],
     ];
     pairs.forEach(([a, b]) => {
       const result = getPairDownloadSize(a, b);
