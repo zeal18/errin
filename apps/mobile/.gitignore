@@ -1,0 +1,4 @@
+# Native project — regenerated fresh via `expo prebuild` before each build,
+# not hand-maintained. Keeping it out of git avoids drift from app.json
+# (e.g. applicationId/version getting out of sync with what's committed).
+android/

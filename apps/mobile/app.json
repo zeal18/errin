@@ -7,14 +7,11 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "scheme": "errin",
-    "icon": "./assets/icon.svg",
+    "icon": "./assets/icon.png",
     "splash": {
-      "image": "./assets/splash.svg",
+      "image": "./assets/splash.png",
       "resizeMode": "contain",
       "backgroundColor": "#6366f1"
-    },
-    "updates": {
-      "url": "https://u.expo.dev/v2"
     },
     "assetBundlePatterns": [
       "**/*"

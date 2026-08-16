@@ -10,7 +10,9 @@
     "ios": "expo run:ios",
     "web": "expo start --web",
     "test": "jest --config jest.config.js",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "version:from-git": "node scripts/set-version-from-git.mjs",
+    "build:android:release": "node scripts/set-version-from-git.mjs && expo prebuild --clean --platform android && cd android && ./gradlew bundleRelease"
   },
   "dependencies": {
     "@errin/core": "workspace:*",
