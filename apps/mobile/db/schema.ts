@@ -35,7 +35,8 @@ CREATE TABLE IF NOT EXISTS settings (
   daily_review_limit INTEGER NOT NULL DEFAULT 20,
   last_active_source_lang TEXT,
   last_active_target_lang TEXT,
-  lookup_direction TEXT NOT NULL DEFAULT 'studied_to_native'
+  lookup_direction TEXT NOT NULL DEFAULT 'studied_to_native',
+  theme_preference TEXT NOT NULL DEFAULT 'system'
 );
 
 INSERT OR IGNORE INTO settings (id, daily_review_limit) VALUES (1, 20);
@@ -69,4 +70,5 @@ export interface SettingsRow {
   last_active_source_lang: string | null;
   last_active_target_lang: string | null;
   lookup_direction: string;
+  theme_preference: string;
 }

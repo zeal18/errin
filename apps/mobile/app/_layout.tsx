@@ -5,9 +5,10 @@ import { Stack } from 'expo-router';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { ThemeProvider } from '@react-navigation/native';
 import { colorScheme, useColorScheme } from 'nativewind';
-import { hydrateAppStore } from '../store';
+import { hydrateAppStore, useAppStore } from '../store';
 import { closeAllDictionaryDatabases } from '../lib/dictionaryDb';
 import { runDictionaryMaintenance } from '../lib/dictionaryMaintenance';
+import { applyThemePreference } from '../lib/applyTheme';
 import { navigationTheme, useThemeColors } from '../lib/theme';
 import * as SplashScreen from 'expo-splash-screen';
 
@@ -21,6 +22,7 @@ export default function RootLayout() {
   const [hydrated, setHydrated] = useState(false);
   const { colorScheme: currentScheme = 'light' } = useColorScheme();
   const colors = useThemeColors();
+  const themePreference = useAppStore((s) => s.settings.themePreference);
 
   useEffect(() => {
     let cancelled = false;
@@ -36,7 +38,11 @@ export default function RootLayout() {
         // Hydration failure leaves store at defaults (no dictionaries),
         // which routes the user to onboarding — the correct fallback.
       } finally {
-        if (!cancelled) setHydrated(true);
+        if (!cancelled) {
+          // Apply the stored theme preference before showing the app
+          applyThemePreference(useAppStore.getState().settings.themePreference);
+          setHydrated(true);
+        }
       }
     })();
     return () => {
@@ -50,6 +56,12 @@ export default function RootLayout() {
       SplashScreen.hideAsync();
     }
   }, [hydrated]);
+
+  useEffect(() => {
+    if (hydrated) {
+      applyThemePreference(themePreference);
+    }
+  }, [themePreference, hydrated]);
 
   useEffect(() => {
     const sub = AppState.addEventListener('change', (next) => {

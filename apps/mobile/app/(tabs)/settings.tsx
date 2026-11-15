@@ -2,11 +2,17 @@ import { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Alert, FlatList, Pressable, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams } from 'expo-router';
-import { getLanguageName, SUPPORTED_LANGUAGES, getPairDownloadSize } from '@errin/core';
+import { getLanguageName, SUPPORTED_LANGUAGES, getPairDownloadSize, type ThemePreference } from '@errin/core';
 import { useAppStore } from '../../store';
 import { AddLanguagePairModal } from '../../components/AddLanguagePairModal';
 import { DownloadConfirmationDialog } from '../../components/DownloadConfirmationDialog';
 import { useThemeColors } from '../../lib/theme';
+
+const THEME_OPTIONS: { value: ThemePreference; label: string }[] = [
+  { value: 'system', label: 'System default' },
+  { value: 'light', label: 'Light' },
+  { value: 'dark', label: 'Dark' },
+];
 
 function formatDate(timestamp: number): string {
   const date = new Date(timestamp);
@@ -27,6 +33,7 @@ export default function SettingsScreen() {
   const dictionaries = useAppStore((s) => s.dictionaries);
   const settings = useAppStore((s) => s.settings);
   const setDailyReviewLimit = useAppStore((s) => s.setDailyReviewLimit);
+  const setThemePreference = useAppStore((s) => s.setThemePreference);
   const removePair = useAppStore((s) => s.removePair);
   const updatePair = useAppStore((s) => s.updatePair);
   const isPairBehindCurrentVersion = useAppStore((s) => s.isPairBehindCurrentVersion);
@@ -248,6 +255,36 @@ export default function SettingsScreen() {
           />
         </View>
         {limitError ? <Text className="text-sm text-red-600 dark:text-red-500 mt-1">{limitError}</Text> : null}
+      </View>
+
+      <View className="px-4 py-3 border-b border-neutral-200 dark:border-neutral-800">
+        <Text className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">Appearance</Text>
+      </View>
+      <View className="px-4 py-3 border-b border-neutral-200 dark:border-neutral-800">
+        <View
+          className="flex-row rounded-lg border border-neutral-300 dark:border-neutral-700 overflow-hidden"
+          accessibilityRole="radiogroup"
+          accessibilityLabel="Theme"
+        >
+          {THEME_OPTIONS.map(({ value, label }) => {
+            const selected = settings.themePreference === value;
+            return (
+              <Pressable
+                key={value}
+                className={`flex-1 py-2 items-center ${selected ? 'bg-blue-600' : 'bg-white dark:bg-neutral-800'}`}
+                accessibilityRole="radio"
+                accessibilityLabel={label}
+                accessibilityState={{ checked: selected }}
+                testID={`theme-option-${value}`}
+                onPress={() => setThemePreference(value)}
+              >
+                <Text className={`font-semibold ${selected ? 'text-white' : 'text-neutral-900 dark:text-neutral-100'}`}>
+                  {label}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
       </View>
 
       <AddLanguagePairModal

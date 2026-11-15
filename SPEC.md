@@ -210,6 +210,7 @@ interface Settings {
   dailyReviewLimit: number   // default: 20
   lastActivePair: { nativeLang: string; studiedLang: string } | null
   lookupDirection: 'studied-to-native' | 'native-to-studied'  // default: 'studied-to-native'
+  themePreference: 'system' | 'light' | 'dark'  // default: 'system'
 }
 ```
 
@@ -300,6 +301,8 @@ Deleting a pair removes **all** associated dictionary files (both bilingual dire
 The **Add Language Pair** button is shown only when at least one installable pair remains (i.e. not all combinations of the supported languages are already installed). Selecting a language pair to add shows the same [Download Confirmation](#download-confirmation) dialog before downloading.
 
 **Daily review limit** — number of words per review session (default: 20)
+
+**Appearance** — a three-option selector (System default / Light / Dark) where the current choice is highlighted. System default follows the OS appearance live. Light and Dark force the theme across the whole app (status bar, navigation, all screens) regardless of the OS setting. The choice applies immediately, is stored in the `settings` table (`theme_preference` column, added with an ad-hoc `ALTER TABLE settings ADD COLUMN theme_preference TEXT NOT NULL DEFAULT 'system'` migration), and is applied during startup hydration before the first screen renders, so there is no theme flash.
 
 ## Getting Started
 

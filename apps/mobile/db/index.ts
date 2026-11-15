@@ -97,10 +97,22 @@ async function runMigrations(db: SQLite.SQLiteDatabase): Promise<void> {
     // Column already exists — no-op
   }
 
+  // Add theme_preference if upgrading from a schema that predates it
+  try {
+    await db.execAsync(
+      `ALTER TABLE settings ADD COLUMN theme_preference TEXT NOT NULL DEFAULT 'system'`
+    );
+  } catch {
+    // Column already exists — no-op
+  }
+
   // installed_dictionaries gained a `version` column and a (source_lang, target_lang, version)
   // primary key; a PK change needs a full table rebuild, not ALTER TABLE ADD COLUMN.
   await migrateInstalledDictionariesVersionKey(db);
 }
+
+// Export for testing
+export { runMigrations };
 
 export async function getDatabase(): Promise<SQLite.SQLiteDatabase> {
   if (!dbPromise) {

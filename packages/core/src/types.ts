@@ -30,6 +30,8 @@ export interface LanguagePair {
 
 export type LookupDirection = 'native_to_studied' | 'studied_to_native';
 
+export type ThemePreference = 'system' | 'light' | 'dark';
+
 export interface ActivePair {
   nativeLang: string;
   studiedLang: string;
@@ -51,4 +53,6 @@ export interface LookupResult {
 export interface Settings {
   dailyReviewLimit: number;
   lastActivePair: LanguagePair | null;
+  lookupDirection: LookupDirection;
+  themePreference: ThemePreference;
 }

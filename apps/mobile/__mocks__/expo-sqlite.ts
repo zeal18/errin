@@ -2,6 +2,7 @@ import { type SQLiteBindParams as SQLiteBindParamsType } from 'expo-sqlite';
 
 interface MockSQLiteDatabase {
   getAllAsync<T>(sql: string, params?: any[]): Promise<T[]>;
+  getFirstAsync<T>(sql: string, params?: any[]): Promise<T | null>;
   runAsync(sql: string, params?: any[]): Promise<void>;
   execAsync(sql: string): Promise<void>;
   withTransactionAsync(callback: () => Promise<void>): Promise<void>;
@@ -10,12 +11,14 @@ interface MockSQLiteDatabase {
 
 const mockDatabase: MockSQLiteDatabase & {
   getAllAsync: jest.Mock & MockSQLiteDatabase['getAllAsync'];
+  getFirstAsync: jest.Mock & MockSQLiteDatabase['getFirstAsync'];
   runAsync: jest.Mock & MockSQLiteDatabase['runAsync'];
   execAsync: jest.Mock & MockSQLiteDatabase['execAsync'];
   withTransactionAsync: jest.Mock & MockSQLiteDatabase['withTransactionAsync'];
   closeAsync: jest.Mock & MockSQLiteDatabase['closeAsync'];
 } = {
   getAllAsync: jest.fn().mockResolvedValue([]),
+  getFirstAsync: jest.fn().mockResolvedValue(null),
   runAsync: jest.fn().mockResolvedValue(undefined),
   execAsync: jest.fn().mockResolvedValue(undefined),
   withTransactionAsync: jest.fn().mockImplementation(async (callback) => {
@@ -28,6 +31,7 @@ const openDatabaseAsync = jest.fn().mockResolvedValue(mockDatabase);
 
 const resetMockDatabase = (): void => {
   mockDatabase.getAllAsync.mockClear();
+  mockDatabase.getFirstAsync.mockClear();
   mockDatabase.runAsync.mockClear();
   mockDatabase.execAsync.mockClear();
   mockDatabase.withTransactionAsync.mockClear();
@@ -39,6 +43,7 @@ const SQLite = {
   openDatabaseAsync,
   SQLiteBindParams: Array as any,
   getAllAsync: mockDatabase.getAllAsync,
+  getFirstAsync: mockDatabase.getFirstAsync,
   runAsync: mockDatabase.runAsync,
   execAsync: mockDatabase.execAsync,
   withTransactionAsync: mockDatabase.withTransactionAsync,

@@ -27,7 +27,7 @@ module.exports = {
         '^expo-file-system/legacy$': '<rootDir>/__mocks__/expo-file-system.ts'
       },
       transformIgnorePatterns: [
-        'node_modules/(?!(@react-native|react-native|react-native-css-interop|nativewind|@react-navigation/.*|expo-router|@expo/vector-icons)/)'
+        'node_modules/(?!(\\.pnpm/)?(@react-native|react-native|react-native-css-interop|nativewind|@react-navigation/.*|expo-router|@expo/vector-icons|expo|expo-.*)[/@+])'
       ]
     }
   ]
