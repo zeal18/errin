@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
 import {
   CURRENT_DICTIONARY_VERSION,
@@ -17,6 +16,8 @@ import {
 import { useAppStore } from '../store';
 import { formatBytes } from '../lib/formatUtils';
 import { DownloadConfirmationDialog } from '../components/DownloadConfirmationDialog';
+import { useThemeColors } from '../lib/theme';
+import { useColorScheme } from 'nativewind';
 
 type Role = 'native' | 'target';
 type Step = 'select' | 'confirm' | 'download';
@@ -120,6 +121,9 @@ export default function OnboardingScreen() {
     };
   }, [downloadState.kind]);
 
+  const colors = useThemeColors();
+  const { colorScheme } = useColorScheme();
+
   if (step === 'download') {
     return (
       <DownloadStep
@@ -132,10 +136,10 @@ export default function OnboardingScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-white p-6" edges={['top']}>
+    <SafeAreaView className="flex-1 bg-white dark:bg-neutral-950 p-6" edges={['top']}>
       <View className="mt-12 mb-8">
-        <Text className="text-2xl font-bold mb-2">Welcome to Errin</Text>
-        <Text className="text-sm text-neutral-500">
+        <Text className="text-2xl font-bold mb-2 text-neutral-900 dark:text-neutral-100">Welcome to Errin</Text>
+        <Text className="text-sm text-neutral-500 dark:text-neutral-400">
           Choose your native language and the language you want to learn.
         </Text>
       </View>
@@ -166,11 +170,11 @@ export default function OnboardingScreen() {
         accessibilityState={{ disabled: !canContinue }}
         disabled={!canContinue}
         className={`rounded-lg py-4 items-center ${
-          canContinue ? 'bg-blue-600' : 'bg-neutral-300'
+          canContinue ? 'bg-blue-600' : 'bg-neutral-300 dark:bg-neutral-700'
         }`}
         onPress={onContinue}
       >
-        <Text className="text-white font-semibold text-base">Continue</Text>
+        <Text className="text-white dark:text-neutral-100 font-semibold text-base">Continue</Text>
       </Pressable>
 
       <DownloadConfirmationDialog
@@ -179,8 +183,6 @@ export default function OnboardingScreen() {
         onAccept={onConfirmAccept}
         onCancel={onConfirmCancel}
       />
-
-      <StatusBar style="auto" />
     </SafeAreaView>
   );
 }
@@ -196,7 +198,7 @@ interface LanguageGroupProps {
 function LanguageGroup({ title, role, selected, disabledCode, onSelect }: LanguageGroupProps) {
   return (
     <View>
-      <Text className="text-xs uppercase tracking-wide text-neutral-500 mb-2">{title}</Text>
+      <Text className="text-xs uppercase tracking-wide text-neutral-500 dark:text-neutral-400 mb-2">{title}</Text>
       <View className="flex-row flex-wrap -m-1">
         {SUPPORTED_LANGUAGES.map((lang) => {
           const isSelected = selected === lang.code;
@@ -213,8 +215,8 @@ function LanguageGroup({ title, role, selected, disabledCode, onSelect }: Langua
                 isSelected
                   ? 'bg-blue-600 border-blue-600'
                   : isDisabled
-                    ? 'bg-neutral-100 border-neutral-200'
-                    : 'bg-white border-neutral-300'
+                    ? 'bg-neutral-100 dark:bg-neutral-800 border-neutral-200 dark:border-neutral-700'
+                    : 'bg-white dark:bg-neutral-800 border-neutral-300 dark:border-neutral-700'
               }`}
             >
               <Text
@@ -222,8 +224,8 @@ function LanguageGroup({ title, role, selected, disabledCode, onSelect }: Langua
                   isSelected
                     ? 'text-white font-semibold'
                     : isDisabled
-                      ? 'text-neutral-400'
-                      : 'text-neutral-900'
+                      ? 'text-neutral-400 dark:text-neutral-500'
+                      : 'text-neutral-900 dark:text-neutral-100'
                 }`}
               >
                 {lang.name}
@@ -248,22 +250,23 @@ function DownloadStep({ nativeLang, studiedLang, state, onRetry }: DownloadStepP
     nativeLang && studiedLang
       ? `${getLanguageName(nativeLang) ?? nativeLang} <-> ${getLanguageName(studiedLang) ?? studiedLang}`
       : '';
+  const colors = useThemeColors();
 
   return (
-    <SafeAreaView className="flex-1 bg-white p-6" edges={['top']}>
+    <SafeAreaView className="flex-1 bg-white dark:bg-neutral-950 p-6" edges={['top']}>
       <View className="mt-12 mb-8">
-        <Text className="text-2xl font-bold mb-2">Downloading dictionaries</Text>
-        <Text className="text-sm text-neutral-500">{pairLabel}</Text>
+        <Text className="text-2xl font-bold mb-2 text-neutral-900 dark:text-neutral-100">Downloading dictionaries</Text>
+        <Text className="text-sm text-neutral-500 dark:text-neutral-400">{pairLabel}</Text>
       </View>
 
       <View className="flex-1 items-center justify-center">
         {state.kind === 'downloading' ? (
           <DownloadProgressView progress={state.progress} />
         ) : null}
-        {state.kind === 'success' ? <ActivityIndicator accessibilityLabel="Loading" /> : null}
+        {state.kind === 'success' ? <ActivityIndicator accessibilityLabel="Loading" color={colors.accent} /> : null}
         {state.kind === 'error' ? (
           <View className="items-center">
-            <Text className="text-base text-red-600 mb-4 text-center">{state.message}</Text>
+            <Text className="text-base text-red-600 dark:text-red-500 mb-4 text-center">{state.message}</Text>
           </View>
         ) : null}
       </View>
@@ -280,15 +283,13 @@ function DownloadStep({ nativeLang, studiedLang, state, onRetry }: DownloadStepP
       ) : (
         <View
           accessibilityRole="text"
-          className="rounded-lg py-4 items-center bg-neutral-200"
+          className="rounded-lg py-4 items-center bg-neutral-200 dark:bg-neutral-800"
         >
-          <Text className="text-neutral-500 font-semibold text-base">
+          <Text className="text-neutral-500 dark:text-neutral-400 font-semibold text-base">
             Please wait...
           </Text>
         </View>
       )}
-
-      <StatusBar style="auto" />
     </SafeAreaView>
   );
 }
@@ -297,10 +298,11 @@ function DownloadProgressView({ progress }: { progress: PairDownloadProgress }) 
   const { totalBytesWritten, totalBytesExpectedToWrite, fraction } = progress;
   const knownTotal = totalBytesExpectedToWrite > 0;
   const percent = Math.round(fraction * 100);
+  const colors = useThemeColors();
 
   return (
     <View className="w-full">
-      <View className="h-2 rounded-full bg-neutral-200 overflow-hidden">
+      <View className="h-2 rounded-full bg-neutral-200 dark:bg-neutral-800 overflow-hidden">
         {knownTotal ? (
           <View
             className="h-full bg-blue-600"
@@ -311,10 +313,10 @@ function DownloadProgressView({ progress }: { progress: PairDownloadProgress }) 
         )}
       </View>
       <View className="mt-3 flex-row justify-between">
-        <Text className="text-sm text-neutral-600">
+        <Text className="text-sm text-neutral-600 dark:text-neutral-400">
           {knownTotal ? `${percent}%` : 'Starting...'}
         </Text>
-        <Text className="text-sm text-neutral-600">
+        <Text className="text-sm text-neutral-600 dark:text-neutral-400">
           {knownTotal
             ? `${formatBytes(totalBytesWritten)} / ${formatBytes(totalBytesExpectedToWrite)}`
             : formatBytes(totalBytesWritten)}
@@ -322,7 +324,7 @@ function DownloadProgressView({ progress }: { progress: PairDownloadProgress }) 
       </View>
       {!knownTotal ? (
         <View className="mt-4 items-center">
-          <ActivityIndicator accessibilityLabel="Loading" />
+          <ActivityIndicator accessibilityLabel="Loading" color={colors.accent} />
         </View>
       ) : null}
     </View>

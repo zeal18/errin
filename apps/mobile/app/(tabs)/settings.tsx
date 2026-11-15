@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Alert, FlatList, Pressable, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { StatusBar } from 'expo-status-bar';
 import { useLocalSearchParams } from 'expo-router';
 import { getLanguageName, SUPPORTED_LANGUAGES, getPairDownloadSize } from '@errin/core';
 import { useAppStore } from '../../store';
 import { AddLanguagePairModal } from '../../components/AddLanguagePairModal';
 import { DownloadConfirmationDialog } from '../../components/DownloadConfirmationDialog';
+import { useThemeColors } from '../../lib/theme';
 
 function formatDate(timestamp: number): string {
   const date = new Date(timestamp);
@@ -153,10 +153,12 @@ export default function SettingsScreen() {
     setUpdateTarget(null);
   };
 
+  const colors = useThemeColors();
+
   return (
-    <SafeAreaView className="flex-1 bg-white" edges={['top']}>
-      <View className="px-4 py-3 border-b border-neutral-200">
-        <Text className="text-lg font-semibold text-neutral-900">Languages</Text>
+    <SafeAreaView className="flex-1 bg-white dark:bg-neutral-950" edges={['top']}>
+      <View className="px-4 py-3 border-b border-neutral-200 dark:border-neutral-800">
+        <Text className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">Languages</Text>
       </View>
 
       {canAddPair && (
@@ -177,24 +179,24 @@ export default function SettingsScreen() {
         keyExtractor={(pair) => `${pair.nativeLang}-${pair.studiedLang}`}
         ListEmptyComponent={
           <View className="flex-1 items-center justify-center py-20">
-            <Text className="text-lg text-neutral-600">No language pairs installed</Text>
+            <Text className="text-lg text-neutral-600 dark:text-neutral-400">No language pairs installed</Text>
           </View>
         }
         renderItem={({ item: pair }) => {
           const nativeName = getLanguageName(pair.nativeLang) ?? pair.nativeLang;
           const studiedName = getLanguageName(pair.studiedLang) ?? pair.studiedLang;
           return (
-            <View className="px-4 py-3 border-b border-neutral-200 flex-row items-center">
+            <View className="px-4 py-3 border-b border-neutral-200 dark:border-neutral-800 flex-row items-center">
               <View
                 className="flex-1"
                 accessible={true}
                 accessibilityRole="text"
                 accessibilityLabel={`${nativeName} and ${studiedName}, downloaded ${formatDate(pair.downloadedAt)}`}
               >
-                <Text className="text-lg font-medium">
+                <Text className="text-lg font-medium text-neutral-900 dark:text-neutral-100">
                   {nativeName}{' ↔ '}{studiedName}
                 </Text>
-                <Text className="text-sm text-neutral-500">
+                <Text className="text-sm text-neutral-500 dark:text-neutral-400">
                   Downloaded: {formatDate(pair.downloadedAt)}
                 </Text>
               </View>
@@ -204,11 +206,11 @@ export default function SettingsScreen() {
                 accessibilityLabel={`Delete ${nativeName} and ${studiedName} language pair`}
                 onPress={() => handleDeletePair(pair)}
               >
-                <Text className="text-red-600 font-semibold text-base">Delete</Text>
+                <Text className="text-red-600 dark:text-red-500 font-semibold text-base">Delete</Text>
               </Pressable>
               {updatingPairs.has(`${pair.nativeLang}-${pair.studiedLang}`) ? (
                 <View className="ml-4 px-3 py-1" accessibilityLabel={`Updating ${nativeName} and ${studiedName} dictionaries`}>
-                  <ActivityIndicator accessibilityLabel="Updating" />
+                  <ActivityIndicator accessibilityLabel="Updating" color={colors.accent} />
                 </View>
               ) : (
                 isPairBehindCurrentVersion(pair.nativeLang, pair.studiedLang) && (
@@ -227,14 +229,14 @@ export default function SettingsScreen() {
         }}
       />
 
-      <View className="px-4 py-3 border-b border-neutral-200">
-        <Text className="text-lg font-semibold text-neutral-900">Daily Review Limit</Text>
+      <View className="px-4 py-3 border-b border-neutral-200 dark:border-neutral-800">
+        <Text className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">Daily Review Limit</Text>
       </View>
-      <View className="px-4 py-3 border-b border-neutral-200">
+      <View className="px-4 py-3 border-b border-neutral-200 dark:border-neutral-800">
         <View className="flex-row items-center gap-4">
-          <Text className="text-base text-neutral-700 flex-1">Words per session</Text>
+          <Text className="text-base text-neutral-700 dark:text-neutral-300 flex-1">Words per session</Text>
           <TextInput
-            className="w-20 h-10 text-center border border-neutral-300 rounded-lg px-2"
+            className="w-20 h-10 text-center border border-neutral-300 dark:border-neutral-700 rounded-lg px-2 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100"
             keyboardType="numeric"
             value={limitInput}
             onChangeText={handleLimitChange}
@@ -242,9 +244,10 @@ export default function SettingsScreen() {
             onSubmitEditing={handleLimitBlur}
             maxLength={3}
             accessibilityLabel="Words per session, daily review limit"
+            placeholderTextColor={colors.placeholder}
           />
         </View>
-        {limitError ? <Text className="text-sm text-red-600 mt-1">{limitError}</Text> : null}
+        {limitError ? <Text className="text-sm text-red-600 dark:text-red-500 mt-1">{limitError}</Text> : null}
       </View>
 
       <AddLanguagePairModal
@@ -258,8 +261,6 @@ export default function SettingsScreen() {
         onAccept={handleUpdateAccept}
         onCancel={handleUpdateCancel}
       />
-
-      <StatusBar style="auto" />
     </SafeAreaView>
   );
 }

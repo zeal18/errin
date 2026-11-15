@@ -2,7 +2,6 @@ import { useCallback, useState } from 'react';
 import { FlatList, Pressable, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
 import { WordListItem } from '../../components/WordListItem';
 import { deleteWord, getAllWords } from '../../db/words';
 import type { Word } from '@errin/core';
@@ -28,7 +27,7 @@ export default function WordsScreen() {
   );
 
   return (
-    <SafeAreaView className="flex-1 bg-white" edges={['top']}>
+    <SafeAreaView className="flex-1 bg-white dark:bg-neutral-950" edges={['top']}>
       <View className="px-4 pt-4 pb-2">
         <Pressable
           className="bg-blue-600 rounded-xl py-3 items-center active:opacity-75"
@@ -41,7 +40,7 @@ export default function WordsScreen() {
       </View>
       {words.length === 0 ? (
         <View className="flex-1 items-center justify-center">
-          <Text className="text-neutral-400 text-base">No saved words yet</Text>
+          <Text className="text-neutral-400 dark:text-neutral-500 text-base">No saved words yet</Text>
         </View>
       ) : (
         <FlatList
@@ -52,7 +51,6 @@ export default function WordsScreen() {
           )}
         />
       )}
-      <StatusBar style="auto" />
     </SafeAreaView>
   );
 }

@@ -10,6 +10,7 @@ import {
 import type { Word, LearningStatus } from '@errin/core';
 import { computeStatus } from '@errin/core';
 import { GenderBadge } from './GenderBadge';
+import { useThemeColors } from '../lib/theme';
 
 const STATUS_LABEL: Record<LearningStatus, string> = {
   not_started: 'Not started',
@@ -18,15 +19,15 @@ const STATUS_LABEL: Record<LearningStatus, string> = {
 };
 
 const STATUS_STYLE: Record<LearningStatus, string> = {
-  not_started: 'bg-neutral-100',
-  in_progress: 'bg-yellow-100',
-  learned: 'bg-green-100',
+  not_started: 'bg-neutral-100 dark:bg-neutral-800',
+  in_progress: 'bg-yellow-100 dark:bg-yellow-950',
+  learned: 'bg-green-100 dark:bg-green-950',
 };
 
 const STATUS_TEXT_STYLE: Record<LearningStatus, string> = {
-  not_started: 'text-neutral-500',
-  in_progress: 'text-yellow-700',
-  learned: 'text-green-700',
+  not_started: 'text-neutral-500 dark:text-neutral-400',
+  in_progress: 'text-yellow-700 dark:text-yellow-300',
+  learned: 'text-green-700 dark:text-green-300',
 };
 
 const SWIPE_THRESHOLD = -50;
@@ -43,6 +44,7 @@ export function WordListItem({ word, onDelete }: WordListItemProps) {
   const pan = useRef(new Animated.Value(0)).current;
   const onDeleteRef = useRef(onDelete);
   onDeleteRef.current = onDelete;
+  const colors = useThemeColors();
 
   const resetPosition = () => {
     Animated.spring(pan, {
@@ -103,6 +105,8 @@ export function WordListItem({ word, onDelete }: WordListItemProps) {
           styles.row,
           {
             transform: [{ translateX: pan }],
+            backgroundColor: colors.background,
+            borderBottomColor: colors.border,
           },
         ]}
         {...panResponder.panHandlers}
@@ -113,12 +117,12 @@ export function WordListItem({ word, onDelete }: WordListItemProps) {
       >
         <View className="flex-1 mr-3">
           <View className="flex-row items-center gap-1.5">
-            <Text className="text-base font-bold text-neutral-900">
+            <Text className="text-base font-bold text-neutral-900 dark:text-neutral-100">
               {word.source}
             </Text>
             <GenderBadge lang={word.sourceLang} word={word.source} />
           </View>
-          <Text className="text-sm text-blue-600 mt-0.5">{word.target}</Text>
+          <Text className="text-sm text-blue-600 dark:text-blue-400 mt-0.5">{word.target}</Text>
         </View>
         <View className={`px-2 py-0.5 rounded-full ${STATUS_STYLE[status]}`} accessible={true} accessibilityRole="text" accessibilityLabel={STATUS_LABEL[status]}>
           <Text
@@ -133,6 +137,7 @@ export function WordListItem({ word, onDelete }: WordListItemProps) {
           styles.deleteButton,
           {
             transform: [{ translateX: deleteButtonTranslate }],
+            backgroundColor: colors.danger,
           },
         ]}
       >
@@ -156,8 +161,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
-    backgroundColor: 'white',
   },
   deleteButton: {
     position: 'absolute',
@@ -165,7 +168,6 @@ const styles = StyleSheet.create({
     top: 0,
     bottom: 0,
     width: DELETE_BUTTON_WIDTH,
-    backgroundColor: '#ef4444',
     justifyContent: 'center',
   },
 });

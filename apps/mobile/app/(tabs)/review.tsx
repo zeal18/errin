@@ -1,13 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { StatusBar } from 'expo-status-bar';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { getDueWords, updateWord } from '../../db/words';
 import { useAppStore } from '../../store';
 import { applyReview } from '@errin/core';
 import type { Word, ReviewRating } from '@errin/core';
 import { GenderBadge } from '../../components/GenderBadge';
+import { useThemeColors } from '../../lib/theme';
 
 type CardSide = 'front' | 'back';
 type Rating = ReviewRating;
@@ -107,21 +107,23 @@ export default function ReviewScreen() {
     setShowRating(false);
   }, []);
 
+  const colors = useThemeColors();
+
   return (
-    <SafeAreaView className="flex-1 items-center justify-center bg-white" edges={['top']}>
+    <SafeAreaView className="flex-1 items-center justify-center bg-white dark:bg-neutral-950" edges={['top']}>
       {loading ? (
-        <Text className="text-xl text-neutral-500">Loading...</Text>
+        <Text className="text-xl text-neutral-500 dark:text-neutral-400">Loading...</Text>
       ) : dueWords.length === 0 ? (
-        <Text className="text-xl text-neutral-500">No words due for review</Text>
+        <Text className="text-xl text-neutral-500 dark:text-neutral-400">No words due for review</Text>
       ) : sessionComplete ? (
-        <View className="flex-1 items-center justify-center bg-white p-4" accessible={true} accessibilityRole="text" accessibilityLabel={`Session complete. You reviewed ${dueWords.length} words`}>
-          <Text className="text-2xl font-bold text-neutral-900 mb-4">Session Complete</Text>
-          <Text className="text-xl text-neutral-600 mb-6">You reviewed {dueWords.length} words</Text>
+        <View className="flex-1 items-center justify-center bg-white dark:bg-neutral-950 p-4" accessible={true} accessibilityRole="text" accessibilityLabel={`Session complete. You reviewed ${dueWords.length} words`}>
+          <Text className="text-2xl font-bold text-neutral-900 dark:text-neutral-100 mb-4">Session Complete</Text>
+          <Text className="text-xl text-neutral-600 dark:text-neutral-300 mb-6">You reviewed {dueWords.length} words</Text>
           <View className="w-full max-w-md mb-8" accessible={true} accessibilityRole="text">
             {RATING_BUTTONS.map(({ label, rating }) => (
-              <View key={rating} className="flex-row justify-between py-2 border-b border-neutral-200" accessible={true} accessibilityRole="text" accessibilityLabel={`${label}: ${ratings[rating]}`}>
-                <Text className="text-neutral-700">{label}</Text>
-                <Text className="text-neutral-900 font-medium">{ratings[rating]}</Text>
+              <View key={rating} className="flex-row justify-between py-2 border-b border-neutral-200 dark:border-neutral-800" accessible={true} accessibilityRole="text" accessibilityLabel={`${label}: ${ratings[rating]}`}>
+                <Text className="text-neutral-700 dark:text-neutral-300">{label}</Text>
+                <Text className="text-neutral-900 dark:text-neutral-100 font-medium">{ratings[rating]}</Text>
               </View>
             ))}
           </View>
@@ -134,28 +136,28 @@ export default function ReviewScreen() {
           <View className="flex-1 w-full p-4">
             {side === 'front' ? (
               <Pressable
-                className="flex-1 w-full bg-white rounded-2xl shadow-lg p-8 justify-center items-center"
+                className="flex-1 w-full bg-white dark:bg-neutral-900 rounded-2xl shadow-lg p-8 justify-center items-center"
                 onPress={handleReveal}
                 accessibilityRole="button"
                 accessibilityLabel="Tap to reveal answer"
                 accessibilityHint="Double tap to show the translation and sense"
               >
-                <Text className="text-3xl font-bold text-neutral-900">{currentWord.source}</Text>
-                <Text className="text-neutral-500 mt-2">Tap to reveal</Text>
+                <Text className="text-3xl font-bold text-neutral-900 dark:text-neutral-100">{currentWord.source}</Text>
+                <Text className="text-neutral-500 dark:text-neutral-400 mt-2">Tap to reveal</Text>
               </Pressable>
             ) : (
               <View
-                className="flex-1 w-full bg-white rounded-2xl shadow-lg p-8 justify-center items-center"
+                className="flex-1 w-full bg-white dark:bg-neutral-900 rounded-2xl shadow-lg p-8 justify-center items-center"
                 accessible={true}
                 accessibilityRole="text"
                 accessibilityLabel={`Translation: ${currentWord.target}. Sense: ${currentWord.sense}`}
               >
                 <View className="flex-row items-center gap-1.5">
-                  <Text className="text-xl font-semibold text-neutral-900">{currentWord.source}</Text>
+                  <Text className="text-xl font-semibold text-neutral-900 dark:text-neutral-100">{currentWord.source}</Text>
                   <GenderBadge lang={currentWord.sourceLang} word={currentWord.source} />
                 </View>
-                <Text className="text-blue-600 text-lg mt-2">{currentWord.target}</Text>
-                <Text className="text-neutral-600 text-base mt-4">{currentWord.sense}</Text>
+                <Text className="text-blue-600 dark:text-blue-400 text-lg mt-2">{currentWord.target}</Text>
+                <Text className="text-neutral-600 dark:text-neutral-400 text-base mt-4">{currentWord.sense}</Text>
                 {showRating && (
                   <View className="flex-row justify-between w-full mt-6">
                     {RATING_BUTTONS.map(({ label, rating }) => (
@@ -177,29 +179,28 @@ export default function ReviewScreen() {
           </View>
           <View className="flex-row justify-between w-full px-8 py-4">
             <Pressable
-              className="px-6 py-2 bg-neutral-100 rounded-xl"
+              className="px-6 py-2 bg-neutral-100 dark:bg-neutral-800 rounded-xl"
               onPress={handlePrev}
               disabled={currentIndex === 0}
               accessibilityRole="button"
               accessibilityLabel="Previous"
               accessibilityState={{ disabled: currentIndex === 0 }}
             >
-              <Text className={currentIndex === 0 ? 'opacity-50' : ''}>Prev</Text>
+              <Text className={currentIndex === 0 ? 'opacity-50' : 'text-neutral-900 dark:text-neutral-100'}>Prev</Text>
             </Pressable>
             <Pressable
-              className="px-6 py-2 bg-neutral-100 rounded-xl"
+              className="px-6 py-2 bg-neutral-100 dark:bg-neutral-800 rounded-xl"
               onPress={handleNext}
               disabled={currentIndex === dueWords.length - 1}
               accessibilityRole="button"
               accessibilityLabel="Next"
               accessibilityState={{ disabled: currentIndex === dueWords.length - 1 }}
             >
-              <Text className={currentIndex === dueWords.length - 1 ? 'opacity-50' : ''}>Next</Text>
+              <Text className={currentIndex === dueWords.length - 1 ? 'opacity-50' : 'text-neutral-900 dark:text-neutral-100'}>Next</Text>
             </Pressable>
           </View>
         </View>
       )}
-      <StatusBar style="auto" />
     </SafeAreaView>
   );
 }

@@ -1,18 +1,26 @@
 import '../global.css';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, AppState, View } from 'react-native';
+import { ActivityIndicator, AppState, StatusBar, View } from 'react-native';
 import { Stack } from 'expo-router';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { ThemeProvider } from '@react-navigation/native';
+import { colorScheme, useColorScheme } from 'nativewind';
 import { hydrateAppStore } from '../store';
 import { closeAllDictionaryDatabases } from '../lib/dictionaryDb';
 import { runDictionaryMaintenance } from '../lib/dictionaryMaintenance';
+import { navigationTheme, useThemeColors } from '../lib/theme';
 import * as SplashScreen from 'expo-splash-screen';
 
 // Prevent the splash screen from auto-hiding
 SplashScreen.preventAutoHideAsync();
 
+// Set color scheme to follow system appearance
+colorScheme.set('system');
+
 export default function RootLayout() {
   const [hydrated, setHydrated] = useState(false);
+  const { colorScheme: currentScheme = 'light' } = useColorScheme();
+  const colors = useThemeColors();
 
   useEffect(() => {
     let cancelled = false;
@@ -55,8 +63,9 @@ export default function RootLayout() {
   if (!hydrated) {
     return (
       <SafeAreaProvider>
-        <View className="flex-1 items-center justify-center bg-white" accessible={true} accessibilityRole="text" accessibilityLabel="Loading app, please wait">
-          <ActivityIndicator accessibilityLabel="Loading" />
+        <StatusBar barStyle={currentScheme === 'dark' ? 'light-content' : 'dark-content'} />
+        <View className="flex-1 items-center justify-center bg-white dark:bg-neutral-950" accessible={true} accessibilityRole="text" accessibilityLabel="Loading app, please wait">
+          <ActivityIndicator accessibilityLabel="Loading" color={colors.accent} />
         </View>
       </SafeAreaProvider>
     );
@@ -64,7 +73,10 @@ export default function RootLayout() {
 
   return (
     <SafeAreaProvider>
-      <Stack screenOptions={{ headerShown: false }} />
+      <StatusBar barStyle={currentScheme === 'dark' ? 'light-content' : 'dark-content'} />
+      <ThemeProvider value={navigationTheme(currentScheme)}>
+        <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.background } }} />
+      </ThemeProvider>
     </SafeAreaProvider>
   );
 }

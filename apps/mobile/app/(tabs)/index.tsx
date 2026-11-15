@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { AccessibilityInfo, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { StatusBar } from 'expo-status-bar';
 import { DirectionSelector } from '../../components/DirectionSelector';
 import { LookupInput } from '../../components/LookupInput';
 import { ResultsList } from '../../components/ResultsList';
@@ -73,11 +72,11 @@ export default function LookupScreen() {
   }, [showSavedToast]);
 
   return (
-    <SafeAreaView className="flex-1 bg-white" edges={['top']}>
+    <SafeAreaView className="flex-1 bg-white dark:bg-neutral-950" edges={['top']}>
       <DirectionSelector onDirectionChange={() => setQuery('')} />
       {activePair && isPairBehindCurrentVersion(activePair.nativeLang, activePair.studiedLang) && (
         <View className="items-center pb-1">
-          <Text className="text-xs text-blue-600">Update available</Text>
+          <Text className="text-xs text-blue-600 dark:text-blue-400">Update available</Text>
         </View>
       )}
       <LookupInput value={query} onChangeText={setQuery} isLoading={isLoading} onSubmit={submit} />
@@ -89,12 +88,11 @@ export default function LookupScreen() {
       />
       {showSaved && (
         <View className="absolute bottom-6 left-0 right-0 items-center pointer-events-none">
-          <View className="bg-neutral-800 px-4 py-2 rounded-full">
-            <Text className="text-white text-sm font-medium">Saved</Text>
+          <View className="bg-neutral-800 dark:bg-neutral-700 px-4 py-2 rounded-full">
+            <Text className="text-white dark:text-neutral-100 text-sm font-medium">Saved</Text>
           </View>
         </View>
       )}
-      <StatusBar style="auto" />
     </SafeAreaView>
   );
 }

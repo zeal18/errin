@@ -93,10 +93,10 @@ function ResultCard({
   }[buttonKind];
 
   return (
-    <View className="px-4 py-3 border-b border-neutral-100">
+    <View className="px-4 py-3 border-b border-neutral-100 dark:border-neutral-800 bg-white dark:bg-neutral-900">
       <View className="flex-row items-center justify-between mb-2">
         <View className="flex-row items-center gap-1.5">
-          <Text className="text-base font-bold text-neutral-900">{result.writtenRep}</Text>
+          <Text className="text-base font-bold text-neutral-900 dark:text-neutral-100">{result.writtenRep}</Text>
           {lookupDirection === 'studied_to_native' && (
             <GenderBadge lang={studiedLang} word={result.writtenRep} />
           )}
@@ -121,7 +121,7 @@ function ResultCard({
             accessibilityRole="button"
             accessibilityState={{ selected: isVariantSelected }}
             accessibilityLabel={`${variant.transList.join(', ')}${variant.sense ? ': ' + variant.sense : ''}${isVariantSelected ? ', selected' : ''}`}
-            className={`mt-1 px-3 py-2 rounded-lg border ${isVariantSelected ? 'border-blue-400 bg-blue-50' : 'border-neutral-200 bg-white'}`}
+            className={`mt-1 px-3 py-2 rounded-lg border ${isVariantSelected ? 'border-blue-400 bg-blue-50 dark:bg-blue-950' : 'border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900'}`}
             onPress={() => onVariantSelect(result.writtenRep, vIndex)}
           >
             {/* Synonym chips — only shown for the selected variant */}
@@ -135,11 +135,11 @@ function ResultCard({
                       accessibilityRole="button"
                       accessibilityState={{ selected: isSynonymSelected }}
                       accessibilityLabel={`${synonym}${isSynonymSelected ? ', selected' : ''}`}
-                      className={`px-2 py-0.5 rounded-full border ${isSynonymSelected ? 'border-blue-500 bg-blue-100' : 'border-neutral-300 bg-white'}`}
+                      className={`px-2 py-0.5 rounded-full border ${isSynonymSelected ? 'border-blue-500 bg-blue-100 dark:bg-blue-900' : 'border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-800'}`}
                       onPress={() => onSynonymSelect(result.writtenRep, sIndex)}
                     >
                       <View className="flex-row items-center gap-1">
-                        <Text className={`text-sm ${isSynonymSelected ? 'font-semibold text-blue-700' : 'text-neutral-700'}`}>
+                        <Text className={`text-sm ${isSynonymSelected ? 'font-semibold text-blue-700 dark:text-blue-300' : 'text-neutral-700 dark:text-neutral-300'}`}>
                           {synonym}
                         </Text>
                         {lookupDirection === 'native_to_studied' && (
@@ -151,12 +151,12 @@ function ResultCard({
                 })}
               </View>
             ) : (
-              <Text className="text-sm font-medium text-neutral-500">
+              <Text className="text-sm font-medium text-neutral-500 dark:text-neutral-400">
                 {variant.transList.join(', ')}
               </Text>
             )}
             {variant.sense ? (
-              <Text className="text-xs text-neutral-500 mt-0.5">{variant.sense}</Text>
+              <Text className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">{variant.sense}</Text>
             ) : null}
           </Pressable>
         );
@@ -255,7 +255,7 @@ export function ResultsList({ results, onPress, onReplace, onReset }: ResultsLis
   if (results.length === 0) {
     return (
       <View className="flex-1 items-center justify-center">
-        <Text className="text-neutral-400 text-base">No results</Text>
+        <Text className="text-neutral-400 dark:text-neutral-500 text-base">No results</Text>
       </View>
     );
   }

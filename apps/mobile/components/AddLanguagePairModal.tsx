@@ -13,6 +13,7 @@ import {
 } from '../lib/dictionaryDownload';
 import { useAppStore } from '../store';
 import { DownloadConfirmationDialog } from './DownloadConfirmationDialog';
+import { useThemeColors } from '../lib/theme';
 
 type Step = 'select' | 'confirm' | 'download';
 
@@ -33,6 +34,7 @@ export function AddLanguagePairModal({
 }) {
   const dictionaries = useAppStore((s) => s.dictionaries);
   const addDictionary = useAppStore((s) => s.addDictionary);
+  const colors = useThemeColors();
 
   const [step, setStep] = useState<Step>('select');
   const [nativeLang, setNativeLang] = useState<string | null>(null);
@@ -255,29 +257,29 @@ export function AddLanguagePairModal({
         accessible={true}
       >
         <Pressable
-          className="flex-1 bg-black/40 justify-center items-center"
+          className="flex-1 bg-black/40 dark:bg-black/60 justify-center items-center"
           onPress={closeAndReset}
           accessibilityRole="button"
           accessibilityLabel="Close add language pair modal"
         >
           <Pressable
-            className="bg-white rounded-xl w-80 overflow-hidden"
+            className="bg-white dark:bg-neutral-900 rounded-xl w-80 overflow-hidden"
             onPress={(e) => e.stopPropagation()}
             accessibilityRole="button"
             accessibilityLabel="Add language pair modal content"
             accessibilityViewIsModal={true}
           >
-            <View className="px-4 py-3 border-b border-neutral-200">
-              <Text className="text-sm font-semibold text-neutral-500 uppercase tracking-wide">
+            <View className="px-4 py-3 border-b border-neutral-200 dark:border-neutral-800">
+              <Text className="text-sm font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide">
                 Add Language Pair
               </Text>
             </View>
             <View className="p-4">
-              <Text className="text-sm text-neutral-600 mb-4">
+              <Text className="text-sm text-neutral-600 dark:text-neutral-400 mb-4">
                 Pick native and studied languages to download both dictionary directions.
               </Text>
               <View className="mb-4">
-                <Text className="text-sm font-medium text-neutral-900 mb-2">
+                <Text className="text-sm font-medium text-neutral-900 dark:text-neutral-100 mb-2">
                   Native Language
                 </Text>
                 <View className="flex-row flex-wrap -m-1">
@@ -293,14 +295,14 @@ export function AddLanguagePairModal({
                         className={`m-1 px-4 py-3 rounded-lg border ${
                           isSelected
                             ? 'bg-blue-600 border-blue-600'
-                            : 'bg-white border-neutral-300'
+                            : 'bg-white dark:bg-neutral-800 border-neutral-300 dark:border-neutral-700'
                         }`}
                       >
                         <Text
                           className={`text-base ${
                             isSelected
                               ? 'text-white font-semibold'
-                              : 'text-neutral-900'
+                              : 'text-neutral-900 dark:text-neutral-100'
                           }`}
                         >
                           {lang.name}
@@ -311,7 +313,7 @@ export function AddLanguagePairModal({
                 </View>
               </View>
               <View className="mb-6">
-                <Text className="text-sm font-medium text-neutral-900 mb-2">
+                <Text className="text-sm font-medium text-neutral-900 dark:text-neutral-100 mb-2">
                   Studied Language
                 </Text>
                 <View className="flex-row flex-wrap -m-1">
@@ -331,8 +333,8 @@ export function AddLanguagePairModal({
                           isSelected
                             ? 'bg-blue-600 border-blue-600'
                             : isDisabled
-                              ? 'bg-neutral-100 border-neutral-300'
-                              : 'bg-white border-neutral-300'
+                              ? 'bg-neutral-100 dark:bg-neutral-800 border-neutral-300 dark:border-neutral-700'
+                              : 'bg-white dark:bg-neutral-800 border-neutral-300 dark:border-neutral-700'
                         }`}
                       >
                         <Text
@@ -340,8 +342,8 @@ export function AddLanguagePairModal({
                             isSelected
                               ? 'text-white font-semibold'
                               : isDisabled
-                                ? 'text-neutral-400'
-                                : 'text-neutral-900'
+                                ? 'text-neutral-400 dark:text-neutral-500'
+                                : 'text-neutral-900 dark:text-neutral-100'
                           }`}
                         >
                           {lang.name}
@@ -355,10 +357,10 @@ export function AddLanguagePairModal({
                 <Pressable
                   accessibilityRole="button"
                   accessibilityLabel="Cancel"
-                  className="rounded-lg py-3 px-6 items-center bg-neutral-200"
+                  className="rounded-lg py-3 px-6 items-center bg-neutral-200 dark:bg-neutral-800"
                   onPress={closeAndReset}
                 >
-                  <Text className="text-neutral-700 font-semibold text-base">Cancel</Text>
+                  <Text className="text-neutral-700 dark:text-neutral-300 font-semibold text-base">Cancel</Text>
                 </Pressable>
                 <Pressable
                   accessibilityRole="button"
@@ -366,11 +368,11 @@ export function AddLanguagePairModal({
                   disabled={!canAdd}
                   accessibilityState={{ disabled: !canAdd }}
                   className={`rounded-lg py-3 px-6 items-center ${
-                    canAdd ? 'bg-blue-600' : 'bg-neutral-300'
+                    canAdd ? 'bg-blue-600' : 'bg-neutral-300 dark:bg-neutral-700'
                   }`}
                   onPress={onAdd}
                 >
-                  <Text className="text-white font-semibold text-base">Add</Text>
+                  <Text className="text-white dark:text-neutral-100 font-semibold text-base">Add</Text>
                 </Pressable>
               </View>
             </View>
@@ -378,6 +380,7 @@ export function AddLanguagePairModal({
         </Pressable>
       </Modal>
       )}
+      
       {step === 'download' && (
         <Modal
           visible={visible}
@@ -387,26 +390,26 @@ export function AddLanguagePairModal({
           accessible={true}
         >
           <Pressable
-            className="flex-1 bg-black/40 justify-center items-center"
+            className="flex-1 bg-black/40 dark:bg-black/60 justify-center items-center"
             onPress={allDownloadsComplete ? closeAndReset : undefined}
             accessibilityRole="button"
             accessibilityLabel="Close add language pair modal"
             accessibilityState={{ disabled: !allDownloadsComplete }}
           >
             <Pressable
-              className="bg-white rounded-xl w-80 overflow-hidden"
+              className="bg-white dark:bg-neutral-900 rounded-xl w-80 overflow-hidden"
               onPress={(e) => e.stopPropagation()}
               accessibilityRole="button"
               accessibilityLabel="Add language pair modal content"
               accessibilityViewIsModal={true}
             >
-              <View className="px-4 py-3 border-b border-neutral-200">
-                <Text className="text-sm font-semibold text-neutral-500 uppercase tracking-wide">
+              <View className="px-4 py-3 border-b border-neutral-200 dark:border-neutral-800">
+                <Text className="text-sm font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide">
                   Downloading Dictionaries
                 </Text>
               </View>
               <View className="p-4">
-                <Text className="text-sm text-neutral-600 mb-4">
+                <Text className="text-sm text-neutral-600 dark:text-neutral-400 mb-4">
                   Downloading both directions for {getLanguageName(nativeLang ?? '') ?? nativeLang}{' ↔ '}{getLanguageName(studiedLang ?? '') ?? studiedLang}
                 </Text>
                 <View className="gap-3 mb-4">
@@ -419,19 +422,19 @@ export function AddLanguagePairModal({
                     return (
                       <View
                         key={`${item.sourceLang}-${item.targetLang}`}
-                        className="border border-neutral-200 rounded-lg p-3"
+                        className="border border-neutral-200 dark:border-neutral-800 rounded-lg p-3"
                       >
-                        <Text className="text-sm font-medium text-neutral-900">
+                        <Text className="text-sm font-medium text-neutral-900 dark:text-neutral-100">
                           {sourceName}{' → '}{targetName}
                         </Text>
                         {item.status === 'pending' && (
                           <View className="mt-2">
-                            <Text className="text-xs text-neutral-500">Waiting...</Text>
+                            <Text className="text-xs text-neutral-500 dark:text-neutral-400">Waiting...</Text>
                           </View>
                         )}
                         {item.status === 'downloading' && (
                           <>
-                            <View className="mt-2 h-2 rounded-full bg-neutral-200 overflow-hidden">
+                            <View className="mt-2 h-2 rounded-full bg-neutral-200 dark:bg-neutral-800 overflow-hidden">
                               {knownTotal ? (
                                 <View
                                   className="h-full bg-blue-600"
@@ -442,7 +445,7 @@ export function AddLanguagePairModal({
                               )}
                             </View>
                             <View className="mt-1 flex-row justify-between">
-                              <Text className="text-xs text-neutral-600">
+                              <Text className="text-xs text-neutral-600 dark:text-neutral-400">
                                 {knownTotal ? `${progressPercent}%` : 'Starting...'}
                               </Text>
                             </View>
@@ -451,19 +454,19 @@ export function AddLanguagePairModal({
                         {item.status === 'success' && (
                           <View className="mt-2 flex-row items-center gap-2">
                             <View className="w-4 h-4 rounded-full bg-green-500" />
-                            <Text className="text-xs text-green-600">Complete</Text>
+                            <Text className="text-xs text-green-600 dark:text-green-400">Complete</Text>
                           </View>
                         )}
                         {item.status === 'error' && (
                           <View className="mt-2">
-                            <Text className="text-xs text-red-600">{item.errorMessage}</Text>
+                            <Text className="text-xs text-red-600 dark:text-red-500">{item.errorMessage}</Text>
                             <Pressable
                               className="mt-1"
                               onPress={onRetry}
                               accessibilityRole="button"
                               accessibilityLabel={`Retry downloading ${item.sourceLang}-${item.targetLang}`}
                             >
-                              <Text className="text-xs text-blue-600 font-medium">Retry</Text>
+                              <Text className="text-xs text-blue-600 dark:text-blue-400 font-medium">Retry</Text>
                             </Pressable>
                           </View>
                         )}
@@ -487,8 +490,8 @@ export function AddLanguagePairModal({
                 )}
                 {!allDownloadsComplete && (
                   <View className="items-center py-2">
-                    <ActivityIndicator accessibilityLabel="Downloading" />
-                    <Text className="text-sm text-neutral-500 mt-2">Downloading...</Text>
+                    <ActivityIndicator accessibilityLabel="Downloading" color={colors.accent} />
+                    <Text className="text-sm text-neutral-500 dark:text-neutral-400 mt-2">Downloading...</Text>
                   </View>
                 )}
               </View>
