@@ -23,12 +23,10 @@
 - Discovery Round 17 (1 tasks archived to TASKS-ARCHIVE.md)
 - Discovery Round 18 (3 tasks archived to TASKS-ARCHIVE.md)
 - Discovery Round 20 (2 tasks archived to TASKS-ARCHIVE.md)
-## Discovery Round 21
 No new tasks discovered.
 - Discovery Round 22 (1 tasks archived to TASKS-ARCHIVE.md)
 - Discovery Round 23 (1 tasks archived to TASKS-ARCHIVE.md)
 - Discovery Round 24 (2 tasks archived to TASKS-ARCHIVE.md)
-## Discovery Round 25
 No new tasks discovered.
 - Discovery Round 26 (1 tasks archived to TASKS-ARCHIVE.md)
 - Discovery Round 27 (1 tasks archived to TASKS-ARCHIVE.md)
@@ -39,7 +37,6 @@ No new tasks discovered.
 - Discovery Round 35 (2 tasks archived to TASKS-ARCHIVE.md)
 - Phase 9: Bug Fixes & Code Quality (5 tasks archived to TASKS-ARCHIVE.md)
 - Discovery Round 38 (1 tasks archived to TASKS-ARCHIVE.md)
-## Discovery Round 39
 No new tasks discovered.
 
 - Discovery Round 40 (1 tasks archived to TASKS-ARCHIVE.md)
@@ -47,7 +44,6 @@ No new tasks discovered.
 - Discovery Round 42 (1 tasks archived to TASKS-ARCHIVE.md)
 - Discovery Round 48 (1 tasks archived to TASKS-ARCHIVE.md)
 - Discovery Round 49 (1 tasks archived to TASKS-ARCHIVE.md)
-## Discovery Round 50
 No new tasks discovered.
 
 - Discovery Round 52 (1 tasks archived to TASKS-ARCHIVE.md)
@@ -55,7 +51,6 @@ No new tasks discovered.
 - Discovery Round 57 (1 tasks archived to TASKS-ARCHIVE.md)
 - Discovery Round 58 (1 tasks archived to TASKS-ARCHIVE.md)
 - Discovery Round 60 (1 tasks archived to TASKS-ARCHIVE.md)
-## Discovery Round 61
 No new tasks discovered.
 
 - Discovery Round 67 (1 tasks archived to TASKS-ARCHIVE.md)
@@ -71,23 +66,6 @@ No new tasks discovered.
 - Phase 16 (1 tasks archived to TASKS-ARCHIVE.md)
 - Phase 17 (2 archived, 6 retained) (6 tasks archived to TASKS-ARCHIVE.md)
 - Phase 21: Dictionary Version Registry & Schema (6 tasks archived to TASKS-ARCHIVE.md)
-## Phase 22: Download Confirmation Dialog & Network Detection
-- [x] T22.1: Add the `expo-network` dependency to `apps/mobile/package.json`; add `apps/mobile/lib/networkStatus.ts` exporting `isOnWifi(): Promise<boolean>` wrapping `Network.getNetworkStateAsync()` (true only when `type === Network.NetworkStateType.WIFI`) [--P-B-]
-- [x] T22.2: Add `apps/mobile/components/DownloadConfirmationDialog.tsx` — props `{ visible: boolean; sizeBytes: number; onAccept: () => void; onCancel: () => void }`; shows the human-formatted size, calls `isOnWifi()` when it opens and shows a warning banner ("Not connected to Wi-Fi — this will use mobile data" or similar) when false; Accept/Cancel buttons [QRP-B-]
-- [x] T22.3: Update `apps/mobile/app/onboarding.tsx` — insert `DownloadConfirmationDialog` between language selection and download, sized via `getPairDownloadSize`; download only starts after Accept [----B-]
-- [x] T22.4: Update `apps/mobile/components/AddLanguagePairModal.tsx` — same change as T22.3: insert `DownloadConfirmationDialog` between pair selection and download [Q---B-]
-
-## Phase 23: Dictionary Update Flow
-- [x] T23.1: Add `isPairBehindCurrentVersion(nativeLang, studiedLang): boolean` (e.g. in `apps/mobile/store/dictionariesSlice.ts`) — true when either installed direction's `version` is not `CURRENT_DICTIONARY_VERSION.id` [--P-B-]
-- [x] T23.2: Add `updatePair(nativeLang, studiedLang, onProgress)` to `apps/mobile/store/dictionariesSlice.ts` implementing the "Dictionary Update Flow" from `SPEC.md`: first delete any leftover file at the new-version target paths with no matching DB row (defensive retry cleanup); download both new-version direction files (reusing the `startPairDownload`-style flow) to their version-qualified paths, leaving the existing files untouched; on success, insert two new `installed_dictionaries` rows at the new version; only then call `closeDictionaryDatabase` on the old file paths and delete the old files, then delete the old rows [--P-B-]
-- [x] T23.3: Add `apps/mobile/lib/dictionaryMaintenance.ts` — `runDictionaryMaintenance(): Promise<void>` implementing the three cleanup cases from `SPEC.md`'s "Recovering from an interrupted update" table: (1) delete `installed_dictionaries` rows whose `file_path` no longer exists on disk; (2) for direction pairs with two rows, delete the older-version row's file (closing its DB connection first) then delete that row; (3) delete any file in the dictionaries directory that has no matching `installed_dictionaries` row [--P-B-]
-- [x] T23.4: Wire `runDictionaryMaintenance()` into `apps/mobile/app/_layout.tsx` — run once as part of the existing startup sequence (alongside/inside `hydrateAppStore()`), before the splash screen hides and before any download can start [--P-B-]
-
-## Phase 24: Update Flow UI Integration & Tests
-- [x] T24.1: Update `apps/mobile/components/DirectionSelector.tsx` — show an **Update** button on each pair group when `isPairBehindCurrentVersion` is true; tapping closes the modal, navigates to the Settings tab, and opens `DownloadConfirmationDialog` for that pair, wired to call `updatePair` on accept [--P-B-]
-- [x] T24.2: Add the non-interactive "update available" indicator beneath the direction button in `apps/mobile/app/(tabs)/index.tsx`, shown when the active pair is behind the current version; tapping it has no handler [--P-B-]
-- [x] T24.3: Update `apps/mobile/app/(tabs)/settings.tsx` — add an **Update** button to each pair row when `isPairBehindCurrentVersion` is true, opening `DownloadConfirmationDialog` directly and calling `updatePair` on accept [--P-B-]
-- [x] T24.4: Add tests for `dictionaryVersions.ts` (`getPairDownloadSize`), the `installed_dictionaries` schema migration (old two-column PK → new PK with backfilled `version`), and `runDictionaryMaintenance()`'s three cleanup cases [QRP-B-]
 
 ## Discovery Round 62
 - [x] D62.1: `apps/mobile/app/(tabs)/settings.tsx` does not handle the `updatePair` URL parameter from `DirectionSelector` navigation — when a user taps Update in the direction picker, it navigates to Settings with `?updatePair={pairKey}` but settings.tsx never reads this parameter to automatically open the DownloadConfirmationDialog for that pair [--P-B-]
@@ -99,3 +77,8 @@ No new tasks discovered.
 
 ## Discovery Round 65
 - [x] D65.1: `apps/mobile/store/dictionariesSlice.ts` `removeDictionary` passes URI to `deleteAsync` which expects plain path — at line 91, `await deleteAsync(row.file_path, { idempotent: true })` receives `row.file_path` (a URI from the database like `file:///path/to/dict/en-de-v1.sqlite3`), but test expectations in `dictionaryMaintenance.test.ts` line 106 expect plain paths for `deleteAsync`, and `dictionaryMaintenance.ts` line 52-53 explicitly converts URIs to plain paths via `uriToPath` before calling `deleteAsync`; this inconsistency causes old dictionary files to not be deleted during pair removal or update, wasting storage space [--P-B-]
+- [x] T66.1: [-P.B-] add a clear button to the input textbox on the lookup tab
+- [ ] T67.1: vertical scroll doesn't work on the "Words" tab
+- [ ] T68.1: add dark theme support that follows the system appearance automatically: configure NativeWind for class-based dark mode (darkMode in apps/mobile/tailwind.config.js) and drive it from React Native's useColorScheme / NativeWind's colorScheme at the root layout (apps/mobile/app/_layout.tsx); define a consistent light/dark palette (background, surface/card, text primary/secondary, borders, input fields, chips, buttons, dialogs/modals) and apply dark: variants to every screen and shared component (onboarding, Lookup tab including result cards, synonym chips, direction picker dialog and update indicator, Words tab including status badges and swipe-to-delete, Review tab including flashcards, gender badges and rating buttons, Settings including Add Language Pair modal and Download Confirmation dialog); also theme the Expo Router tab bar and headers (pass DarkTheme/DefaultTheme to the navigation ThemeProvider), the StatusBar style, and hard-coded colors such as placeholderTextColor, ActivityIndicator and icon colors; keep app.json userInterfaceStyle set to automatic; verify by switching the Android system theme while the app runs and confirming every screen re-renders with readable contrast and no light-only leftovers, and add a Jest/RNTL test that renders a screen under a mocked dark color scheme
+- [ ] T68.2: add an Appearance setting that lets the user override the automatic theme: add a themePreference field ('system' | 'light' | 'dark', default 'system') to the Settings type, persist it in the settings table in apps/mobile/db (using the existing ad-hoc ALTER TABLE ADD COLUMN migration pattern) and expose it via apps/mobile/store/settingsSlice.ts; add an Appearance section to the Settings screen with a three-option selector (System default, Light, Dark) whose current choice is highlighted; apply the preference at the root layout so 'system' follows useColorScheme while 'light'/'dark' force the theme via NativeWind's colorScheme.set, and make sure the stored preference is applied during store hydration before the first screen renders to avoid a theme flash; update SPEC.md (Settings data model and Settings screen section) to describe the option; verify that choosing Dark or Light changes the whole app immediately regardless of system theme, survives an app restart, and that System default again tracks the OS setting, with unit tests for the settings slice persistence and the Settings screen selector
+- [ ] T69.1: add a Backup section to the Settings tab (apps/mobile/app/(tabs)/settings.tsx) with an Export words to CSV button that backs up every saved word together with its learning progress: add a pure serializer wordsToCsv(words: Word[]): string in packages/core (new file csv.ts, exported from index.ts) that writes a header row id,source,target,sense,sourceLang,targetLang,createdAt,dueAt,interval,ease,reviews followed by one row per word, with RFC 4180 quoting (fields containing commas, double quotes, CR/LF or leading/trailing spaces are wrapped in double quotes and inner quotes doubled), UTF-8 output with a BOM so spreadsheet apps show Cyrillic and umlauts correctly, timestamps written as raw unix numbers so the file round-trips exactly, and words ordered by createdAt ascending; in the app, load all words via apps/mobile/db/words.ts, write the CSV to the cache directory with expo-file-system as errin-words-YYYY-MM-DD.csv, then open the Android share sheet with expo-sharing (add the dependency via npx expo install expo-sharing) using mimeType text/csv so the user can save it to Files/Drive or send it; show a loading state on the button while exporting, disable it and show a hint when the word list is empty, and show an error alert if writing or sharing fails; update SPEC.md (Settings screen section) to describe the export and the CSV column layout; verify with Jest unit tests for wordsToCsv (header, field order, quoting of commas/quotes/newlines, non-Latin text, empty list producing only the header) and an RNTL test for the Settings screen that mocks expo-file-system and expo-sharing and asserts the file content written and that shareAsync is called with the file URI, plus a manual check on Android that the exported file opens in a spreadsheet app with one row per saved word and correct progress values
