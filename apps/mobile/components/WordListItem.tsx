@@ -31,6 +31,7 @@ const STATUS_TEXT_STYLE: Record<LearningStatus, string> = {
 
 const SWIPE_THRESHOLD = -50;
 const DELETE_BUTTON_WIDTH = 80;
+const SWIPE_ACTIVATION_DISTANCE = 10;
 
 interface WordListItemProps {
   word: Word;
@@ -40,32 +41,44 @@ interface WordListItemProps {
 export function WordListItem({ word, onDelete }: WordListItemProps) {
   const status = computeStatus(word);
   const pan = useRef(new Animated.Value(0)).current;
+  const onDeleteRef = useRef(onDelete);
+  onDeleteRef.current = onDelete;
 
-  const panResponder = PanResponder.create({
-    onStartShouldSetPanResponder: () => true,
-    onPanResponderMove: (_, gestureState) => {
-      const dx = gestureState.dx;
-      if (dx < 0) {
-        pan.setValue(dx);
-      } else {
-        pan.setValue(0);
-      }
-    },
-    onPanResponderRelease: (_, gestureState) => {
-      if (gestureState.dx < SWIPE_THRESHOLD && onDelete) {
-        Animated.timing(pan, {
-          toValue: -DELETE_BUTTON_WIDTH,
-          useNativeDriver: true,
-        }).start();
-      } else {
-        Animated.spring(pan, {
-          toValue: 0,
-          useNativeDriver: true,
-          bounciness: 10,
-        }).start();
-      }
-    },
-  });
+  const resetPosition = () => {
+    Animated.spring(pan, {
+      toValue: 0,
+      useNativeDriver: true,
+      bounciness: 10,
+    }).start();
+  };
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onMoveShouldSetPanResponder: (_, gestureState) =>
+        Math.abs(gestureState.dx) > SWIPE_ACTIVATION_DISTANCE &&
+        Math.abs(gestureState.dx) > Math.abs(gestureState.dy) * 1.5,
+      onPanResponderTerminationRequest: () => false,
+      onPanResponderMove: (_, gestureState) => {
+        const dx = gestureState.dx;
+        if (dx < 0) {
+          pan.setValue(dx);
+        } else {
+          pan.setValue(0);
+        }
+      },
+      onPanResponderRelease: (_, gestureState) => {
+        if (gestureState.dx < SWIPE_THRESHOLD && onDeleteRef.current) {
+          Animated.timing(pan, {
+            toValue: -DELETE_BUTTON_WIDTH,
+            useNativeDriver: true,
+          }).start();
+        } else {
+          resetPosition();
+        }
+      },
+      onPanResponderTerminate: resetPosition,
+    })
+  ).current;
 
   const handleDeletePress = () => {
     if (onDelete) {
