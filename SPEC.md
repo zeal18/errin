@@ -201,11 +201,18 @@ interface TranslationVariant {
   importance: number    // WikDict frequency signal; variants are sorted by this descending
 }
 
-// A dictionary lookup result from WikDict — one entry per unique looked-up word
+// A dictionary lookup result from WikDict — one card per dictionary lexical entry (word + part of speech + homograph)
+// Case-differing homographs such as 'Arm'/'arm' are separate results
+export type PartOfSpeech =
+  | 'noun' | 'proper noun' | 'verb' | 'adjective' | 'adverb' | 'pronoun'
+  | 'preposition' | 'conjunction' | 'interjection' | 'numeral' | 'article'
+  | 'particle' | 'phrase' | 'prefix' | 'suffix';
+
 interface LookupResult {
   writtenRep: string              // the looked-up word
   variants: TranslationVariant[]  // translation variants, sorted by importance desc; always non-empty
   score: number                   // max score across variants
+  partOfSpeech?: PartOfSpeech    // parsed from the WikDict lexentry id; absent when unknown or lexentry not available
 }
 
 // User preferences
@@ -243,11 +250,14 @@ The main working screen. User types a word and gets results from the locally ins
 - **Search behavior**: lookup is case-insensitive and returns all words whose `written_rep` starts with the query (prefix search). Results are ordered as follows:
   1. Exact matches (case-insensitive full match) appear first
   2. All remaining prefix matches are sorted by `importance` descending — more common words rank higher
-- Each result card shows the **looked-up word** with its **translation variants** listed below it:
+- Each result card shows the **looked-up word** with its **part-of-speech label** (when available) and **translation variants** listed below it:
+  - Cards sharing a spelling are separate (e.g., German "Arm" noun and "arm" adjective)
+  - Each card is one dictionary lexical entry (word + part of speech + homograph number)
   - Variants are sorted by `importance` descending; the first is **pre-selected**
   - Each variant shows its synonyms as selectable chips (individual items from `transList`) and a meaning description in the native language below them
   - Tapping a variant selects it; within the selected variant, tapping a synonym chip selects that synonym — the first is pre-selected
   - Only the selected synonym of the selected variant is used when saving
+  - The gender article (e.g., "der") appears only on noun cards or cards with unknown POS, looked up by the card's exact spelling
   - A **Learn button** on each result card changes state based on whether the studied word already exists in the learning list
   - The **studied word** used for deduplication is always the studied-language word — `writtenRep` in `studied→native` mode, or the selected synonym in `native→studied` mode — regardless of which direction was active when the word was originally saved
 

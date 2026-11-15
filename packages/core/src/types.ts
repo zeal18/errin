@@ -38,6 +38,11 @@ export interface ActivePair {
   lookupDirection: LookupDirection;
 }
 
+export type PartOfSpeech =
+  | 'noun' | 'proper noun' | 'verb' | 'adjective' | 'adverb' | 'pronoun'
+  | 'preposition' | 'conjunction' | 'interjection' | 'numeral' | 'article'
+  | 'particle' | 'phrase' | 'prefix' | 'suffix';
+
 export interface TranslationVariant {
   transList: string[];
   sense: string;
@@ -48,6 +53,8 @@ export interface LookupResult {
   writtenRep: string;
   variants: TranslationVariant[];
   score: number;
+  /** Part of speech parsed from the WikDict lexentry id. Undefined when unknown or lexentry not available. */
+  partOfSpeech?: PartOfSpeech;
 }
 
 export interface Settings {

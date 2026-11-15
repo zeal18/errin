@@ -24,6 +24,7 @@ export function GenderBadge({ lang, word }: GenderBadgeProps) {
 
   return (
     <View
+      testID="gender-badge"
       className="flex-row gap-1"
       accessible
       accessibilityRole="text"

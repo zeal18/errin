@@ -15,13 +15,14 @@ interface ResultsListProps {
 
 interface ResultCardProps {
   result: LookupResult;
+  cardKey: string;
   selectedVariantIndex: number;
   selectedSynonymIndex: number;
   existingWord: Word | undefined;
   lookupDirection: LookupDirection;
   studiedLang: string;
-  onVariantSelect: (writtenRep: string, index: number) => void;
-  onSynonymSelect: (writtenRep: string, index: number) => void;
+  onVariantSelect: (cardKey: string, index: number) => void;
+  onSynonymSelect: (cardKey: string, index: number) => void;
   onSave: (result: LookupResult, variant: TranslationVariant, synonym: string) => void;
   onReplace: (id: string, newTarget: string, newSense: string) => void;
   onReset: (id: string) => void;
@@ -29,6 +30,7 @@ interface ResultCardProps {
 
 function ResultCard({
   result,
+  cardKey,
   selectedVariantIndex,
   selectedSynonymIndex,
   existingWord,
@@ -97,7 +99,10 @@ function ResultCard({
       <View className="flex-row items-center justify-between mb-2">
         <View className="flex-row items-center gap-1.5">
           <Text className="text-base font-bold text-neutral-900 dark:text-neutral-100">{result.writtenRep}</Text>
-          {lookupDirection === 'studied_to_native' && (
+          {result.partOfSpeech && (
+            <Text testID="pos-label" className="text-[10px] italic text-neutral-500 dark:text-neutral-400">{result.partOfSpeech}</Text>
+          )}
+          {lookupDirection === 'studied_to_native' && (result.partOfSpeech === undefined || result.partOfSpeech === 'noun') && (
             <GenderBadge lang={studiedLang} word={result.writtenRep} />
           )}
         </View>
@@ -122,7 +127,7 @@ function ResultCard({
             accessibilityState={{ selected: isVariantSelected }}
             accessibilityLabel={`${variant.transList.join(', ')}${variant.sense ? ': ' + variant.sense : ''}${isVariantSelected ? ', selected' : ''}`}
             className={`mt-1 px-3 py-2 rounded-lg border ${isVariantSelected ? 'border-blue-400 bg-blue-50 dark:bg-blue-950' : 'border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900'}`}
-            onPress={() => onVariantSelect(result.writtenRep, vIndex)}
+            onPress={() => onVariantSelect(cardKey, vIndex)}
           >
             {/* Synonym chips — only shown for the selected variant */}
             {isVariantSelected ? (
@@ -136,7 +141,7 @@ function ResultCard({
                       accessibilityState={{ selected: isSynonymSelected }}
                       accessibilityLabel={`${synonym}${isSynonymSelected ? ', selected' : ''}`}
                       className={`px-2 py-0.5 rounded-full border ${isSynonymSelected ? 'border-blue-500 bg-blue-100 dark:bg-blue-900' : 'border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-800'}`}
-                      onPress={() => onSynonymSelect(result.writtenRep, sIndex)}
+                      onPress={() => onSynonymSelect(cardKey, sIndex)}
                     >
                       <View className="flex-row items-center gap-1">
                         <Text className={`text-sm ${isSynonymSelected ? 'font-semibold text-blue-700 dark:text-blue-300' : 'text-neutral-700 dark:text-neutral-300'}`}>
@@ -185,6 +190,10 @@ export function ResultsList({ results, onPress, onReplace, onReset }: ResultsLis
   const studiedLang = useAppStore((s) => s.activePair?.studiedLang ?? '');
   const lookupDirection = useAppStore((s) => s.activePair?.lookupDirection ?? 'studied_to_native');
 
+  // Generate a unique key for each result card based on index and writtenRep
+  // This allows multiple cards with the same spelling (different POS) to have independent state
+  const cardKey = (item: LookupResult, index: number): string => `${index}:${item.writtenRep}`;
+
   const [selectedVariants, setSelectedVariants] = useState<Map<string, number>>(new Map());
   const [selectedSynonyms, setSelectedSynonyms] = useState<Map<string, number>>(new Map());
   const [existingWords, setExistingWords] = useState<Map<string, Word>>(new Map());
@@ -193,9 +202,10 @@ export function ResultsList({ results, onPress, onReplace, onReset }: ResultsLis
   useEffect(() => {
     const initVariants = new Map<string, number>();
     const initSynonyms = new Map<string, number>();
-    for (const result of results) {
-      initVariants.set(result.writtenRep, 0);
-      initSynonyms.set(result.writtenRep, 0);
+    for (const [index, result] of results.entries()) {
+      const key = cardKey(result, index);
+      initVariants.set(key, 0);
+      initSynonyms.set(key, 0);
     }
     setSelectedVariants(initVariants);
     setSelectedSynonyms(initSynonyms);
@@ -208,14 +218,14 @@ export function ResultsList({ results, onPress, onReplace, onReset }: ResultsLis
     }
   }, [results, studiedLang, lookupDirection]);
 
-  const handleVariantSelect = useCallback((writtenRep: string, index: number) => {
-    setSelectedVariants((prev) => new Map(prev).set(writtenRep, index));
+  const handleVariantSelect = useCallback((key: string, index: number) => {
+    setSelectedVariants((prev) => new Map(prev).set(key, index));
     // Reset synonym to first when variant changes
-    setSelectedSynonyms((prev) => new Map(prev).set(writtenRep, 0));
+    setSelectedSynonyms((prev) => new Map(prev).set(key, 0));
   }, []);
 
-  const handleSynonymSelect = useCallback((writtenRep: string, index: number) => {
-    setSelectedSynonyms((prev) => new Map(prev).set(writtenRep, index));
+  const handleSynonymSelect = useCallback((key: string, index: number) => {
+    setSelectedSynonyms((prev) => new Map(prev).set(key, index));
   }, []);
 
   // Refresh word status after any mutation (save/replace/reset)
@@ -263,11 +273,12 @@ export function ResultsList({ results, onPress, onReplace, onReset }: ResultsLis
   return (
     <FlatList
       data={results}
-      keyExtractor={(item, index) => item.writtenRep + index}
+      keyExtractor={cardKey}
       extraData={extraData}
-      renderItem={({ item }) => {
-        const variantIdx = selectedVariants.get(item.writtenRep) ?? 0;
-        const synonymIdx = selectedSynonyms.get(item.writtenRep) ?? 0;
+      renderItem={({ item, index }) => {
+        const key = cardKey(item, index);
+        const variantIdx = selectedVariants.get(key) ?? 0;
+        const synonymIdx = selectedSynonyms.get(key) ?? 0;
         const selectedSynonym = item.variants[variantIdx]?.transList[synonymIdx] ?? '';
         const existingWord =
           lookupDirection === 'native_to_studied'
@@ -276,6 +287,7 @@ export function ResultsList({ results, onPress, onReplace, onReset }: ResultsLis
         return (
         <ResultCard
           result={item}
+          cardKey={key}
           selectedVariantIndex={variantIdx}
           selectedSynonymIndex={synonymIdx}
           existingWord={existingWord}
