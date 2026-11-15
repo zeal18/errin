@@ -145,10 +145,13 @@ The `installed_dictionaries` bookkeeping table does **not** need a facade — it
 │       │   └── settings.tsx
 │       ├── components/      # UI components
 │       ├── db/              # expo-sqlite: word storage schema and queries
+│       ├── lib/             # Utility modules
+│       │   └── wordsExport.ts     # CSV export helper
 │       ├── store/           # Zustand store
 │       └── app.json
 └── packages/
     └── core/                # Platform-agnostic TypeScript
+        ├── csv.ts               # CSV serialization for words
         ├── srs.ts               # SM-2 algorithm
         ├── dictionary.ts        # WikDict lookup logic
         ├── dictionaryVersions.ts # Hardcoded supported dictionary versions
@@ -303,6 +306,20 @@ The **Add Language Pair** button is shown only when at least one installable pai
 **Daily review limit** — number of words per review session (default: 20)
 
 **Appearance** — a three-option selector (System default / Light / Dark) where the current choice is highlighted. System default follows the OS appearance live. Light and Dark force the theme across the whole app (status bar, navigation, all screens) regardless of the OS setting. The choice applies immediately, is stored in the `settings` table (`theme_preference` column, added with an ad-hoc `ALTER TABLE settings ADD COLUMN theme_preference TEXT NOT NULL DEFAULT 'system'` migration), and is applied during startup hydration before the first screen renders, so there is no theme flash.
+
+**Backup**
+
+**Export words to CSV** loads every saved word, writes `errin-words-YYYY-MM-DD.csv` to the app cache directory, and opens the system share sheet with `text/csv`, so the file can be saved to Files or Drive, or sent.
+The button shows a spinner while it runs. It is disabled and shows a hint when no words are saved. An error alert appears if writing or sharing fails.
+
+The CSV format is:
+- UTF-8 with BOM for correct display of Cyrillic and umlauts in spreadsheet applications
+- CRLF line endings (RFC 4180 compliant)
+- Header: `id,source,target,sense,sourceLang,targetLang,createdAt,dueAt,interval,ease,reviews`
+- One row per word, ordered by `createdAt` ascending (oldest first), with ties broken by `id` lexicographically
+- `createdAt` and `dueAt` are raw unix epoch milliseconds, matching the database values exactly
+- `interval`, `ease` and `reviews` are raw numbers
+- RFC 4180 quoting applies: fields containing commas, double quotes, CR/LF, or leading/trailing spaces are wrapped in double quotes and inner quotes are doubled
 
 ## Getting Started
 

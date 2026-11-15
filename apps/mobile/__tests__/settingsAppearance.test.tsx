@@ -4,7 +4,10 @@ import { render, fireEvent } from '@testing-library/react-native';
 const mockSet = jest.fn();
 let mockPref = 'system';
 
-jest.mock('expo-router', () => ({ useLocalSearchParams: () => ({}) }));
+jest.mock('expo-router', () => ({
+  useLocalSearchParams: () => ({}),
+  useFocusEffect: jest.fn(),
+}));
 jest.mock('../components/AddLanguagePairModal', () => ({ AddLanguagePairModal: () => null }));
 jest.mock('../components/DownloadConfirmationDialog', () => ({ DownloadConfirmationDialog: () => null }));
 jest.mock('../lib/theme', () => ({ useThemeColors: () => ({ accent: '#000', placeholder: '#999' }) }));
@@ -20,6 +23,7 @@ jest.mock('../store', () => ({
       isPairBehindCurrentVersion: () => false,
     }),
 }));
+jest.mock('../db/words', () => ({ getAllWords: jest.fn().mockResolvedValue([]) }));
 
 import SettingsScreen from '../app/(tabs)/settings';
 

@@ -63,11 +63,25 @@ export const deleteAsync = jest.fn().mockImplementation(async (path: string, opt
   }
 });
 
+export const cacheDirectory: string = 'file:///mock/cacheDirectory/';
+
+export const writeAsStringAsync = jest.fn().mockImplementation(async (path: string, contents: string): Promise<void> => {
+  if (!hasFileScheme(path)) {
+    throw new Error(`Unsupported scheme for location '${path}'.`);
+  }
+  mockFileSystem.set(path, { exists: true, isDirectory: false, content: contents });
+});
+
+export const readMockFile = (path: string): string | undefined => {
+  return mockFileSystem.get(path)?.content;
+};
+
 export const resetMockFileSystem = (): void => {
   mockFileSystem.clear();
   getInfoAsync.mockClear();
   readDirectoryAsync.mockClear();
   deleteAsync.mockClear();
+  writeAsStringAsync.mockClear();
 };
 
 export const seedFile = (path: string, isDirectory: boolean = false): void => {

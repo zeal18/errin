@@ -1,12 +1,14 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Alert, FlatList, Pressable, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useLocalSearchParams } from 'expo-router';
+import { useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { getLanguageName, SUPPORTED_LANGUAGES, getPairDownloadSize, type ThemePreference } from '@errin/core';
 import { useAppStore } from '../../store';
 import { AddLanguagePairModal } from '../../components/AddLanguagePairModal';
 import { DownloadConfirmationDialog } from '../../components/DownloadConfirmationDialog';
 import { useThemeColors } from '../../lib/theme';
+import { getAllWords } from '../../db/words';
+import { exportWordsCsv } from '../../lib/wordsExport';
 
 const THEME_OPTIONS: { value: ThemePreference; label: string }[] = [
   { value: 'system', label: 'System default' },
@@ -42,6 +44,8 @@ export default function SettingsScreen() {
   const [limitError, setLimitError] = useState('');
   const [updateTarget, setUpdateTarget] = useState<{nativeLang: string; studiedLang: string} | null>(null);
   const [updatingPairs, setUpdatingPairs] = useState<Set<string>>(new Set());
+  const [wordCount, setWordCount] = useState<number | null>(null);
+  const [exporting, setExporting] = useState(false);
   const params = useLocalSearchParams<{ updatePair?: string }>();
   const MAX_DAILY_REVIEW_LIMIT = 200;
 
@@ -51,6 +55,15 @@ export default function SettingsScreen() {
       setUpdateTarget({ nativeLang, studiedLang });
     }
   }, [params.updatePair]);
+
+  // Load word count when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      getAllWords()
+        .then((words) => setWordCount(words.length))
+        .catch(() => setWordCount(null));
+    }, [])
+  );
 
   const uniquePairs = useMemo<InstalledPair[]>(() => {
     const seen = new Set<string>();
@@ -158,6 +171,25 @@ export default function SettingsScreen() {
 
   const handleUpdateCancel = () => {
     setUpdateTarget(null);
+  };
+
+  const handleExport = async () => {
+    if (exporting) return;
+
+    setExporting(true);
+    try {
+      const words = await getAllWords();
+      if (words.length === 0) {
+        setWordCount(0);
+        return;
+      }
+      await exportWordsCsv(words);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Could not export words. Please try again.';
+      Alert.alert('Export Failed', message);
+    } finally {
+      setExporting(false);
+    }
   };
 
   const colors = useThemeColors();
@@ -285,6 +317,41 @@ export default function SettingsScreen() {
             );
           })}
         </View>
+      </View>
+
+      <View className="px-4 py-3 border-b border-neutral-200 dark:border-neutral-800">
+        <Text className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">Backup</Text>
+      </View>
+      <View className="px-4 py-3 border-b border-neutral-200 dark:border-neutral-800">
+        <Pressable
+          testID="export-words-button"
+          accessibilityRole="button"
+          accessibilityLabel="Export words to CSV"
+          accessibilityState={{ disabled: exporting || wordCount === 0 || wordCount === null, busy: exporting }}
+          disabled={exporting || wordCount === 0 || wordCount === null}
+          className={`w-full rounded-lg py-3 items-center ${
+            exporting || wordCount === 0 || wordCount === null ? 'bg-neutral-300 dark:bg-neutral-700' : 'bg-blue-600'
+          }`}
+          onPress={handleExport}
+        >
+          {exporting ? (
+            <ActivityIndicator color="#fff" accessibilityLabel="Exporting" />
+          ) : (
+            <Text className="text-white font-semibold text-base">Export words to CSV</Text>
+          )}
+        </Pressable>
+        {wordCount === 0 || wordCount === null ? (
+          <Text
+            testID="export-empty-hint"
+            className="text-sm text-neutral-500 dark:text-neutral-400 mt-2"
+          >
+            No saved words to export yet
+          </Text>
+        ) : (
+          <Text className="text-sm text-neutral-500 dark:text-neutral-400 mt-2">
+            Saves all words with review progress as a CSV file.
+          </Text>
+        )}
       </View>
 
       <AddLanguagePairModal
