@@ -201,7 +201,7 @@ interface TranslationVariant {
   importance: number    // WikDict frequency signal; variants are sorted by this descending
 }
 
-// A dictionary lookup result from WikDict — one card per dictionary lexical entry (word + part of speech + homograph)
+// A dictionary lookup result from WikDict — one card per dictionary lexical entry (exact spelling + part of speech; WikDict homograph numbers are merged)
 // Case-differing homographs such as 'Arm'/'arm' are separate results
 export type PartOfSpeech =
   | 'noun' | 'proper noun' | 'verb' | 'adjective' | 'adverb' | 'pronoun'
@@ -252,7 +252,7 @@ The main working screen. User types a word and gets results from the locally ins
   2. All remaining prefix matches are sorted by `importance` descending — more common words rank higher
 - Each result card shows the **looked-up word** with its **part-of-speech label** (when available) and **translation variants** listed below it:
   - Cards sharing a spelling are separate (e.g., German "Arm" noun and "arm" adjective)
-  - Each card is one dictionary lexical entry (word + part of speech + homograph number)
+  - Each card is one word + part of speech; dictionary homographs with the same spelling and part of speech (e.g. `reihen` Verb 1 and Verb 2) are combined into a single card.
   - Variants are sorted by `importance` descending; the first is **pre-selected**
   - Each variant shows its synonyms as selectable chips (individual items from `transList`) and a meaning description in the native language below them
   - Tapping a variant selects it; within the selected variant, tapping a synonym chip selects that synonym — the first is pre-selected

@@ -365,4 +365,98 @@ describe('lookupRich', () => {
     };
     await expect(lookupRich(db, 'test')).rejects.toThrow('some other error');
   });
+
+  test('merges same-spelling same-POS homographs (reihen Verb__1 + Verb__2) into one card', async () => {
+    const rows = [
+      { written_rep: 'Reihen', sense_list: 'rows', trans_list: 'rows', score: 100, importance: 10, lexentry: 'deu/Reihen__Substantiv__1' },
+      { written_rep: 'reihen', sense_list: 'to string together', trans_list: 'to string', score: 90, importance: 9, lexentry: 'deu/reihen__Verb__1' },
+      { written_rep: 'reihen', sense_list: 'to line up', trans_list: 'to line', score: 95, importance: 8, lexentry: 'deu/reihen__Verb__2' },
+      { written_rep: 'reihen', sense_list: 'to arrange', trans_list: 'to arrange', score: 85, importance: 7, lexentry: 'deu/reihen__Verb__1' },
+    ];
+    const db = fakeDb(rows, { lexentryColumn: true });
+    const results = await lookupRich(db, 'reihen');
+
+    expect(results.length).toBe(2);
+    expect(results[0].writtenRep).toBe('Reihen');
+    expect(results[0].partOfSpeech).toBe('noun');
+    expect(results[0].variants.length).toBe(1);
+
+    expect(results[1].writtenRep).toBe('reihen');
+    expect(results[1].partOfSpeech).toBe('verb');
+    expect(results[1].variants.length).toBe(3);
+    expect(results[1].variants[0].sense).toBe('to string together');
+    expect(results[1].variants[1].sense).toBe('to line up');
+    expect(results[1].variants[2].sense).toBe('to arrange');
+    expect(results[1].score).toBe(95);
+  });
+
+  test('keeps same-spelling different-POS entries separate', async () => {
+    const rows = [
+      { written_rep: 'essen', sense_list: 'to eat', trans_list: 'to eat', score: 100, importance: 10, lexentry: 'deu/essen__Verb__1' },
+      { written_rep: 'essen', sense_list: 'meal', trans_list: 'meal', score: 90, importance: 9, lexentry: 'deu/essen__Substantiv__1' },
+    ];
+    const db = fakeDb(rows, { lexentryColumn: true });
+    const results = await lookupRich(db, 'essen');
+
+    expect(results.length).toBe(2);
+    expect(results[0].writtenRep).toBe('essen');
+    expect(results[0].partOfSpeech).toBe('verb');
+    expect(results[0].variants.length).toBe(1);
+
+    expect(results[1].writtenRep).toBe('essen');
+    expect(results[1].partOfSpeech).toBe('noun');
+    expect(results[1].variants.length).toBe(1);
+  });
+
+  test('merges POS tokens that normalize to the same part of speech', async () => {
+    const rows = [
+      { written_rep: 'haben', sense_list: 'to have', trans_list: 'to have', score: 100, importance: 10, lexentry: 'deu/haben__Verb__1' },
+      { written_rep: 'haben', sense_list: 'auxiliary', trans_list: 'aux', score: 95, importance: 9, lexentry: 'deu/haben__Hilfsverb__1' },
+    ];
+    const db = fakeDb(rows, { lexentryColumn: true });
+    const results = await lookupRich(db, 'haben');
+
+    expect(results.length).toBe(1);
+    expect(results[0].writtenRep).toBe('haben');
+    expect(results[0].partOfSpeech).toBe('verb');
+    expect(results[0].variants.length).toBe(2);
+    expect(results[0].score).toBe(100);
+  });
+
+  test('unknown POS token: homographs merge, but stay separate from other entries', async () => {
+    const rows = [
+      { written_rep: 'foo', sense_list: 'xyz1', trans_list: 'xyz1', score: 100, importance: 10, lexentry: 'deu/foo__Xyz__1' },
+      { written_rep: 'foo', sense_list: 'xyz2', trans_list: 'xyz2', score: 95, importance: 9, lexentry: 'deu/foo__Xyz__2' },
+      { written_rep: 'foo', sense_list: 'verb', trans_list: 'verb', score: 90, importance: 8, lexentry: 'deu/foo__Verb__1' },
+    ];
+    const db = fakeDb(rows, { lexentryColumn: true });
+    const results = await lookupRich(db, 'foo');
+
+    expect(results.length).toBe(2);
+    expect(results[0].writtenRep).toBe('foo');
+    expect(results[0].partOfSpeech).toBeUndefined();
+    expect(results[0].variants.length).toBe(2);
+
+    expect(results[1].writtenRep).toBe('foo');
+    expect(results[1].partOfSpeech).toBe('verb');
+    expect(results[1].variants.length).toBe(1);
+  });
+
+  test('null-lexentry row joins the merged homograph card', async () => {
+    const rows = [
+      { written_rep: 'reihen', sense_list: 'to string together', trans_list: 'to string', score: 90, importance: 9, lexentry: 'deu/reihen__Verb__1' },
+      { written_rep: 'reihen', sense_list: 'to line up', trans_list: 'to line', score: 95, importance: 8, lexentry: 'deu/reihen__Verb__2' },
+      { written_rep: 'reihen', sense_list: 'to align', trans_list: 'to align', score: 85, importance: 7, lexentry: null },
+    ];
+    const db = fakeDb(rows, { lexentryColumn: true });
+    const results = await lookupRich(db, 'reihen');
+
+    expect(results.length).toBe(1);
+    expect(results[0].writtenRep).toBe('reihen');
+    expect(results[0].partOfSpeech).toBe('verb');
+    expect(results[0].variants.length).toBe(3);
+    expect(results[0].variants[0].sense).toBe('to string together');
+    expect(results[0].variants[1].sense).toBe('to line up');
+    expect(results[0].variants[2].sense).toBe('to align');
+  });
 });

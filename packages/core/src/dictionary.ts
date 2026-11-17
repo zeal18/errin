@@ -107,6 +107,13 @@ const SIMPLE_TRANSLATION_TABLES = [
   'simple_trans',
 ] as const;
 
+/** Group key for a lookup card: exact spelling + part of speech (homograph number ignored). */
+function entryGroupKey(writtenRep: string, lexentry: string): string {
+  const pos = parseLexentryPartOfSpeech(lexentry);
+  if (pos) return `p:${writtenRep}\u0000${pos}`;
+  return `e:${lexentry.replace(/__\d+$/, '')}`;
+}
+
 const GROUPED_TRANSLATION_TABLES = [
   'translation_grouped',
   'grouped_translation',
@@ -267,9 +274,9 @@ export async function lookupRich(
 
     devLog('lookupRich: success, results=', rows.length, 'table=', tableName, 'withLexentry=', withLexentry);
 
-    // Group rows by dictionary entry (lexentry when available, else exact written_rep).
+    // Group rows by dictionary entry (exact spelling + part of speech; homograph numbers are merged).
     // Pass A: for rows with lexentry, record the first lexentry per exact spelling.
-    // This allows null-lexentry rows to be attached to their spelling's entry.
+    // This allows null-lexentry rows to be attached to their spelling's entry group.
     const firstEntryForRep = new Map<string, string>();
     for (const row of rows) {
       if (row.lexentry && row.written_rep && !firstEntryForRep.has(row.written_rep)) {
@@ -277,9 +284,9 @@ export async function lookupRich(
       }
     }
 
-    // Pass B: group rows by their resolved key
-    // - If row has lexentry: key = 'e:' + lexentry (one card per dictionary entry)
-    // - If row has no lexentry but spelling has an entry: key = 'e:' + that entry
+    // Pass B: group rows by their resolved key (spelling + POS, homograph numbers ignored)
+    // - If row has lexentry: key = entryGroupKey(writtenRep, lexentry)
+    // - If row has no lexentry but spelling has an entry: key = entryGroupKey(writtenRep, firstEntryForRep[writtenRep])
     // - Otherwise: key = 'w:' + exact written_rep (fallback for no-lexentry rows)
     const grouped = new Map<string, LookupResult>();
     for (const row of rows) {
@@ -288,10 +295,10 @@ export async function lookupRich(
       let groupLexentry: string | null = null;
 
       if (row.lexentry) {
-        key = 'e:' + row.lexentry;
+        key = entryGroupKey(writtenRep, row.lexentry);
         groupLexentry = row.lexentry;
       } else if (firstEntryForRep.has(writtenRep)) {
-        key = 'e:' + firstEntryForRep.get(writtenRep);
+        key = entryGroupKey(writtenRep, firstEntryForRep.get(writtenRep)!);
         groupLexentry = firstEntryForRep.get(writtenRep) ?? null;
       } else {
         key = 'w:' + writtenRep;
