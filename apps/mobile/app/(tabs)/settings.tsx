@@ -2,13 +2,17 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Alert, FlatList, Pressable, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useLocalSearchParams } from 'expo-router';
-import { getLanguageName, SUPPORTED_LANGUAGES, getPairDownloadSize, type ThemePreference } from '@errin/core';
+import * as DocumentPicker from 'expo-document-picker';
+import { readAsStringAsync } from 'expo-file-system/legacy';
+import { getLanguageName, SUPPORTED_LANGUAGES, getPairDownloadSize, type ThemePreference, type Word } from '@errin/core';
+import { csvToWords } from '@errin/core';
 import { useAppStore } from '../../store';
 import { AddLanguagePairModal } from '../../components/AddLanguagePairModal';
 import { DownloadConfirmationDialog } from '../../components/DownloadConfirmationDialog';
 import { useThemeColors } from '../../lib/theme';
 import { getAllWords } from '../../db/words';
 import { exportWordsCsv } from '../../lib/wordsExport';
+import { importWords, formatMissingDictionariesMessage, formatImportSummary } from '../../lib/wordsImport';
 
 const THEME_OPTIONS: { value: ThemePreference; label: string }[] = [
   { value: 'system', label: 'System default' },
@@ -46,8 +50,11 @@ export default function SettingsScreen() {
   const [updatingPairs, setUpdatingPairs] = useState<Set<string>>(new Set());
   const [wordCount, setWordCount] = useState<number | null>(null);
   const [exporting, setExporting] = useState(false);
+  const [importing, setImporting] = useState(false);
   const params = useLocalSearchParams<{ updatePair?: string }>();
   const MAX_DAILY_REVIEW_LIMIT = 200;
+
+  const busy = exporting || importing;
 
   useEffect(() => {
     if (params.updatePair) {
@@ -174,7 +181,7 @@ export default function SettingsScreen() {
   };
 
   const handleExport = async () => {
-    if (exporting) return;
+    if (busy) return;
 
     setExporting(true);
     try {
@@ -189,6 +196,63 @@ export default function SettingsScreen() {
       Alert.alert('Export Failed', message);
     } finally {
       setExporting(false);
+    }
+  };
+
+  const handleImport = async () => {
+    if (busy) return;
+
+    // Show file picker
+    let res: DocumentPicker.DocumentPickerResult;
+    try {
+      res = await DocumentPicker.getDocumentAsync({
+        type: ['text/csv', 'text/comma-separated-values', '*/*'],
+        copyToCacheDirectory: true,
+        multiple: false,
+      });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Could not open the file picker.';
+      Alert.alert('Import Failed', message);
+      return;
+    }
+
+    // Cancelled picker - do nothing
+    if (res.canceled || !res.assets?.[0]) {
+      return;
+    }
+
+    const asset = res.assets[0];
+
+    setImporting(true);
+    try {
+      // Read the file
+      const csv = await readAsStringAsync(asset.uri);
+
+      // Parse the CSV
+      let words: Word[];
+      try {
+        words = csvToWords(csv);
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : 'Unknown parsing error';
+        Alert.alert('Import Failed', `This file is not a valid Errin export.\n\n${message}`);
+        return;
+      }
+
+      // Import the words
+      const result = await importWords(words, dictionaries);
+
+      if (result.kind === 'missing') {
+        Alert.alert('Missing dictionaries', formatMissingDictionariesMessage(result.pairs));
+      } else {
+        Alert.alert('Import complete', formatImportSummary(result));
+        // Refresh word count
+        getAllWords().then((w) => setWordCount(w.length)).catch(() => setWordCount(null));
+      }
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Could not import words. Please try again.';
+      Alert.alert('Import Failed', message);
+    } finally {
+      setImporting(false);
     }
   };
 
@@ -327,10 +391,10 @@ export default function SettingsScreen() {
           testID="export-words-button"
           accessibilityRole="button"
           accessibilityLabel="Export words to CSV"
-          accessibilityState={{ disabled: exporting || wordCount === 0 || wordCount === null, busy: exporting }}
-          disabled={exporting || wordCount === 0 || wordCount === null}
+          accessibilityState={{ disabled: busy || wordCount === 0 || wordCount === null, busy: exporting }}
+          disabled={busy || wordCount === 0 || wordCount === null}
           className={`w-full rounded-lg py-3 items-center ${
-            exporting || wordCount === 0 || wordCount === null ? 'bg-neutral-300 dark:bg-neutral-700' : 'bg-blue-600'
+            busy || wordCount === 0 || wordCount === null ? 'bg-neutral-300 dark:bg-neutral-700' : 'bg-blue-600'
           }`}
           onPress={handleExport}
         >
@@ -352,6 +416,29 @@ export default function SettingsScreen() {
             Saves all words with review progress as a CSV file.
           </Text>
         )}
+      </View>
+
+      <View className="px-4 py-3 border-b border-neutral-200 dark:border-neutral-800">
+        <Pressable
+          testID="import-words-button"
+          accessibilityRole="button"
+          accessibilityLabel="Import words from CSV"
+          accessibilityState={{ disabled: busy, busy: importing }}
+          disabled={busy}
+          className={`w-full rounded-lg py-3 items-center ${
+            busy ? 'bg-neutral-300 dark:bg-neutral-700' : 'bg-blue-600'
+          }`}
+          onPress={handleImport}
+        >
+          {importing ? (
+            <ActivityIndicator color="#fff" accessibilityLabel="Importing" />
+          ) : (
+            <Text className="text-white font-semibold text-base">Import words from CSV</Text>
+          )}
+        </Pressable>
+        <Text className="text-sm text-neutral-500 dark:text-neutral-400 mt-2">
+          Restores words and review progress from an Errin CSV export.
+        </Text>
       </View>
 
       <AddLanguagePairModal

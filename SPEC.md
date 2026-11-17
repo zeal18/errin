@@ -146,12 +146,13 @@ The `installed_dictionaries` bookkeeping table does **not** need a facade — it
 │       ├── components/      # UI components
 │       ├── db/              # expo-sqlite: word storage schema and queries
 │       ├── lib/             # Utility modules
-│       │   └── wordsExport.ts     # CSV export helper
+│       │   ├── wordsExport.ts     # CSV export helper
+│       │   └── wordsImport.ts     # CSV import: dictionary check, dedup, insert
 │       ├── store/           # Zustand store
 │       └── app.json
 └── packages/
     └── core/                # Platform-agnostic TypeScript
-        ├── csv.ts               # CSV serialization for words
+        ├── csv.ts               # CSV serialization/parsing for words
         ├── srs.ts               # SM-2 algorithm
         ├── dictionary.ts        # WikDict lookup logic
         ├── dictionaryVersions.ts # Hardcoded supported dictionary versions
@@ -330,6 +331,14 @@ The CSV format is:
 - `createdAt` and `dueAt` are raw unix epoch milliseconds, matching the database values exactly
 - `interval`, `ease` and `reviews` are raw numbers
 - RFC 4180 quoting applies: fields containing commas, double quotes, CR/LF, or leading/trailing spaces are wrapped in double quotes and inner quotes are doubled
+
+**Import words from CSV** lets the user pick a CSV file (types `text/csv`, `text/comma-separated-values`, and `*/*` as an Android fallback since Android providers often report CSV files incorrectly), read it with expo-file-system, and parse it strictly: strips an optional UTF-8 BOM, accepts CRLF or LF line endings, handles RFC 4180 quoting (quoted fields, doubled quotes, embedded newlines), requires the exact header, and converts numeric fields to numbers. A cancelled file picker does nothing. An invalid file (wrong header, wrong column count, empty required fields, non-numeric fields) shows an "Import Failed" alert saying the file is not a valid Errin export.
+
+Before writing, it checks that for every language pair used by the imported words (studied = sourceLang, native = targetLang), both dictionary directions (sourceLang-targetLang and targetLang-sourceLang, any version) are installed. If any pair is missing, nothing is imported and a "Missing dictionaries" dialog lists each missing pair by language name (e.g. English ↔ German) with the count of words that need it, and points the user to Settings → Languages to add the missing pairs first.
+
+The import itself runs in one transaction: it generates a new id when the file id already exists in the database, keeps the original createdAt and all SM-2 fields (dueAt, interval, ease, reviews), and skips any word whose studied word already exists (same source and sourceLang as an existing entry) using the same one-entry-per-studied-word rule, as well as skipping duplicates within the file itself (keeping the first). Existing words are never overwritten or changed.
+
+After a successful import, a summary dialog shows the number of words in the file, the number imported, and the number skipped because they already existed. Both Export and Import buttons show a spinner while they run and both are disabled while either action is in progress. The Words tab and Review tab pick up the new words when they get focus (no app restart needed), and the Settings screen's word count is refreshed immediately.
 
 ## Getting Started
 

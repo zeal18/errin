@@ -23,8 +23,18 @@ const mockGetAllWords = jest.fn() as jest.MockedFunction<() => Promise<Array<{
   reviews: number;
 }>>>;
 
+const mockGetWordKeys = jest.fn();
+const mockInsertWords = jest.fn();
+
 jest.mock('../db/words', () => ({
   getAllWords: () => mockGetAllWords(),
+  getWordKeys: () => mockGetWordKeys(),
+  insertWords: (...args: unknown[]) => mockInsertWords(...args),
+}));
+
+// Mock expo-document-picker
+jest.mock('expo-document-picker', () => ({
+  getDocumentAsync: jest.fn(),
 }));
 
 // Mock components and store

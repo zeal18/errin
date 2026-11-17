@@ -23,7 +23,15 @@ jest.mock('../store', () => ({
       isPairBehindCurrentVersion: () => false,
     }),
 }));
-jest.mock('../db/words', () => ({ getAllWords: jest.fn().mockResolvedValue([]) }));
+jest.mock('../db/words', () => ({
+  getAllWords: jest.fn().mockResolvedValue([]),
+  getWordKeys: jest.fn(),
+  insertWords: jest.fn(),
+}));
+// Mock expo-document-picker
+jest.mock('expo-document-picker', () => ({
+  getDocumentAsync: jest.fn(),
+}));
 
 import SettingsScreen from '../app/(tabs)/settings';
 

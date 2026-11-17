@@ -76,14 +76,26 @@ export const readMockFile = (path: string): string | undefined => {
   return mockFileSystem.get(path)?.content;
 };
 
+export const seedFile = (path: string, isDirectory: boolean = false, content: string = ''): void => {
+  mockFileSystem.set(path, { exists: true, isDirectory, content });
+};
+
+export const readAsStringAsync = jest.fn().mockImplementation(async (path: string): Promise<string> => {
+  if (!hasFileScheme(path)) {
+    throw new Error(`Unsupported scheme for location '${path}'.`);
+  }
+  const entry = mockFileSystem.get(path);
+  if (!entry || !entry.exists) {
+    throw new Error(`File not found: ${path}`);
+  }
+  return entry.content ?? '';
+});
+
 export const resetMockFileSystem = (): void => {
   mockFileSystem.clear();
   getInfoAsync.mockClear();
   readDirectoryAsync.mockClear();
   deleteAsync.mockClear();
   writeAsStringAsync.mockClear();
-};
-
-export const seedFile = (path: string, isDirectory: boolean = false): void => {
-  mockFileSystem.set(path, { exists: true, isDirectory, content: '' });
+  readAsStringAsync.mockClear();
 };

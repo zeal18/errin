@@ -15,10 +15,20 @@ jest.mock('expo-sharing', () => ({
   shareAsync: jest.fn().mockResolvedValue(undefined),
 }));
 const mockGetAllWords = jest.fn();
-jest.mock('../db/words', () => ({ getAllWords: () => mockGetAllWords() }));
+const mockGetWordKeys = jest.fn();
+const mockInsertWords = jest.fn();
+jest.mock('../db/words', () => ({
+  getAllWords: () => mockGetAllWords(),
+  getWordKeys: () => mockGetWordKeys(),
+  insertWords: (...args: unknown[]) => mockInsertWords(...args),
+}));
 jest.mock('../components/AddLanguagePairModal', () => ({ AddLanguagePairModal: () => null }));
 jest.mock('../components/DownloadConfirmationDialog', () => ({ DownloadConfirmationDialog: () => null }));
 jest.mock('../lib/theme', () => ({ useThemeColors: () => ({ accent: '#000', placeholder: '#999' }) }));
+// Mock expo-document-picker
+jest.mock('expo-document-picker', () => ({
+  getDocumentAsync: jest.fn(),
+}));
 jest.mock('../store', () => ({
   useAppStore: (selector: (s: unknown) => unknown) =>
     selector({
